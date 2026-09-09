@@ -1,0 +1,117 @@
+/* Global Select2 overrides (Select2 v4)
+   Goal: look like a plain/native select (no arrow/clear, no extra shadows). */
+
+.select2-container {
+  width: 100% !important;
+}
+
+/* Selection (single) */
+.select2-container--default .select2-selection--single {
+  height: 38px !important;
+  border: 1px solid #ced4da !important;
+  border-radius: 0.25rem !important;
+  background-color: #fff !important;
+  display: flex !important;
+  align-items: center !important;
+  box-shadow: none !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+  padding-left: 12px !important;
+  padding-right: 32px !important;
+  line-height: 1.5 !important;
+  color: inherit !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__placeholder {
+  color: #6c757d !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+  display: none !important; /* hide ▼ */
+}
+
+.select2-container--default .select2-selection--single .select2-selection__clear {
+  display: none !important; /* hide ✖ */
+}
+
+/* Focus state similar to Bootstrap */
+.select2-container--default.select2-container--focus .select2-selection--single {
+  border-color: #86b7fe !important;
+  box-shadow: none !important;
+}
+
+/* Avoid double border seam when open */
+.select2-container--open .select2-selection--single {
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+/* Dropdown (the list to select) */
+.select2-dropdown {
+  border: 1px solid #ced4da !important;
+  border-radius: 0.25rem !important;
+  overflow: hidden;
+  box-shadow: none !important;
+}
+
+.select2-container--open .select2-dropdown--below {
+  margin-top: -1px !important;
+}
+
+/* Multiple/tag mode: keep it plain */
+.select2-container--default .select2-selection--multiple {
+  min-height: 38px !important;
+  border: 1px solid #ced4da !important;
+  border-radius: 0.25rem !important;
+  background-color: #fff !important;
+  box-shadow: none !important;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+  background-color: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+  display: none !important;
+}
+
+.select2-container--default .select2-results__option {
+  padding: 6px 12px !important;
+}
+
+.select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
+  background-color: #0d6efd !important;
+  color: #fff !important;
+}
+
+.select2-container--default .select2-results__option--selected {
+  background-color: #e9ecef !important;
+  color: #212529 !important;
+}
+
+/* Search input inside dropdown */
+.select2-search--dropdown {
+  padding: 8px !important;
+}
+
+.select2-search--dropdown .select2-search__field {
+  height: 38px !important;
+  padding: 6px 12px !important;
+  border: 1px solid #ced4da !important;
+  border-radius: 0.25rem !important;
+  outline: none !important;
+}
+
+.select2-search--dropdown .select2-search__field:focus {
+  border-color: #86b7fe !important;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25) !important;
+}
+
+/* Validation helper class used by forms */
+.is-invalid-select2 .select2-selection {
+  border-color: #dc3545 !important;
+}
