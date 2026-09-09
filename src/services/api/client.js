@@ -5,10 +5,22 @@
 
 import axios from "axios";
 import env from "@utils/env.js";
+import { Capacitor } from "@capacitor/core";
 import { requestInterceptor, responseInterceptor } from "@services/api/interceptors.js";
 
+const getBaseUrl = () => {
+    if (Capacitor.isNativePlatform()) {
+        if (env.API_NATIVE_URL) return env.API_NATIVE_URL;
+        if (env.API_BASE_URL && /^https?:\/\//i.test(env.API_BASE_URL)) {
+            return env.API_BASE_URL;
+        }
+        return "http://192.168.1.15/api/v1/";
+    }
+    return env.API_BASE_URL;
+};
+
 const DEFAULT_CONFIG = {
-    baseURL: env.API_BASE_URL,
+    baseURL: getBaseUrl(),
     timeout: env.API_TIMEOUT || 30000,
     headers: {
         "Content-Type": "application/json",
