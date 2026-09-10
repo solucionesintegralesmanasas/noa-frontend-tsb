@@ -16,6 +16,7 @@ export const useNotificationsStore = defineStore('notifications', {
         sseSource: null,
         sseRetryCount: 0,
         sseMaxRetries: 10,
+        sseReconnectTimeout: null,
         activeExpiryToasts: [],
         expiryAlertInterval: null,
     }),
@@ -221,13 +222,18 @@ export const useNotificationsStore = defineStore('notifications', {
         },
 
         async connectSSE() {
-            if (this.sseSource) return;
+            // Evita duplicados: si ya hay una conexión abierta o conectando, no crear otra.
+            if (this.sseSource && this.sseSource.readyState !== EventSource.CLOSED) return;
             if (this.sseRetryCount >= this.sseMaxRetries) {
                 console.warn(`SSE: máximo de reintentos alcanzado (${this.sseMaxRetries})`);
                 return;
             }
 
-            await this.fetchLatestNotifications();
+            // Solo carga inicial por HTTP si no hay datos: el stream ya empuja
+            // actualizaciones y evita una petición pesada (~6s) en cada reconexión.
+            if (!this.latestNotifications || this.latestNotifications.length === 0) {
+                await this.fetchLatestNotifications();
+            }
 
             try {
                 const userStore = useUserStore();
@@ -243,13 +249,17 @@ export const useNotificationsStore = defineStore('notifications', {
                 const url = `${baseUrl}/notifications/stream`;
                 const params = new URLSearchParams();
                 if (tenantId) params.append('company_uuid', tenantId);
+                // EventSource no puede enviar headers Authorization, el backend acepta ?token=.
                 if (token) params.append('token', token);
 
                 const fullUrl = `${url}?${params.toString()}`;
 
                 this.sseSource = new EventSource(fullUrl);
 
-                this.sseRetryCount = 0;
+                this.sseSource.onopen = () => {
+                    // Conexión establecida: reinicia el contador de errores.
+                    this.sseRetryCount = 0;
+                };
 
                 this.sseSource.onmessage = (event) => {
                     try {
@@ -262,13 +272,31 @@ export const useNotificationsStore = defineStore('notifications', {
                     }
                 };
 
+                // Cierre programado del backend cada ~90s: reconecta sin contar como fallo.
+                this.sseSource.addEventListener('timeout', () => {
+                    this.closeSSESource();
+                    this.sseReconnectTimeout = setTimeout(() => {
+                        this.connectSSE();
+                    }, 1000);
+                });
+
                 this.sseSource.onerror = (err) => {
-                    console.error('SSE connection error:', err);
-                    this.disconnectSSE();
+                    // Si ya se cerró por timeout, el listener anterior gestiona la reconexión.
+                    if (!this.sseSource || this.sseSource.readyState === EventSource.CLOSED) {
+                        console.warn('SSE: conexión cerrada, reintentando...', err?.type || 'error');
+                    } else {
+                        console.error('SSE connection error:', err);
+                    }
+                    this.closeSSESource();
                     this.sseRetryCount++;
+                    if (this.sseRetryCount > this.sseMaxRetries) {
+                        console.warn(`SSE: máximo de reintentos alcanzado (${this.sseMaxRetries})`);
+                        return;
+                    }
                     const delay = Math.min(1000 * Math.pow(2, this.sseRetryCount), 30000);
                     console.warn(`SSE: reconexión en ${delay}ms (intento ${this.sseRetryCount}/${this.sseMaxRetries})`);
-                    setTimeout(() => {
+                    if (this.sseReconnectTimeout) clearTimeout(this.sseReconnectTimeout);
+                    this.sseReconnectTimeout = setTimeout(() => {
                         this.connectSSE();
                     }, delay);
                 };
@@ -280,11 +308,19 @@ export const useNotificationsStore = defineStore('notifications', {
         },
 
 
-        disconnectSSE() {
+        closeSSESource() {
             if (this.sseSource) {
                 this.sseSource.close();
                 this.sseSource = null;
             }
+        },
+
+        disconnectSSE() {
+            if (this.sseReconnectTimeout) {
+                clearTimeout(this.sseReconnectTimeout);
+                this.sseReconnectTimeout = null;
+            }
+            this.closeSSESource();
             this.sseRetryCount = 0;
         },
 
