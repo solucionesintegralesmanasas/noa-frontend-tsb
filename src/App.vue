@@ -30,11 +30,14 @@ onUnmounted(() => {
 const FORM_ROUTES = ['/crear', '/editar', '/nuevo'];
 
 watch(() => route.path, (newPath, oldPath) => {
+  // Apagar el spinner global cuando el router llega a /login (post-logout)
+  if (newPath === '/login') {
+    configStore.setLoading(false);
+    return;
+  }
+
   const fromForm = FORM_ROUTES.some(seg => oldPath?.includes(seg));
   const toNonForm = !FORM_ROUTES.some(seg => newPath?.includes(seg));
-  
-  // No sincronizar si vamos al login o si la sesión terminó
-  if (newPath === '/login') return;
 
   if (fromForm && toNonForm) {
     setTimeout(() => {
