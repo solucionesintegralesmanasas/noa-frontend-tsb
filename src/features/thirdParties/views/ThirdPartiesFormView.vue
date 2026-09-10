@@ -26,11 +26,11 @@
 
                         <!-- IDENTIDAD: foto + documento -->
                         <div class="col-12">
-                            <div class="row g-2 g-md-3 align-items-end">
-                                <div class="col-12 col-md-2">
-                                    <ProfilePhotoUploader :preview-src="filePreviews.photo" @change="onPhotoSelected" />
+                            <div class="row g-2 g-md-3 align-items-center">
+                                <div class="col-12 col-md-auto">
+                                    <ProfilePhotoUploader :preview-src="filePreviews.photo" @change="onPhotoSelected" @remove="onPhotoRemoved" />
                                 </div>
-                                <div class="col-12 col-md-10">
+                                <div class="col-12 col-md">
                                     <div class="row g-2 g-md-3">
                                         <div class="col-12 col-sm-6 col-md-3 col-lg-3">
                                             <label class="form-label required" for="person_type">Tipo de Persona</label>
@@ -737,9 +737,20 @@ const dynamicBreadcrumb = computed(() => {
 
 const goBack = () => router.push(dynamicBreadcrumb.value.to);
 
+const revokePreview = () => {
+    if (filePreviews.photo?.startsWith('blob:')) URL.revokeObjectURL(filePreviews.photo);
+};
+
 const onPhotoSelected = (file) => {
+    revokePreview();
     formData.photo = file;
     filePreviews.photo = URL.createObjectURL(file);
+};
+
+const onPhotoRemoved = () => {
+    revokePreview();
+    formData.photo = null;
+    filePreviews.photo = '';
 };
 
 const handleSubmit = async () => {
