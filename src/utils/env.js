@@ -19,6 +19,7 @@ export const env = Object.freeze({
     NODE_ENV: envVars.MODE || "development",
     APP_NAME: optional("APP_NAME", "FactusNext"),
     API_BASE_URL: required("API_BASE_URL"),
+    API_NATIVE_URL: optional("API_NATIVE_URL", "http://192.168.1.15/api/v1/"),
     API_TIMEOUT: num("API_TIMEOUT", 30000),
     AUTH_TOKEN_KEY: optional("AUTH_TOKEN_KEY", "auth_token"),
     ENCRYPTION_KEY: optional("ENCRYPTION_KEY", "secreto_seguro"),
