@@ -6,7 +6,7 @@ import path from 'path';
 export default defineConfig(({ mode }) => {
   // Cargar variables de entorno (carga archivos .env locales y globales)
   const env = loadEnv(mode, process.cwd(), '');
-  const proxyTarget = env.VITE_API_PROXY_TARGET || 'https://transportessinbarreras.local';
+  const proxyTarget = env.VITE_API_PROXY_TARGET || 'http://api.transportessinbarreras.local';
 
   return {
     plugins: [vue()],
