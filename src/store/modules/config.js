@@ -5,6 +5,7 @@ export const useConfigStore = defineStore('config', {
         navbarStyle: 'transparent',
         theme: 'light',
         isAppLoading: false,
+        loadingMessage: '',
     }),
 
     actions: {
@@ -14,8 +15,9 @@ export const useConfigStore = defineStore('config', {
         toggleTheme() {
             this.theme = this.theme === 'light' ? 'dark' : 'light';
         },
-        setLoading(status) {
+        setLoading(status, message = '') {
             this.isAppLoading = status;
+            this.loadingMessage = message;
         }
     }
 });

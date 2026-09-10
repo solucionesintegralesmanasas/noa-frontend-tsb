@@ -127,8 +127,11 @@
                             <span class="fas fa-user-shield me-1"></span> Roles y permisos
                         </router-link>
                         <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#" @click.prevent="handleLogout">
-                            <span class="fas fa-sign-out-alt me-1"></span> Cerrar sesión
+                        <a class="dropdown-item" href="#" :class="{ 'pe-none opacity-75': isLoggingOut }"
+                            :aria-busy="isLoggingOut" @click.prevent="handleLogout">
+                            <span v-if="isLoggingOut" class="spinner-border spinner-border-sm me-1" role="status"
+                                aria-hidden="true"></span>
+                            <span v-else class="fas fa-sign-out-alt me-1"></span> Cerrar sesión
                         </a>
                     </div>
                 </div>
@@ -138,11 +141,12 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useUserStore, useAuthStore, usePermissionsStore } from '@store'
 import { getMediaUrl } from '@/utils/media.js'
 import NoaBadge from '@/components/NoaBadge.vue'
 import { useNotificationsStore } from '@/features/notifications/store/notifications.store.js'
+import { useConfigStore } from '@store/modules/config.js'
 
 const props = defineProps({
     hideSidebarToggle: {
@@ -158,7 +162,9 @@ const props = defineProps({
 const userStore = useUserStore()
 const authStore = useAuthStore()
 const permissionsStore = usePermissionsStore()
+const configStore = useConfigStore()
 const store = useNotificationsStore()
+const isLoggingOut = ref(false)
 
 onMounted(() => {
     store.connectSSE()
@@ -265,9 +271,21 @@ const displayRoles = computed(() => {
 function toggleUserMenu() { }
 
 async function handleLogout() {
+    if (isLoggingOut.value) return
+
+    isLoggingOut.value = true
+
+    // Activar el spinner global de pantalla completa con mensaje contextual
+    configStore.setLoading(true, 'Cerrando sesión...')
+
     try {
+        // Dar tiempo al navegador para renderizar el overlay antes de iniciar el logout
+        await new Promise(resolve => setTimeout(resolve, 150))
         await authStore.logout({ redirect: true })
     } catch (error) {
+        // Solo en caso de error reversamos el estado del spinner
+        isLoggingOut.value = false
+        configStore.setLoading(false)
         console.error('Error during logout:', error)
     }
 }

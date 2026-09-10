@@ -75,7 +75,7 @@ const getInitialsLabel = (type) => {
 
 <template>
   <Transition name="fade">
-    <Noatspinner v-if="configStore.isAppLoading" />
+    <Noatspinner v-if="configStore.isAppLoading" :message="configStore.loadingMessage" />
   </Transition>
 
   <component :is="layoutComponent" v-if="layoutComponent">
