@@ -227,7 +227,7 @@
       <div class="about-grid">
         <div class="about-img-wrap reveal">
           <img src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=700&q=85"
-            alt="Lobo Express - Transporte especial">
+            alt="Lobo Express - Transporte especial" loading="lazy" decoding="async">
           <div class="about-img-badge">
             <span class="big">2024</span>
             Empresa habilitada por el MinTransporte
@@ -397,7 +397,7 @@
       </div>
       <div class="gallery-grid">
         <div class="gallery-item reveal" data-cat="ejecutivo">
-          <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80" alt="Transporte ejecutivo">
+          <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80" alt="Transporte ejecutivo" loading="lazy" decoding="async">
           <div class="gallery-overlay">
             <div>
               <h4>Transporte Ejecutivo</h4><span>Alta gama y confort</span>
@@ -406,7 +406,7 @@
         </div>
         <div class="gallery-item reveal reveal-delay-1" data-cat="empresarial">
           <img src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=600&q=80"
-            alt="Transporte empresarial">
+            alt="Transporte empresarial" loading="lazy" decoding="async">
           <div class="gallery-overlay">
             <div>
               <h4>Transporte Empresarial</h4><span>Movilidad corporativa</span>
@@ -414,7 +414,7 @@
           </div>
         </div>
         <div class="gallery-item reveal reveal-delay-2" data-cat="escolar">
-          <img src="https://images.unsplash.com/photo-1557223562-6c77ef16210f?w=600&q=80" alt="Transporte escolar">
+          <img src="https://images.unsplash.com/photo-1557223562-6c77ef16210f?w=600&q=80" alt="Transporte escolar" loading="lazy" decoding="async">
           <div class="gallery-overlay">
             <div>
               <h4>Transporte Escolar</h4><span>Seguridad para tus hijos</span>
@@ -422,7 +422,7 @@
           </div>
         </div>
         <div class="gallery-item reveal" data-cat="turistico">
-          <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600&q=80" alt="Transporte turístico">
+          <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600&q=80" alt="Transporte turístico" loading="lazy" decoding="async">
           <div class="gallery-overlay">
             <div>
               <h4>Transporte Turístico</h4><span>Toda Colombia te espera</span>
@@ -430,7 +430,7 @@
           </div>
         </div>
         <div class="gallery-item reveal reveal-delay-1" data-cat="empresarial">
-          <img src="https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=600&q=80" alt="Flota empresarial">
+          <img src="https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=600&q=80" alt="Flota empresarial" loading="lazy" decoding="async">
           <div class="gallery-overlay">
             <div>
               <h4>Sector Industrial</h4><span>Flota para industria y petróleo</span>
@@ -438,7 +438,7 @@
           </div>
         </div>
         <div class="gallery-item reveal reveal-delay-2" data-cat="ejecutivo">
-          <img src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=600&q=80" alt="Vehículo ejecutivo">
+          <img src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=600&q=80" alt="Vehículo ejecutivo" loading="lazy" decoding="async">
           <div class="gallery-overlay">
             <div>
               <h4>Camionetas y Pickups</h4><span>Toyota Hilux y más</span>

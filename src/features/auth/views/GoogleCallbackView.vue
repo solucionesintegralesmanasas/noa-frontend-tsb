@@ -72,7 +72,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
 
 .vh-100 {
     font-family: 'Outfit', sans-serif;

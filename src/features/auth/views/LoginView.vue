@@ -6,7 +6,7 @@
     <div class="glass-card">
       <div class="brand-panel">
         <div class="logo-box">
-          <img src="/logo.png" alt="NOA Transportes" class="brand-logo-img" width="1010" height="270" />
+          <img src="/logo.png" alt="NOA Transportes" class="brand-logo-img" width="1010" height="270" fetchpriority="high" decoding="async" />
         </div>
         <p class="brand-desc">Plataforma de gestión ERP diseñada para eficiencia, seguridad y escalabilidad en tu
           operación logística.</p>
@@ -141,7 +141,6 @@ const handleLogin = async () => {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
 .login-preview{font-family:'Outfit',sans-serif;--primary:#2c7be5;--primary-dark:#1a68d1;--accent:#00d27a;--sky:#00d2f4;background:linear-gradient(135deg,#f0f6ff 0%,#ffffff 50%,#f1f5f9 100%);border-radius:0;padding:clamp(1rem,4vw,3rem);min-height:100dvh;width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
 .shape-bg{position:absolute;border-radius:50%;filter:blur(50px);pointer-events:none;}
 .s1{width:22%;min-width:180px;aspect-ratio:1;background:rgba(44,123,229,0.12);top:-6%;right:-4%;}
