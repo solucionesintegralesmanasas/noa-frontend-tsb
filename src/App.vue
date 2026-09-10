@@ -5,6 +5,7 @@ import DashboardLayout from '@/components/DashboardLayout.vue';
 import { useNotificationsStore } from '@/features/notifications/store/notifications.store.js';
 import { useConfigStore } from '@/store/modules/config.js';
 import Noatspinner from '@/components/Noatspinner.vue';
+import NavProgressBar from '@/components/NavProgressBar.vue';
 import { useAuthStore } from '@/store/modules/auth.js';
 
 const route = useRoute();
@@ -77,6 +78,9 @@ const getInitialsLabel = (type) => {
 </script>
 
 <template>
+  <!-- Barra de progreso de navegación entre rutas (NProgress-style) -->
+  <NavProgressBar />
+
   <Transition name="fade">
     <Noatspinner v-if="configStore.isAppLoading" :message="configStore.loadingMessage" />
   </Transition>

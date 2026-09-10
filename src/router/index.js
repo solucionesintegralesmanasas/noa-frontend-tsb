@@ -143,6 +143,20 @@ router.afterEach((to) => {
     document.title = `${import.meta.env.VITE_APP_NAME || 'FactusNext'} - ${to.meta.title || 'Inicio'}`;
 });
 
+router.beforeEach(() => {
+    // Activar barra de progreso de navegación (con umbral de 80ms en el store)
+    import('@store/modules/config.js').then(({ useConfigStore }) => {
+        useConfigStore().startNavigation();
+    });
+});
+
+router.afterEach(() => {
+    // Finalizar barra de progreso de navegación
+    import('@store/modules/config.js').then(({ useConfigStore }) => {
+        useConfigStore().endNavigation();
+    });
+});
+
 router.onError((error) => {
     handleGlobalError(error, "router");
 });
