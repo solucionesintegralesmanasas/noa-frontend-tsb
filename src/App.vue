@@ -30,10 +30,10 @@ onUnmounted(() => {
 const FORM_ROUTES = ['/crear', '/editar', '/nuevo'];
 
 watch(() => route.path, (newPath, oldPath) => {
-  // Apagar el spinner global cuando el router llega a /login (post-logout)
-  if (newPath === '/login') {
+  // Apagar el spinner global al llegar a /login (post-logout) o al dashboard (post-login)
+  if (newPath === '/login' || newPath === '/dashboard') {
     configStore.setLoading(false);
-    return;
+    if (newPath === '/login') return;
   }
 
   const fromForm = FORM_ROUTES.some(seg => oldPath?.includes(seg));

@@ -103,9 +103,11 @@ import { useRouter } from 'vue-router';
 import { useAuthStore } from '../store/auth.store.js';
 import { useFormManager } from '@/hooks/useFormManager.js';
 import { handleGlobalError } from '@/utils/error-handler.js';
+import { useConfigStore } from '@store/modules/config.js';
 
 const router = useRouter();
 const authStore = useAuthStore();
+const configStore = useConfigStore();
 
 const { formData, errors, isSubmitting, validate } = useFormManager(
   { email: '', password: '' },
@@ -127,10 +129,16 @@ const handleLogin = async () => {
   if (!validate()) return;
 
   isSubmitting.value = true;
+
+  // Activar el spinner global de pantalla completa con mensaje contextual
+  configStore.setLoading(true, 'Iniciando sesión...');
+
   try {
     await authStore.login(formData);
     router.push('/dashboard');
   } catch (error) {
+    // Solo en caso de error apagamos el spinner y mostramos el mensaje
+    configStore.setLoading(false);
     loginError.value = error?.response?.data?.message ?? 'Correo o contraseña incorrectos.';
     handleGlobalError(error, 'LoginView', { redirectToLogin: false });
   } finally {
