@@ -32,8 +32,18 @@ export const usePermissionsStore = defineStore("permissions", {
             this.setUser(user);
         },
 
+        hasRole(role) {
+            if (!role) return false;
+            const target = String(role).toUpperCase();
+            return (this.roles || []).some(r => {
+                if (typeof r === 'string') return r.toUpperCase() === target;
+                if (typeof r === 'object' && r?.name) return String(r.name).toUpperCase() === target;
+                return false;
+            }) || (typeof rbac.hasRole === 'function' && rbac.hasRole(role));
+        },
+
         can(action, subject = null) {
-            if (this.roles.includes('super_admin') || this.roles.includes('Administrador') || this.roles.includes('Super Administrador') || this.roles.includes('SUPERADMIN')) {
+            if (this.hasRole('super_admin') || this.hasRole('Administrador') || this.hasRole('Super Administrador') || this.hasRole('SUPERADMIN') || this.hasRole('super-admin')) {
                 return true;
             }
             

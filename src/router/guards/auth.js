@@ -1,11 +1,23 @@
 import { useAuthStore } from "@store/modules/auth.js";
 import { useUserStore } from "@store/modules/user.js";
+import { usePermissionsStore } from "@store/modules/permissions.js";
 import { logger } from "@utils/logger.js";
 import { handleGlobalError } from "@utils/error-handler.js";
 
 // Sustituimos ROUTES por rutas directas o constantes locales
 const LOGIN_ROUTE = "/login";
 const DASHBOARD_ROUTE = "/dashboard";
+const CONDUCTOR_DASHBOARD_ROUTE = "/dashboard/conductor";
+
+function getDashboardRoute() {
+    try {
+        const permStore = usePermissionsStore();
+        if (permStore.hasRole && permStore.hasRole('CONDUCTOR')) {
+            return CONDUCTOR_DASHBOARD_ROUTE;
+        }
+    } catch {}
+    return DASHBOARD_ROUTE;
+}
 
 export async function authGuard(to, from, next) {
     const authStore = useAuthStore();
@@ -17,7 +29,7 @@ export async function authGuard(to, from, next) {
 
         // Si la ruta es solo para invitados (ej: login) y ya está autenticado, enviarlo al dashboard
         if (to.meta.guestOnly && isAuthenticated) {
-            return next({ path: DASHBOARD_ROUTE });
+            return next({ path: getDashboardRoute() });
         }
 
         // Si la ruta es pública, permitir el paso sin requerir autenticación
@@ -31,6 +43,16 @@ export async function authGuard(to, from, next) {
         if (authStore.isTokenExpired) {
             await authStore.logout({ redirect: false });
             return next(LOGIN_ROUTE);
+        }
+
+        // Si el conductor intenta acceder al dashboard general, redirigir al suyo
+        if (to.path === '/dashboard' && !to.path.includes('/dashboard/conductor')) {
+            try {
+                const permStore = usePermissionsStore();
+                if (permStore.hasRole && permStore.hasRole('CONDUCTOR')) {
+                    return next({ path: CONDUCTOR_DASHBOARD_ROUTE });
+                }
+            } catch {}
         }
 
         next();
