@@ -8,6 +8,7 @@ import { handleGlobalError } from "@utils/error-handler.js";
 import { authGuard } from "@router/guards/auth.js";
 import { permissionsGuard } from "@router/guards/permissions.js";
 import { twoFAGuard } from "@router/guards/2fa.js";
+import { useConfigStore } from "@store/modules/config.js";
 import { authRoutes } from "@features/auth/routes.js";
 import { dashboardRoutes } from "@features/dashboard/routes.js";
 import { companyRoutes } from "@features/companies/routes.js";
@@ -125,6 +126,9 @@ export const router = createRouter({
  * Ejecución secuencial garantiza que la seguridad se valide en orden.
  */
 router.beforeEach(async (to, from, next) => {
+    // Activar barra de progreso (protegido por si Pinia aún no está lista)
+    try { useConfigStore().startNavigation(); } catch (_) { /* Pinia no lista aún */ }
+
     const guards = [authGuard, twoFAGuard, tenantGuard, permissionsGuard];
 
     for (const guard of guards) {
@@ -141,20 +145,9 @@ router.beforeEach(async (to, from, next) => {
 
 router.afterEach((to) => {
     document.title = `${import.meta.env.VITE_APP_NAME || 'FactusNext'} - ${to.meta.title || 'Inicio'}`;
-});
 
-router.beforeEach(() => {
-    // Activar barra de progreso de navegación (con umbral de 80ms en el store)
-    import('@store/modules/config.js').then(({ useConfigStore }) => {
-        useConfigStore().startNavigation();
-    });
-});
-
-router.afterEach(() => {
     // Finalizar barra de progreso de navegación
-    import('@store/modules/config.js').then(({ useConfigStore }) => {
-        useConfigStore().endNavigation();
-    });
+    try { useConfigStore().endNavigation(); } catch (_) { /* Pinia no lista aún */ }
 });
 
 router.onError((error) => {
