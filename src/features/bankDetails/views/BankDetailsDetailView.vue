@@ -214,7 +214,7 @@ onMounted(async () => {
         console.error(error);
         goBack();
     } finally {
-        setTimeout(() => { isViewLoading.value = false; }, 300);
+        isViewLoading.value = false;
     }
 });
 </script>

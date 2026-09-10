@@ -406,21 +406,6 @@ const handleDelete = (item) => confirmDelete(item, {
 
 onMounted(async () => {
     try {
-        // Esperar a que el store de autenticación se hidrate desde secureStorage en F5
-        let attempts = 0;
-        while (!authStore.isHydrated && attempts < 100) {
-            await new Promise(resolve => setTimeout(resolve, 20));
-            attempts++;
-        }
-
-        if (authStore.isAuthenticated) {
-            attempts = 0;
-            while ((!userStore.id || !permissionsStore.isLoaded) && attempts < 100) {
-                await new Promise(resolve => setTimeout(resolve, 20));
-                attempts++;
-            }
-        }
-
         searchQuery.value = store.search;
         const type = route.params.documentType;
         if (type === 'soat') store.documentTypeFilter = 'SOAT';
@@ -429,7 +414,8 @@ onMounted(async () => {
         else store.documentTypeFilter = null;
         await store.fetchItems();
     } finally {
-        setTimeout(() => { isViewLoading.value = false; initTooltips(); }, 300);
+        isViewLoading.value = false;
+        initTooltips();
     }
 });
 
@@ -442,7 +428,8 @@ watch(() => route.path, async () => {
     else store.documentTypeFilter = null;
 
     await store.setPage(1);
-    setTimeout(() => { isViewLoading.value = false; initTooltips(); }, 300);
+    isViewLoading.value = false;
+    initTooltips();
 });
 
 onUnmounted(() => destroyTooltips());

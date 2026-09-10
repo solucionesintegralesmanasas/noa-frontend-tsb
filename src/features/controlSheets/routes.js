@@ -4,7 +4,7 @@ export const controlSheetsRoutes = [
         name: 'controlSheets.list',
         component: () => import('./views/ControlSheetsListView.vue'),
         meta: {
-            title: 'Listado',
+            title: 'Planillas de Control',
             auth: true,
             layout: 'dashboard',
             permissions: ['control_sheets.index'],
@@ -15,7 +15,7 @@ export const controlSheetsRoutes = [
         name: 'controlSheets.create',
         component: () => import('./views/ControlSheetsFormView.vue'),
         meta: {
-            title: 'Crear',
+            title: 'Crear Planilla de Control',
             auth: true,
             layout: 'dashboard',
             permissions: ['control_sheets.create'],
@@ -26,7 +26,7 @@ export const controlSheetsRoutes = [
         name: 'controlSheets.edit',
         component: () => import('./views/ControlSheetsFormView.vue'),
         meta: {
-            title: 'Editar',
+            title: 'Editar Planilla de Control',
             auth: true,
             layout: 'dashboard',
             permissions: ['control_sheets.update'],

@@ -34,6 +34,12 @@
                                 <div v-if="validationErrors.vehicle_uuid" class="invalid-feedback d-block">
                                     {{ validationErrors.vehicle_uuid }}
                                 </div>
+                                <div v-if="isConductor && assignedVehiclesLoaded && !assignedVehicleUuids.length" class="form-text text-warning small">
+                                    No tienes vehículos asignados en tus proyectos. Solicita la asignación para registrar inspecciones.
+                                </div>
+                                <div v-else-if="isConductor" class="form-text text-muted small">
+                                    Solo tus vehículos asignados en proyecto.
+                                </div>
                             </div>
 
                             <!-- Fecha de Inspección -->
@@ -126,10 +132,6 @@
                                     {{ selectedCount }} / {{ resultsData.length }} ítems seleccionados
                                 </span>
                             </div>
-                            <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1"
-                                style="font-size: 0.75rem;" @click="markAllAsApproved">
-                                <i class="fad fa-check-double me-1"></i> Marcar todos APROBADO
-                            </button>
                         </div>
                     </div>
 
@@ -214,7 +216,7 @@
                 <!-- ═══════════════════════════════════════════════════════════ -->
                 <div v-if="!isViewLoading" class="mt-4 mb-4 fade-in-up" style="animation-delay: 0.3s;">
                     <div v-if="isEditMode" class="d-flex justify-content-start mb-2">
-                        <button type="button" class="btn btn-outline-danger rounded-pill px-4 w-100 w-sm-auto"
+                        <button type="button" class="btn btn-outline-danger rounded-pill px-3 w-100 w-sm-auto"
                             @click="downloadPdf" :disabled="downloadingPdf">
                             <span v-show="downloadingPdf" class="spinner-border spinner-border-sm me-1"></span>
                             <i v-show="!downloadingPdf" class="fad fa-file-pdf me-1"></i>
@@ -225,7 +227,7 @@
                         <BaseFormActions :submitting="submitting" :is-edit-mode="isEditMode" @cancel="goBack" />
                     </div>
                     <div v-else class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4 w-100 w-sm-auto"
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-3 w-100 w-sm-auto"
                             @click="goBack">
                             <i class="fas fa-times me-1"></i> Cancelar
                         </button>
@@ -246,6 +248,7 @@ import { useAuthStore } from '@/store/modules/auth.js';
 import { usePermissionsStore, useUserStore } from '@store';
 import apiClient from '@/services/api/client.js';
 import VehicleInspectionsService from '../services/vehicleInspections.service.js';
+import ProjectsService from '../../projects/services/projects.service.js';
 import BasePageHeader from '@/components/BasePageHeader.vue';
 import BaseFormActions from '@/components/BaseFormActions.vue';
 import Swal from 'sweetalert2';
@@ -257,6 +260,7 @@ const store = useVehicleInspectionsStore();
 const permissionsStore = usePermissionsStore();
 const userStore = useUserStore();
 const isSuperAdmin = computed(() => permissionsStore.roles?.includes('SUPERADMIN'));
+const isConductor = computed(() => permissionsStore.roles?.includes('CONDUCTOR'));
 
 
 
@@ -294,10 +298,51 @@ const formData = reactive({
 });
 
 // ── Filtros Reactivos ─────────────────────────────────────────────────────
+// El conductor solo ve los vehículos asignados en sus proyectos.
+const assignedVehicleUuids = ref([]);
+const assignedVehiclesLoaded = ref(false);
+
 const filteredVehicles = computed(() => {
-    if (!formData.company_uuid) return store.catalogs.vehicles || [];
-    return (store.catalogs.vehicles || []).filter(v => v.company_uuid === formData.company_uuid);
+    const all = (!formData.company_uuid)
+        ? (store.catalogs.vehicles || [])
+        : (store.catalogs.vehicles || []).filter(v => v.company_uuid === formData.company_uuid);
+    if (!isConductor.value || !assignedVehiclesLoaded.value) return all;
+    if (!assignedVehicleUuids.value.length) return [];
+    const set = new Set(assignedVehicleUuids.value);
+    return all.filter(v => set.has(v.uuid));
 });
+
+/** Carga los vehículos asignados al conductor en sus proyectos (solo rol CONDUCTOR). */
+const loadConductorAssignments = async () => {
+    assignedVehicleUuids.value = [];
+    assignedVehiclesLoaded.value = false;
+    const driverUuid = userStore.uuid_driver || userStore.third_party_uuid;
+    if (!driverUuid) {
+        assignedVehiclesLoaded.value = true;
+        return;
+    }
+    try {
+        const res = await ProjectsService.list({ third_party_uuid: driverUuid, per_page: 100 });
+        const page = res?.data?.data ?? res?.data ?? {};
+        const projects = Array.isArray(page) ? page : (page.data || []);
+        const uuids = new Set();
+        await Promise.all((projects || []).map(async (p) => {
+            try {
+                const det = await ProjectsService.get(p.uuid);
+                const item = det?.data?.data ?? det?.data ?? det ?? {};
+                const assigns = item.driverVehicleAssignments || item.driver_vehicle_assignments || item.assignments || [];
+                assigns.forEach(a => {
+                    if (a.is_active !== false && a.is_active !== 0 && a.vehicle_uuid) uuids.add(a.vehicle_uuid);
+                });
+            } catch (e) { /* proyecto sin detalle accesible */ }
+        }));
+        assignedVehicleUuids.value = [...uuids];
+    } catch (e) {
+        console.warn('No se pudieron cargar las asignaciones del conductor', e?.message);
+    } finally {
+        assignedVehiclesLoaded.value = true;
+    }
+};
 
 const filteredDrivers = computed(() => {
     if (!formData.company_uuid) return store.catalogs.drivers || [];
@@ -399,26 +444,7 @@ const getCategoryCount = (category) => {
     return groupedResults.value[category]?.length || 0;
 };
 
-const markAllAsApproved = () => {
-    Swal.fire({
-        title: '¿Marcar todos como Aprobado?',
-        text: 'Se cambiarán todos los ítems de inspección al estado APROBADO',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'Sí, marcar todos',
-        cancelButtonText: 'Cancelar',
-        confirmButtonColor: '#10b981',
-        cancelButtonColor: '#6c757d'
-    }).then((res) => {
-        if (res.isConfirmed) {
-            resultsData.value.forEach(result => {
-                result.is_selected = true;
-                result.status = 'APROBADO';
-            });
-            resultsData.value = [...resultsData.value];
-        }
-    });
-};
+
 
 // ── Select2 ─────────────────────────────────────────────────────────────────
 const companySelect = ref(null);
@@ -464,6 +490,10 @@ const validateForm = () => {
 
     if (!formData.company_uuid) validationErrors.company_uuid = 'Este campo es obligatorio';
     if (!formData.vehicle_uuid) validationErrors.vehicle_uuid = 'Este campo es obligatorio';
+    if (isConductor.value && assignedVehiclesLoaded.value && formData.vehicle_uuid && assignedVehicleUuids.value.length
+        && !assignedVehicleUuids.value.includes(formData.vehicle_uuid)) {
+        validationErrors.vehicle_uuid = 'Solo puedes inspeccionar tus vehículos asignados en proyecto';
+    }
     if (!formData.inspection_date) validationErrors.inspection_date = 'Este campo es obligatorio';
     if (formData.mileage === '' || formData.mileage === null || formData.mileage === undefined || formData.mileage <= 0) {
         validationErrors.mileage = 'Ingresa un kilometraje válido';
@@ -472,7 +502,11 @@ const validateForm = () => {
     return Object.keys(validationErrors).length === 0;
 };
 
-const goBack = () => router.push('/inspeccion-vehiculos');
+const goBack = () => {
+    const ret = route.query.return_to;
+    if (ret) return router.push(ret);
+    return router.push('/inspeccion-vehiculos');
+};
 
 /**
  * Construye el payload con el formato requerido por la API:
@@ -632,6 +666,35 @@ onMounted(async () => {
                 });
                 existingResults = item.results || item.inspection_results || [];
                 await fetchPreviousMileage(item.vehicle_uuid, route.params.id);
+            }
+        } else {
+            const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+            const today = (new Date(Date.now() - tzoffset)).toISOString().split('T')[0];
+            formData.inspection_date = today;
+
+            if (isConductor.value) {
+                await loadConductorAssignments();
+                const driverUuid = userStore.uuid_driver || userStore.third_party_uuid;
+                if (driverUuid) {
+                    formData.driver_uuid = driverUuid;
+                }
+                const conductorName = userStore.fullName || userStore.name;
+                if (conductorName) {
+                    formData.inspector_name = conductorName;
+                }
+            }
+
+            // Prefill desde el Control de Servicios (retorno a la planilla)
+            const q = route.query || {};
+            if (q.inspection_date) formData.inspection_date = String(q.inspection_date).substring(0, 10);
+            if (q.driver_uuid) formData.driver_uuid = q.driver_uuid;
+            if (q.vehicle_uuid) {
+                const ok = filteredVehicles.value.find(v => v.uuid === q.vehicle_uuid);
+                if (ok || !isConductor.value) formData.vehicle_uuid = q.vehicle_uuid;
+            }
+
+            if (isConductor.value && !formData.vehicle_uuid && filteredVehicles.value.length === 1) {
+                formData.vehicle_uuid = filteredVehicles.value[0].uuid;
             }
         }
 

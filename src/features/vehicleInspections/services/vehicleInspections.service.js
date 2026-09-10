@@ -57,6 +57,24 @@ class VehicleInspectionService extends BaseService {
     }
 
     /**
+     * Verifica si existe inspección de un vehículo en una fecha (una al día).
+     * @param {string} vehicleUuid - UUID del vehículo.
+     * @param {string} date - Fecha Y-m-d a verificar.
+     * @returns {Promise<{exists:boolean, inspection:Object|null}>}
+     */
+    async checkToday(vehicleUuid, date) {
+        try {
+            const res = await this._getInstance().get(
+                `fleet-management/vehicle-inspections/check-today?vehicle_uuid=${vehicleUuid}&date=${date}`
+            );
+            return res.data?.data ?? res.data ?? { exists: false, inspection: null };
+        } catch (err) {
+            console.warn('Error verificando inspección del día:', err.message);
+            return { exists: false, inspection: null };
+        }
+    }
+
+    /**
      * Obtiene el historial de inspecciones para un vehículo.
      * @param {string} vehicleUuid - UUID del vehículo.
      * @param {Object} params - Parámetros adicionales de paginación.

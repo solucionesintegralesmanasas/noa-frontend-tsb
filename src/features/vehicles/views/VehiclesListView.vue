@@ -464,22 +464,6 @@ watch(
 
 onMounted(async () => {
     try {
-        // Esperar a que el store de autenticación se hidrate desde secureStorage en F5
-        let attempts = 0;
-        while (!authStore.isHydrated && attempts < 100) {
-            await new Promise(resolve => setTimeout(resolve, 20));
-            attempts++;
-        }
-
-        // Esperar a que el store de usuario y de permisos estén completamente hidratados/cargados en F5
-        if (authStore.isAuthenticated) {
-            attempts = 0;
-            while ((!userStore.id || !permissionsStore.isLoaded) && attempts < 100) {
-                await new Promise(resolve => setTimeout(resolve, 20));
-                attempts++;
-            }
-        }
-
         const queryPage = route.query.page ? parseInt(route.query.page, 10) : 1;
         const queryPerPage = route.query.per_page ? parseInt(route.query.per_page, 10) : 10;
         const querySearch = route.query.search || '';
@@ -491,7 +475,8 @@ onMounted(async () => {
         searchQuery.value = querySearch;
         await store.fetchItems();
     } finally {
-        setTimeout(() => { isViewLoading.value = false; initTooltips(); }, 300);
+        isViewLoading.value = false;
+        initTooltips();
     }
 });
 

@@ -856,7 +856,7 @@
 
                     <!-- Botón para Guardar -->
                     <div class="d-flex align-items-center justify-content-end gap-3 mt-4">
-                        <button type="submit" class="btn btn-primary px-5 py-2 rounded-pill shadow-sm"
+                        <button type="submit" class="btn btn-primary px-4 rounded-pill shadow-sm"
                             :disabled="submitting">
                             <i class="fad fa-save me-1" v-show="!submitting"></i>
                             <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"

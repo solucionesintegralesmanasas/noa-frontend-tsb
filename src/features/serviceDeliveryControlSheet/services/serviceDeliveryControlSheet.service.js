@@ -82,7 +82,7 @@ class ServiceDeliveryControlSheetService extends BaseService {
      * Obtiene las opciones de los catálogos relacionados (Empresas, Vehículos, Conductores).
      * @returns {Promise<Object>} Objeto con los arreglos de opciones.
      */
-    async getFormOptions() {
+    async getFormOptions(companyUuid) {
         const fetchSafe = async (url) => {
             try {
                 const res = await this._getInstance().get(url);
@@ -101,13 +101,57 @@ class ServiceDeliveryControlSheetService extends BaseService {
             fetchSafe('contract-extract/fuecs/list'),
         ]);
 
+        // Si se proporciona companyUuid, también cargar proyectos de esa empresa
+        let projects = [];
+        if (companyUuid) {
+            try {
+                const res = await this._getInstance().get(`projects/list?company_uuid=${companyUuid}`);
+                projects = res.data?.data ?? res.data ?? [];
+            } catch (err) {
+                console.warn('Error cargando proyectos', err.message);
+            }
+        }
+
         return {
             companies,
             vehicles,
             drivers,
             vehicleClasses,
             fuecs,
+            projects,
         };
+    }
+
+    /**
+     * Obtiene el listado de proyectos para una empresa.
+     * Usa instancia directa porque no cuelga del resourcePath de planillas.
+     * @param {string} companyUuid - UUID de la empresa.
+     * @returns {Promise<Array>} Lista de proyectos.
+     */
+    async listProjects(companyUuid) {
+        try {
+            const url = companyUuid ? `projects/list?company_uuid=${companyUuid}` : 'projects/list';
+            const res = await this._getInstance().get(url);
+            return res.data?.data ?? res.data ?? [];
+        } catch (err) {
+            console.warn('Error cargando proyectos', err.message);
+            return [];
+        }
+    }
+
+    /**
+     * Obtiene un proyecto con sus asignaciones conductor-vehículo.
+     * @param {string} uuid - UUID del proyecto.
+     * @returns {Promise<Object>} Proyecto con driverVehicleAssignments.
+     */
+    async getProjectDetail(uuid) {
+        try {
+            const res = await this._getInstance().get(`projects/${uuid}`);
+            return res.data?.data ?? res.data ?? null;
+        } catch (err) {
+            console.warn('Error cargando detalle de proyecto', err.message);
+            return null;
+        }
     }
 
     /**

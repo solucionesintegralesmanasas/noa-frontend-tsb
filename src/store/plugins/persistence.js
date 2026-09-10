@@ -28,7 +28,13 @@ async function configurePersistence(store, key) {
     } catch (e) {
         logger.error(`Error de hidratación en Store [${store.$id}]:`, e);
     } finally {
-        store.isHydrated = true;
+        if (typeof store.setHydrated === 'function') {
+            store.setHydrated(true);
+        } else if (typeof store.$patch === 'function') {
+            store.$patch({ isHydrated: true });
+        } else {
+            store.isHydrated = true;
+        }
     }
 
     // Suscribirse a cambios para persistir el estado automáticamente

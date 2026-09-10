@@ -11,13 +11,13 @@
                             <!-- Datos del Conductor -->
                             <div class="col-12 col-lg-7">
                                 <div class="d-flex align-items-center">
-                                    <div class="avatar avatar-3xl me-3 flex-shrink-0">
+                                    <div class="avatar avatar-3xl me-2 me-sm-3 flex-shrink-0">
                                         <div class="avatar-name rounded-circle bg-primary text-white fs-4 fw-bold shadow-sm d-flex align-items-center justify-content-center">
                                             <span>{{ driverInitials }}</span>
                                         </div>
                                     </div>
-                                    <div>
-                                        <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                    <div class="min-w-0">
+                                        <div class="d-flex align-items-center gap-1 gap-sm-2 flex-wrap mb-1">
                                             <span class="badge bg-warning text-dark fw-bold px-2 py-1 fs-11">
                                                 <i class="fas fa-steering-wheel me-1"></i> ROL CONDUCTOR
                                             </span>
@@ -25,10 +25,10 @@
                                                 <i class="fas fa-id-card me-1"></i> Licencia Cat. {{ licenseInfo.category || 'C2' }} · {{ licenseInfo.status || 'ACTIVA' }}
                                             </span>
                                         </div>
-                                        <h4 class="text-900 fw-bold mb-1">
-                                            {{ greeting }}, <span class="text-primary">{{ conductorName }}</span>
+                                        <h4 class="text-900 fw-bold mb-1 fs-18 fs-sm-20 text-truncate">
+                                            {{ greeting }}, <span class="text-primary">Sr. {{ conductorFirstName }}</span>
                                         </h4>
-                                        <p class="text-600 mb-0 fs-11">
+                                        <p class="text-600 mb-0 fs-11 text-truncate">
                                             <span class="fw-semi-bold">{{ companyName }}</span>
                                             <span v-if="conductorDocument" class="text-400 mx-1">|</span>
                                             <span v-if="conductorDocument" class="text-muted">CC: {{ conductorDocument }}</span>
@@ -41,10 +41,10 @@
 
                             <!-- Controles de Periodo y Actualización -->
                             <div class="col-12 col-lg-5 text-lg-end">
-                                <div class="d-flex align-items-center justify-content-start justify-content-lg-end gap-2 flex-wrap">
-                                    <div class="d-flex align-items-center gap-1 bg-white border rounded px-2 py-1 shadow-xs">
+                                <div class="d-flex align-items-center justify-content-between justify-content-lg-end gap-2 flex-nowrap">
+                                    <div class="d-flex align-items-center gap-1 bg-white border rounded px-2 py-1 shadow-xs flex-grow-1 flex-lg-grow-0">
                                         <i class="far fa-calendar-alt text-primary fs-11"></i>
-                                        <select v-model="selectedPeriod" class="form-select form-select-sm border-0 py-0 ps-1 pe-4 shadow-none fs-11"
+                                        <select v-model="selectedPeriod" class="form-select form-select-sm border-0 py-0 ps-1 pe-4 shadow-none fs-11 w-100"
                                             style="cursor: pointer;" @change="loadData">
                                             <option value="7">Últimos 7 días</option>
                                             <option value="15">Últimos 15 días</option>
@@ -54,10 +54,10 @@
                                         </select>
                                     </div>
 
-                                    <button class="btn btn-primary btn-sm px-3 shadow-xs d-inline-flex align-items-center gap-1"
+                                    <button class="btn btn-primary btn-sm px-3 shadow-xs d-inline-flex align-items-center justify-content-center gap-1 flex-shrink-0"
                                         :disabled="isLoading" @click="loadData" title="Actualizar datos del dashboard">
                                         <i class="fas fa-sync-alt" :class="{ 'fa-spin': isLoading }"></i>
-                                        <span class="d-none d-sm-inline">Actualizar</span>
+                                        <span>Actualizar</span>
                                     </button>
                                 </div>
                             </div>
@@ -68,113 +68,54 @@
         </div>
 
         <!-- ═══════════════════════════════════════════════════════════
-             2. KPI STATS OVERVIEW DEL CONDUCTOR
+             SERVICIO ACTIVO (planilla en ruta)
         ═══════════════════════════════════════════════════════════ -->
-        <div class="row g-3 mb-4">
-            <!-- KM Total Recorrido -->
-            <div class="col-6 col-md-4 col-xl-2 flex-fill">
-                <div class="card h-100 border-0 shadow-sm kpi-card kpi-km">
-                    <div class="card-body p-3">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="text-700 fs-11 fw-semi-bold text-uppercase">Km Recorrido</span>
-                            <div class="kpi-icon bg-primary bg-opacity-10 text-primary">
-                                <i class="fas fa-road"></i>
+        <div v-if="activeService" class="row mb-3">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm overflow-hidden" style="border-left: 5px solid #00d27a !important;">
+                    <div class="card-body p-3 p-md-4">
+                        <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center gap-3">
+                            <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                                <span class="badge bg-success d-flex align-items-center gap-2 px-3 py-2 fw-bold rounded-pill text-uppercase">
+                                    <span class="pulse-indicator bg-white"></span>
+                                    Servicio activo · En ruta
+                                </span>
                             </div>
-                        </div>
-                        <h4 class="mb-0 fw-bolder text-900 font-sans-serif">
-                            {{ formatNumber(kpis.total_km) }} <span class="fs-10 text-muted fw-normal">km</span>
-                        </h4>
-                        <small class="text-500 fs-11 mt-1 d-block">
-                            En {{ selectedPeriod }} días
-                        </small>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Vehículos Asignados / Usados -->
-            <div class="col-6 col-md-4 col-xl-2 flex-fill">
-                <div class="card h-100 border-0 shadow-sm kpi-card">
-                    <div class="card-body p-3">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="text-700 fs-11 fw-semi-bold text-uppercase">Vehículos</span>
-                            <div class="kpi-icon bg-info bg-opacity-10 text-info">
-                                <i class="fas fa-truck-moving"></i>
+                            <div class="flex-fill">
+                                <h5 class="fw-bold text-900 mb-1">
+                                    {{ activeService.project_name || 'Servicio en curso' }}
+                                    <span v-if="activeService.vehicle_plate" class="badge bg-subtle-secondary text-dark fw-bold ms-1">
+                                        {{ activeService.vehicle_plate }}
+                                    </span>
+                                </h5>
+                                <p class="text-600 fs-11 mb-0">
+                                    <span v-if="activeService.start_time">
+                                        <i class="far fa-clock me-1"></i>Salida: <strong>{{ activeService.start_time }}</strong>
+                                    </span>
+                                    <span v-if="activeService.routes_count" class="ms-2">
+                                        <i class="fas fa-route me-1"></i>{{ activeService.routes_count }} recorrido{{ activeService.routes_count !== 1 ? 's' : '' }}
+                                    </span>
+                                    <span v-if="activeService.routes_text" class="d-block text-truncate mt-1" :title="activeService.routes_text">
+                                        {{ activeService.routes_text }}
+                                    </span>
+                                </p>
                             </div>
+                            <router-link :to="`/planilla-de-control-de-prestacion-servicios/control-de-servicios?service_uuid=${activeService.service_uuid}`"
+                                class="btn btn-success btn-sm px-4 py-2 shadow-xs d-inline-flex align-items-center justify-content-center gap-2 w-100 w-md-auto flex-shrink-0">
+                                <i class="fas fa-play-circle"></i>
+                                <span>Continuar servicio</span>
+                            </router-link>
                         </div>
-                        <h4 class="mb-0 fw-bolder text-900 font-sans-serif">
-                            {{ kpis.vehicles_count }}
-                        </h4>
-                        <small class="text-500 fs-11 mt-1 d-block">
-                            Flota habilitada
-                        </small>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Inspecciones Pre-operacionales Realizadas -->
-            <div class="col-6 col-md-4 col-xl-2 flex-fill">
-                <div class="card h-100 border-0 shadow-sm kpi-card">
-                    <div class="card-body p-3">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="text-700 fs-11 fw-semi-bold text-uppercase">Inspecciones</span>
-                            <div class="kpi-icon bg-success bg-opacity-10 text-success">
-                                <i class="fas fa-clipboard-check"></i>
-                            </div>
-                        </div>
-                        <h4 class="mb-0 fw-bolder text-900 font-sans-serif">
-                            {{ kpis.inspections_count }}
-                        </h4>
-                        <small class="text-500 fs-11 mt-1 d-block">
-                            Pre-operacionales
-                        </small>
-                    </div>
-                </div>
-            </div>
-
-            <!-- FUECs Asignados -->
-            <div class="col-6 col-md-4 col-xl-2 flex-fill">
-                <div class="card h-100 border-0 shadow-sm kpi-card">
-                    <div class="card-body p-3">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="text-700 fs-11 fw-semi-bold text-uppercase">FUECs</span>
-                            <div class="kpi-icon bg-warning bg-opacity-10 text-warning">
-                                <i class="fas fa-file-contract"></i>
-                            </div>
-                        </div>
-                        <h4 class="mb-0 fw-bolder text-900 font-sans-serif">
-                            {{ kpis.fuecs_count }}
-                        </h4>
-                        <small class="text-500 fs-11 mt-1 d-block">
-                            Extractos vigentes
-                        </small>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Planillas PCP / ControlSheets -->
-            <div class="col-12 col-md-4 col-xl-2 flex-fill">
-                <div class="card h-100 border-0 shadow-sm kpi-card">
-                    <div class="card-body p-3">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="text-700 fs-11 fw-semi-bold text-uppercase">Planillas PCP</span>
-                            <div class="kpi-icon bg-purple bg-opacity-10 text-purple">
-                                <i class="fas fa-clipboard-list"></i>
-                            </div>
-                        </div>
-                        <h4 class="mb-0 fw-bolder text-900 font-sans-serif">
-                            {{ kpis.service_delivery_count + kpis.control_sheets_count }}
-                        </h4>
-                        <small class="text-500 fs-11 mt-1 d-block">
-                            Hojas registradas
-                        </small>
                     </div>
                 </div>
             </div>
         </div>
 
+
+
         <!-- ═══════════════════════════════════════════════════════════
              3. ACCESOS DIRECTOS PRINCIPALES (TARJETAS GRANDES)
-             Inspecciones, ControlSheets, FUEC, Hojas de Control
+             Inspecciones, Planillas de Control, FUEC, Hojas de Control
         ═══════════════════════════════════════════════════════════ -->
         <div class="mb-4">
             <div class="d-flex align-items-center justify-content-between mb-3">
@@ -183,46 +124,46 @@
                         <i class="fas fa-th-large"></i>
                     </div>
                     <div>
-                        <h5 class="mb-0 fw-bold text-900">Módulos de Operación Rápida</h5>
-                        <p class="text-500 fs-11 mb-0">Accesos directos a tus herramientas de trabajo en ruta</p>
+                        <h5 class="mb-0 fw-bold text-1000">Módulos de Gestión Rápida</h5>
+                        <p class="text-500 fs-11 mb-0">Accesos directos a tus operaciones vehiculares y normativas</p>
                     </div>
                 </div>
             </div>
 
             <div class="row g-3">
-                <!-- 1. Inspecciones Vehiculares -->
+                <!-- 1. Listado de Inspecciones -->
                 <div class="col-12 col-sm-6 col-xl-3">
                     <div class="card h-100 border-0 shadow-sm module-card card-action-blue">
                         <div class="card-body p-3 p-lg-4 d-flex flex-column justify-content-between">
                             <div>
                                 <div class="d-flex align-items-start justify-content-between mb-3">
                                     <div class="module-avatar bg-subtle-primary text-primary">
-                                        <i class="fas fa-clipboard-check fs-2"></i>
+                                        <i class="fas fa-tasks-alt fs-2"></i>
                                     </div>
                                     <span class="badge bg-primary bg-opacity-10 text-primary fw-semi-bold fs-11">
                                         {{ kpis.inspections_count }} Registradas
                                     </span>
                                 </div>
-                                <h5 class="fw-bold text-900 mb-1">Inspecciones Vehiculares</h5>
+                                <h5 class="fw-bold text-900 mb-1 fs-16 fs-sm-18">Listado de Inspecciones</h5>
                                 <p class="text-600 fs-11 mb-3">
-                                    Diligencia tu pre-operacional diario: estado de frenos, llantas, fluidos y equipo de carretera antes de iniciar ruta.
+                                    Histórico de inspecciones de seguridad vial pre-operacionales de la flota.
                                 </p>
                             </div>
                             <div class="d-flex flex-column gap-2 mt-auto">
-                                <router-link to="/inspeccion-vehiculos/crear" class="btn btn-primary btn-sm w-100 shadow-xs d-flex align-items-center justify-content-center gap-2">
-                                    <i class="fas fa-plus-circle"></i>
-                                    <span>Nueva Inspección</span>
+                                <router-link to="/inspeccion-vehiculos" class="btn btn-primary btn-sm w-100 shadow-xs d-flex align-items-center justify-content-center gap-2 py-2">
+                                    <i class="fas fa-folder-open"></i>
+                                    <span>Ver Inspecciones</span>
                                 </router-link>
-                                <router-link to="/inspeccion-vehiculos" class="btn btn-outline-secondary btn-sm w-100 d-flex align-items-center justify-content-center gap-2">
-                                    <i class="fas fa-list-ul"></i>
-                                    <span>Ver Listado</span>
+                                <router-link to="/inspeccion-vehiculos/crear" class="btn btn-outline-secondary btn-sm w-100 d-flex align-items-center justify-content-center gap-2 py-2">
+                                    <i class="fas fa-plus"></i>
+                                    <span>Nueva Inspección</span>
                                 </router-link>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 2. Listado de ControlSheets -->
+                <!-- 2. Listado de Planillas de Control -->
                 <div class="col-12 col-sm-6 col-xl-3">
                     <div class="card h-100 border-0 shadow-sm module-card card-action-amber">
                         <div class="card-body p-3 p-lg-4 d-flex flex-column justify-content-between">
@@ -235,17 +176,17 @@
                                         {{ kpis.control_sheets_count }} Registradas
                                     </span>
                                 </div>
-                                <h5 class="fw-bold text-900 mb-1">Listado de ControlSheets</h5>
+                                <h5 class="fw-bold text-900 mb-1 fs-16 fs-sm-18">Listado de Planillas de Control</h5>
                                 <p class="text-600 fs-11 mb-3">
                                     Consulta las planillas de control vehicular, verificación de documentos PDF y auditoría de flota.
                                 </p>
                             </div>
                             <div class="d-flex flex-column gap-2 mt-auto">
-                                <router-link to="/planillas-de-control-de-servicios" class="btn btn-warning btn-sm w-100 text-dark shadow-xs d-flex align-items-center justify-content-center gap-2">
+                                <router-link to="/planillas-de-control-de-servicios" class="btn btn-warning btn-sm w-100 text-dark shadow-xs d-flex align-items-center justify-content-center gap-2 py-2">
                                     <i class="fas fa-folder-open"></i>
-                                    <span>Ver ControlSheets</span>
+                                    <span>Ver Planillas</span>
                                 </router-link>
-                                <router-link to="/planillas-de-control-de-servicios/crear" class="btn btn-outline-secondary btn-sm w-100 d-flex align-items-center justify-content-center gap-2">
+                                <router-link to="/planillas-de-control-de-servicios/crear" class="btn btn-outline-secondary btn-sm w-100 d-flex align-items-center justify-content-center gap-2 py-2">
                                     <i class="fas fa-plus"></i>
                                     <span>Nueva Planilla</span>
                                 </router-link>
@@ -267,13 +208,13 @@
                                         {{ kpis.fuecs_count }} Asignados
                                     </span>
                                 </div>
-                                <h5 class="fw-bold text-900 mb-1">Listado de FUEC</h5>
+                                <h5 class="fw-bold text-900 mb-1 fs-16 fs-sm-18">Listado de FUEC</h5>
                                 <p class="text-600 fs-11 mb-3">
                                     Consulta tus Extractos Únicos de Contrato vigentes, rutas autorizadas y descarga el PDF reglamentario.
                                 </p>
                             </div>
                             <div class="d-flex flex-column gap-2 mt-auto">
-                                <router-link to="/extracto-de-contrato" class="btn btn-success btn-sm w-100 shadow-xs d-flex align-items-center justify-content-center gap-2">
+                                <router-link to="/extracto-de-contrato" class="btn btn-success btn-sm w-100 shadow-xs d-flex align-items-center justify-content-center gap-2 py-2">
                                     <i class="fas fa-file-alt"></i>
                                     <span>Consultar mis FUECs</span>
                                 </router-link>
@@ -298,17 +239,17 @@
                                         {{ kpis.service_delivery_count }} Servicios
                                     </span>
                                 </div>
-                                <h5 class="fw-bold text-900 mb-1">Hojas de Control de Servicio</h5>
+                                <h5 class="fw-bold text-900 mb-1 fs-16 fs-sm-18">Hojas de Control de Servicio</h5>
                                 <p class="text-600 fs-11 mb-3">
                                     Planillas de Control de Prestación de Servicios (PCP). Registra hora y kilometraje inicial y final de cada recorrido.
                                 </p>
                             </div>
                             <div class="d-flex flex-column gap-2 mt-auto">
-                                <router-link to="/planilla-de-control-de-prestacion-servicios/control-de-servicios" class="btn btn-info btn-sm w-100 shadow-xs text-white d-flex align-items-center justify-content-center gap-2">
+                                <router-link to="/planilla-de-control-de-prestacion-servicios/control-de-servicios" class="btn btn-info btn-sm w-100 shadow-xs text-white d-flex align-items-center justify-content-center gap-2 py-2">
                                     <i class="fas fa-play-circle"></i>
                                     <span>Registrar Recorrido</span>
                                 </router-link>
-                                <router-link to="/planilla-de-control-de-prestacion-servicios" class="btn btn-outline-secondary btn-sm w-100 d-flex align-items-center justify-content-center gap-2">
+                                <router-link to="/planilla-de-control-de-prestacion-servicios" class="btn btn-outline-secondary btn-sm w-100 d-flex align-items-center justify-content-center gap-2 py-2">
                                     <i class="fas fa-table"></i>
                                     <span>Listado de Planillas</span>
                                 </router-link>
@@ -326,13 +267,13 @@
         <div class="mb-4">
             <div class="card border-0 shadow-sm mb-3">
                 <div class="card-body p-3 p-md-4">
-                    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-3">
+                    <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2 gap-sm-3 mb-3">
                         <div class="d-flex align-items-center gap-2">
-                            <div class="section-icon-badge bg-warning text-dark">
+                            <div class="section-icon-badge bg-warning text-dark flex-shrink-0">
                                 <i class="fas fa-tachometer-alt"></i>
                             </div>
                             <div>
-                                <h5 class="mb-0 fw-bold text-900">Vehículos y Control de Kilometraje</h5>
+                                <h5 class="mb-0 fw-bold text-900 fs-16 fs-sm-18">Vehículos y Control de Kilometraje</h5>
                                 <p class="text-500 fs-11 mb-0">
                                     Kilometraje recorrido y lecturas registradas por cada vehículo que conduces
                                 </p>
@@ -340,13 +281,16 @@
                         </div>
 
                         <!-- Buscador de Vehículo -->
-                        <div class="d-flex align-items-center gap-2 w-100 w-md-auto">
-                            <div class="input-group input-group-sm" style="max-width: 280px;">
+                        <div class="w-100 w-sm-auto">
+                            <div class="input-group input-group-sm search-vehicle-input">
                                 <span class="input-group-text bg-light border-end-0">
                                     <i class="fas fa-search text-muted"></i>
                                 </span>
                                 <input v-model="vehicleSearch" type="text" class="form-control border-start-0"
                                     placeholder="Buscar placa o marca..." />
+                                <button v-if="vehicleSearch" class="btn btn-light border border-start-0 text-muted" type="button" @click="vehicleSearch = ''">
+                                    <i class="fas fa-times fs-11"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -378,7 +322,7 @@
 
                                     <!-- Datos técnicos del vehículo -->
                                     <div class="mb-3">
-                                        <h6 class="fw-bold text-900 mb-1">
+                                        <h6 class="fw-bold text-900 mb-1 fs-15">
                                             {{ vehicle.brand }} {{ vehicle.line }}
                                         </h6>
                                         <p class="text-muted fs-11 mb-0">
@@ -411,11 +355,11 @@
 
                                     <!-- Historial de inspección del vehículo -->
                                     <div class="d-flex align-items-center justify-content-between text-muted fs-11 mb-3">
-                                        <span>
+                                        <span class="text-truncate me-2">
                                             <i class="far fa-clock me-1"></i>
                                             Última insp: <strong class="text-700">{{ vehicle.last_inspection_date || 'Sin registro' }}</strong>
                                         </span>
-                                        <span class="badge bg-subtle-primary text-primary">
+                                        <span class="badge bg-subtle-primary text-primary flex-shrink-0">
                                             {{ vehicle.inspections_count }} Inspecciones
                                         </span>
                                     </div>
@@ -423,12 +367,12 @@
                                     <!-- Acciones directas para este vehículo -->
                                     <div class="d-flex gap-2">
                                         <router-link :to="`/inspeccion-vehiculos/crear?vehicle_uuid=${vehicle.uuid}`"
-                                            class="btn btn-subtle-primary btn-sm flex-fill d-flex align-items-center justify-content-center gap-1 fs-11 py-1">
+                                            class="btn btn-subtle-primary btn-sm flex-fill d-flex align-items-center justify-content-center gap-1 fs-11 py-2">
                                             <i class="fas fa-clipboard-check"></i>
                                             <span>Inspeccionar</span>
                                         </router-link>
                                         <router-link to="/planilla-de-control-de-prestacion-servicios/control-de-servicios"
-                                            class="btn btn-subtle-info btn-sm flex-fill d-flex align-items-center justify-content-center gap-1 fs-11 py-1">
+                                            class="btn btn-subtle-info btn-sm flex-fill d-flex align-items-center justify-content-center gap-1 fs-11 py-2">
                                             <i class="fas fa-route"></i>
                                             <span>Iniciar Recorrido</span>
                                         </router-link>
@@ -445,9 +389,9 @@
                                 <i class="fas fa-car-side"></i>
                             </div>
                         </div>
-                        <h6 class="fw-bold text-700 mb-1">No se encontraron vehículos</h6>
+                        <h6 class="fw-bold text-700 mb-1">No tienes vehículos asignados</h6>
                         <p class="text-500 fs-11 mb-3">
-                            No hay vehículos vinculados que coincidan con la búsqueda o el filtro actual.
+                            No posees vehículos vinculados a proyectos existentes ni a extractos de contrato (FUEC).
                         </p>
                         <button v-if="vehicleSearch" class="btn btn-outline-secondary btn-sm" @click="vehicleSearch = ''">
                             Limpiar búsqueda
@@ -467,7 +411,7 @@
                     <div class="card-header bg-light d-flex align-items-center justify-content-between py-2 px-3">
                         <div class="d-flex align-items-center gap-2">
                             <i class="fas fa-clipboard-check text-primary"></i>
-                            <h6 class="mb-0 fw-bold">Últimas Inspecciones Registradas</h6>
+                            <h6 class="mb-0 fw-bold fs-14">Últimas Inspecciones Registradas</h6>
                         </div>
                         <router-link to="/inspeccion-vehiculos" class="btn btn-link btn-sm text-primary p-0 fs-11 text-decoration-none">
                             Ver todas
@@ -475,13 +419,13 @@
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive scrollbar">
-                            <table class="table table-sm table-hover mb-0 fs-11">
+                            <table class="table table-sm table-hover mb-0 fs-11 text-nowrap align-middle">
                                 <thead class="bg-200 text-700">
                                     <tr>
-                                        <th class="ps-3">Fecha</th>
-                                        <th>Vehículo</th>
-                                        <th class="text-end">Km Reportado</th>
-                                        <th class="pe-3 text-end">Acción</th>
+                                        <th class="ps-3 py-2">Fecha</th>
+                                        <th class="py-2">Vehículo</th>
+                                        <th class="text-end py-2">Km Reportado</th>
+                                        <th class="pe-3 text-end py-2">Acción</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -490,7 +434,7 @@
                                             <i class="far fa-clipboard me-1"></i> No has registrado inspecciones en este periodo.
                                         </td>
                                     </tr>
-                                    <tr v-for="item in recentInspections" :key="item.uuid" class="align-middle">
+                                    <tr v-for="item in recentInspections" :key="item.uuid">
                                         <td class="ps-3 fw-semi-bold text-800">
                                             {{ item.date }}
                                         </td>
@@ -499,11 +443,11 @@
                                                 {{ item.plate }}
                                             </span>
                                         </td>
-                                        <td class="text-end font-sans-serif">
+                                        <td class="text-end font-sans-serif fw-semi-bold">
                                             {{ formatNumber(item.mileage) }} km
                                         </td>
                                         <td class="pe-3 text-end">
-                                            <router-link :to="`/inspeccion-vehiculos`" class="btn btn-falcon-default btn-xs" title="Ver detalle">
+                                            <router-link :to="`/inspeccion-vehiculos`" class="btn btn-falcon-default btn-xs p-1" title="Ver detalle">
                                                 <i class="fas fa-eye text-primary"></i>
                                             </router-link>
                                         </td>
@@ -521,7 +465,7 @@
                     <div class="card-header bg-light d-flex align-items-center justify-content-between py-2 px-3">
                         <div class="d-flex align-items-center gap-2">
                             <i class="fas fa-file-contract text-success"></i>
-                            <h6 class="mb-0 fw-bold">FUECs y Contratos Asignados</h6>
+                            <h6 class="mb-0 fw-bold fs-14">FUECs y Contratos Asignados</h6>
                         </div>
                         <router-link to="/extracto-de-contrato" class="btn btn-link btn-sm text-primary p-0 fs-11 text-decoration-none">
                             Ver todos
@@ -529,13 +473,13 @@
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive scrollbar">
-                            <table class="table table-sm table-hover mb-0 fs-11">
+                            <table class="table table-sm table-hover mb-0 fs-11 text-nowrap align-middle">
                                 <thead class="bg-200 text-700">
                                     <tr>
-                                        <th class="ps-3">N° FUEC</th>
-                                        <th>Vehículo</th>
-                                        <th>Contratante</th>
-                                        <th class="pe-3 text-end">Estado</th>
+                                        <th class="ps-3 py-2">N° FUEC</th>
+                                        <th class="py-2">Vehículo</th>
+                                        <th class="py-2">Contratante</th>
+                                        <th class="pe-3 text-end py-2">Estado</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -544,7 +488,7 @@
                                             <i class="far fa-file-alt me-1"></i> No tienes FUECs asignados en este periodo.
                                         </td>
                                     </tr>
-                                    <tr v-for="fuec in recentFuecs" :key="fuec.uuid" class="align-middle">
+                                    <tr v-for="fuec in recentFuecs" :key="fuec.uuid">
                                         <td class="ps-3 fw-bold text-primary">
                                             #{{ fuec.number }}
                                         </td>
@@ -553,7 +497,7 @@
                                                 {{ fuec.plate }}
                                             </span>
                                         </td>
-                                        <td class="text-truncate" style="max-width: 160px;">
+                                        <td class="text-truncate" style="max-width: 140px;">
                                             {{ fuec.contractor }}
                                         </td>
                                         <td class="pe-3 text-end">
@@ -599,6 +543,12 @@ const conductorData = computed(() => dashboardStore.conductorData || {});
 const conductorName = computed(() => {
     return conductorData.value.conductor?.name || userStore.fullName || userStore.username || 'Conductor';
 });
+const conductorFirstName = computed(() => {
+    const raw = (conductorData.value.conductor?.name || userStore.fullName || userStore.username || '').trim();
+    if (!raw) return 'Conductor';
+    const firstWord = raw.split(/\s+/)[0];
+    return firstWord.charAt(0).toUpperCase() + firstWord.slice(1).toLowerCase();
+});
 const conductorDocument = computed(() => conductorData.value.conductor?.document || null);
 const companyName = computed(() => authStore.currentTenant?.name || userStore.companyName || 'Falcon Transportes S.A.S.');
 const licenseInfo = computed(() => conductorData.value.conductor?.license || null);
@@ -613,6 +563,7 @@ const kpis = computed(() => conductorData.value.kpis || {
 const vehiclesList = computed(() => conductorData.value.vehicles || []);
 const recentInspections = computed(() => conductorData.value.recent_inspections || []);
 const recentFuecs = computed(() => conductorData.value.recent_fuecs || []);
+const activeService = computed(() => conductorData.value.active_service || null);
 
 // Iniciales del avatar
 const driverInitials = computed(() => {
@@ -832,6 +783,21 @@ onMounted(() => {
     letter-spacing: 0.5px;
 }
 
+/* Indicador pulsante de servicio activo */
+.pulse-indicator {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    display: inline-block;
+    animation: pulse-ring 1.4s ease-out infinite;
+}
+
+@keyframes pulse-ring {
+    0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
+    70% { box-shadow: 0 0 0 7px rgba(255, 255, 255, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+}
+
 /* Utilitarios */
 .shadow-xs {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
@@ -862,5 +828,53 @@ onMounted(() => {
 .btn-xs {
     padding: 0.15rem 0.4rem;
     font-size: 0.75rem;
+}
+
+/* Responsive adjustments for mobile screens */
+@media (max-width: 575.98px) {
+    .conductor-dashboard {
+        padding-left: 2px;
+        padding-right: 2px;
+    }
+
+    .welcome-card .avatar-3xl {
+        width: 44px;
+        height: 44px;
+    }
+
+    .welcome-card .avatar-name {
+        font-size: 1.1rem !important;
+    }
+
+    .search-vehicle-input {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .colombia-license-plate {
+        padding: 2px 8px 3px;
+    }
+
+    .plate-number {
+        font-size: 16px;
+    }
+
+    .odometer-display {
+        font-size: 18px;
+    }
+
+    .module-card .card-body {
+        padding: 1rem !important;
+    }
+
+    .table-responsive {
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+@media (min-width: 576px) {
+    .search-vehicle-input {
+        max-width: 280px;
+    }
 }
 </style>

@@ -664,15 +664,12 @@ const initTooltips = () => {
 onMounted(async () => {
     isViewLoading.value = true;
     try {
-        await store.loadCatalogs(); // Cargar catálogo de vehículos para la placa
-        await store.fetchItems();
+        await Promise.all([store.loadCatalogs(), store.fetchItems()]);
     } catch (error) {
         console.error("Error al cargar cobros:", error);
     } finally {
-        setTimeout(() => {
-            isViewLoading.value = false;
-            initTooltips();
-        }, 400);
+        isViewLoading.value = false;
+        initTooltips();
     }
 });
 </script>

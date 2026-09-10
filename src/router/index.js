@@ -8,7 +8,6 @@ import { handleGlobalError } from "@utils/error-handler.js";
 import { authGuard } from "@router/guards/auth.js";
 import { permissionsGuard } from "@router/guards/permissions.js";
 import { twoFAGuard } from "@router/guards/2fa.js";
-import { useConfigStore } from "@store/modules/config.js";
 import { authRoutes } from "@features/auth/routes.js";
 import { dashboardRoutes } from "@features/dashboard/routes.js";
 import { companyRoutes } from "@features/companies/routes.js";
@@ -126,12 +125,6 @@ export const router = createRouter({
  * Ejecución secuencial garantiza que la seguridad se valide en orden.
  */
 router.beforeEach(async (to, from, next) => {
-    if (to.name !== "home") {
-        try {
-            useConfigStore().setLoading(true);
-        } catch (e) {}
-    }
-
     const guards = [authGuard, twoFAGuard, tenantGuard, permissionsGuard];
 
     for (const guard of guards) {
@@ -148,14 +141,6 @@ router.beforeEach(async (to, from, next) => {
 
 router.afterEach((to) => {
     document.title = `${import.meta.env.VITE_APP_NAME || 'FactusNext'} - ${to.meta.title || 'Inicio'}`;
-
-    if (to.name !== "home") {
-        setTimeout(() => {
-            try {
-                useConfigStore().setLoading(false);
-            } catch (e) {}
-        }, 500);
-    }
 });
 
 router.onError((error) => {

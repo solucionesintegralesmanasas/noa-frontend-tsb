@@ -64,6 +64,14 @@
                         </button>
                     </div>
                 </div>
+                <!-- Centro: filtro proyecto -->
+                <div class="d-flex align-items-center gap-2 w-100" style="max-width: 340px;">
+                    <i class="fad fa-briefcase text-muted" />
+                    <select v-model="projectFilter" class="form-select form-select-sm" @change="onProjectFilterChange">
+                        <option value="">Todos los proyectos</option>
+                        <option v-for="p in store.projects" :key="p.uuid" :value="p.uuid">{{ p.project_name }}</option>
+                    </select>
+                </div>
                 <!-- Derecha: contador -->
                 <div v-if="!isViewLoading && !store.loading" class="text-muted text-nowrap">
                     <small>
@@ -145,6 +153,40 @@
                             <Column field="official_name_and_surname" header="Responsable de servicio" sortable>
                                 <template #body="{ data }">
                                     <span class="text-dark">{{ data.official_name_and_surname || '-' }}</span>
+                                </template>
+                            </Column>
+
+                            <Column header="Proyecto">
+                                <template #body="{ data }">
+                                    <span class="text-dark">{{ data.project?.project_name || '-' }}</span>
+                                </template>
+                            </Column>
+
+                            <Column header="Vehículo / Conductor">
+                                <template #body="{ data }">
+                                    <div class="d-flex flex-column">
+                                        <span class="text-dark fw-semibold">{{ data.vehicle_license_plate || '-' }}</span>
+                                        <small class="text-muted">{{ data.driver_name || data.official_name_and_surname || '' }}</small>
+                                    </div>
+                                </template>
+                            </Column>
+
+                            <Column header="Recorridos">
+                                <template #body="{ data }">
+                                    <span class="badge rounded-pill badge-subtle-info">
+                                        {{ recorridosCount(data) }} recorrido{{ recorridosCount(data) !== 1 ? 's' : '' }}
+                                    </span>
+                                    <div class="small text-muted mt-1" style="max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" :title="recorridosTexto(data)">
+                                        {{ recorridosTexto(data) }}
+                                    </div>
+                                </template>
+                            </Column>
+
+                            <Column header="Tipo">
+                                <template #body="{ data }">
+                                    <span class="badge rounded-pill badge-subtle-secondary" style="font-size: 0.65rem;">
+                                        {{ tipoLabel(data.type_of_control_sheet) }}
+                                    </span>
                                 </template>
                             </Column>
 
@@ -294,7 +336,7 @@
 import { ref, onMounted, onUnmounted, reactive, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useServiceDeliveryControlSheetStore } from '../store/serviceDeliveryControlSheet.store.js';
-import { usePermissionsStore } from '@store';
+import { usePermissionsStore, useUserStore } from '@store';
 import { useTable } from '@/hooks/useTable.js';
 import { useTableActions } from '@/hooks/useTableActions.js';
 import BasePageHeader from '@/components/BasePageHeader.vue';
@@ -306,9 +348,11 @@ import Dialog from 'primevue/dialog';
 const router = useRouter();
 const store = useServiceDeliveryControlSheetStore();
 const permissionsStore = usePermissionsStore();
+const userStore = useUserStore();
 
 const isViewLoading = ref(true);
 const searchQuery = ref('');
+const projectFilter = ref('');
 
 // Estados para diálogos y cargas de PDF
 const showReportDialog = ref(false);
@@ -354,6 +398,27 @@ const { confirmDelete, initTooltips, destroyTooltips } = useTableActions(store, 
 
 const clearSearch = async () => { searchQuery.value = ''; await store.clearFilters(); };
 const refreshTable = () => store.fetchItems();
+const onProjectFilterChange = async () => { await store.setProjectFilter(projectFilter.value); };
+
+const recorridosCount = (data) => {
+    if (Array.isArray(data.routes)) return data.routes.length;
+    if (data.routes_total) return Number(data.routes_total);
+    return data.daily_route ? 1 : 0;
+};
+
+const recorridosTexto = (data) => {
+    if (Array.isArray(data.routes) && data.routes.length) {
+        return data.routes.map(r => `${r.origin || ''} - ${r.destination || ''}`.trim().replace(/^- | -$/g, '')).filter(Boolean).join(' · ');
+    }
+    return data.daily_route || '-';
+};
+
+const tipoLabel = (t) => ({
+    DIRECTO_CON_LA_EMPRESA: 'Directo',
+    SUBCONTRATADO: 'Subcontratado',
+    CON_VEHICULO_CONTRATADO: 'Veh. contratado',
+    EXTERNO_PLATAFORMA: 'Externo',
+}[t] || t || '-');
 const onPageChange = async ({ first, rows }) => {
     await store.setPage(Math.floor(first / rows) + 1);
 };
@@ -442,12 +507,19 @@ onMounted(async () => {
 
     try {
         searchQuery.value = store.search;
-        await Promise.all([
-            store.fetchItems(),
-            store.loadCatalogs()
-        ]);
+        projectFilter.value = store.projectFilter || '';
+        const companyUuid = userStore.company_uuid;
+
+        const tasks = [store.fetchItems()];
+        if (!store.catalogs || Object.keys(store.catalogs).length === 0) {
+            tasks.push(store.loadCatalogs(companyUuid));
+        } else if (!store.projects?.length && companyUuid) {
+            tasks.push(store.loadProjects(companyUuid));
+        }
+        await Promise.all(tasks);
     } finally {
-        setTimeout(() => { isViewLoading.value = false; initTooltips(); }, 300);
+        isViewLoading.value = false;
+        initTooltips();
     }
 });
 

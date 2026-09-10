@@ -140,7 +140,7 @@
                         <div v-if="pdfs.length === 0"
                             class="text-center py-4 text-muted border border-dashed rounded-3 bg-light mt-2">
                             <i class="fad fa-folder-open fs-3 mb-2 text-300"></i>
-                            <p class="mb-0 small">No hay archivos PDF asociados a esta Hoja de Control.</p>
+                            <p class="mb-0 small">No hay archivos PDF asociados a esta Planilla de Control.</p>
                         </div>
                         <ul v-else class="list-group list-group-flush border rounded-3 mt-2">
                             <li v-for="pdf in pdfs" :key="pdf.uuid"
@@ -177,7 +177,7 @@
                         <div>
                             <h6 class="fw-medium mb-1">¿Sabías qué?</h6>
                             <ul class="text-muted small mb-0 ps-3">
-                                <li>Las hojas de control son fundamentales para auditar la entrega correcta de servicios
+                                <li>Las planillas de control son fundamentales para auditar la entrega correcta de servicios
                                     y vehículos.</li>
                                 <li>Asegúrate de vincular correctamente la empresa y el vehículo antes de guardar el
                                     registro.</li>
@@ -220,10 +220,10 @@ const isSuperAdmin = computed(() => permissionsStore.roles?.includes('SUPERADMIN
 
 const isEditMode = computed(() => route.params.id !== undefined);
 
-const pageTitle = computed(() => isEditMode.value ? 'Actualizar Hoja de Control' : 'Nueva Hoja de Control');
+const pageTitle = computed(() => isEditMode.value ? 'Actualizar Planilla de Control' : 'Nueva Planilla de Control');
 const pageSubtitle = computed(() => isEditMode.value ? 'Modifica los datos del registro en el sistema' : 'Completa los datos para crear un nuevo registro');
 const breadcrumbs = computed(() => [
-    { label: 'ControlSheets', to: '/planillas-de-control-de-servicios' },
+    { label: 'Planillas de Control', to: '/planillas-de-control-de-servicios' },
     { label: isEditMode.value ? 'Editar' : 'Nuevo' }
 ]);
 

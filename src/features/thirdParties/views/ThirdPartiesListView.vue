@@ -1079,7 +1079,8 @@ onMounted(async () => {
         store.typeFilter = determineTypeFromRoute();
         await store.fetchItems();
     } finally {
-        setTimeout(() => { isViewLoading.value = false; initTooltips(); }, 300);
+        isViewLoading.value = false;
+        initTooltips();
     }
 });
 
@@ -1087,7 +1088,8 @@ watch(() => route.path, async () => {
     isViewLoading.value = true;
     store.typeFilter = determineTypeFromRoute();
     await store.setPage(1);
-    setTimeout(() => { isViewLoading.value = false; initTooltips(); }, 300);
+    isViewLoading.value = false;
+    initTooltips();
 });
 
 onUnmounted(() => destroyTooltips());

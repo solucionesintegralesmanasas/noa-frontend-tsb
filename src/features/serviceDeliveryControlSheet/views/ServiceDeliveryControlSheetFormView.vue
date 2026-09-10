@@ -50,12 +50,29 @@
                                 validationErrors.company_uuid }}</div>
                         </div>
 
+                        <div class="col-12 col-sm-6 col-lg-6">
+                            <label class="form-label required" for="project_uuid">Proyecto</label>
+                            <select id="project_uuid" ref="projectSelect" class="form-control select2-input w-100">
+                                <option value="">Seleccione el proyecto...</option>
+                                <option v-for="opt in store.projects" :key="opt.uuid" :value="opt.uuid">
+                                    {{ opt.project_name }}
+                                </option>
+                            </select>
+                            <div v-if="validationErrors.project_uuid" class="invalid-feedback d-block">{{
+                                validationErrors.project_uuid }}</div>
+                            <div v-if="proyectoSeleccionado" class="form-text text-muted small">
+                                Vigencia: {{ formatFecha(proyectoSeleccionado.start_date) }} al
+                                {{ formatFecha(proyectoSeleccionado.completion_date) }}.
+                                Las fechas de la planilla deben estar dentro de este rango.
+                            </div>
+                        </div>
+
                         <div class="col-12 col-sm-6 col-lg-3">
                             <label class="form-label" for="official_name_and_surname">Responsable de servicio</label>
                             <input id="official_name_and_surname" v-model="formData.official_name_and_surname"
                                 class="form-control"
                                 :class="{ 'is-invalid': validationErrors.official_name_and_surname }" type="text"
-                                placeholder="Se autocompleta al elegir el responsable" autocomplete="off" />
+                                placeholder="Se autocompleta al elegir el conductor" autocomplete="off" />
                             <div v-if="validationErrors.official_name_and_surname" class="invalid-feedback d-block">{{
                                 validationErrors.official_name_and_surname }}</div>
                         </div>
@@ -63,8 +80,12 @@
                         <div class="col-12 col-sm-6 col-lg-3">
                             <label class="form-label required" for="type_of_control_sheet">Tipo de hoja de
                                 control</label>
-                            <input id="type_of_control_sheet" readonly tabindex="-1" autocomplete="off"
-                                class="form-control bg-light" value="Directo con la empresa" />
+                            <select id="type_of_control_sheet" ref="typeSelect" class="form-control select2-input w-100">
+                                <option value="DIRECTO_CON_LA_EMPRESA">Directo con la empresa</option>
+                                <option value="SUBCONTRATADO">Subcontratado</option>
+                                <option value="CON_VEHICULO_CONTRATADO">Con vehículo contratado</option>
+                                <option value="EXTERNO_PLATAFORMA">Vehículo externo de plataforma</option>
+                            </select>
                             <div v-if="validationErrors.type_of_control_sheet" class="invalid-feedback d-block">{{
                                 validationErrors.type_of_control_sheet }}</div>
                         </div>
@@ -110,7 +131,7 @@
                             </div>
                         </div>
                         <div class="col-12 col-sm-12 col-lg-12">
-                            <label class="form-label" for="daily_route">Ruta diaria</label>
+                            <label class="form-label" for="daily_route">Recorrido del servicio <span class="text-muted fw-normal">(opcional)</span></label>
                             <input id="daily_route" v-model="formData.daily_route" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.daily_route }" type="text"
                                 placeholder="Ej: Recorrido Norte - Sur, entrega cliente X..." autocomplete="off" />
@@ -118,12 +139,21 @@
                                 validationErrors.daily_route }}</div>
                         </div>
 
+                        <div class="col-12" v-if="!isEditMode">
+                            <div class="alert alert-info d-flex align-items-center gap-2 py-2 px-3 mb-0 small">
+                                <i class="fad fa-route text-primary"></i>
+                                <span>Los recorridos de cada planilla diaria los registrará el conductor durante la operación (Control de Servicios). Una planilla diaria puede tener muchos recorridos.</span>
+                            </div>
+                        </div>
+
                         <!-- SECCIÓN 2: CONTROL DIRECTO CON LA EMPRESA -->
                         <template v-if="formData.type_of_control_sheet === 'DIRECTO_CON_LA_EMPRESA'">
                             <div class="col-12">
                                 <hr class="my-2">
                                 <h6 class="fw-medium text-primary"><i class="fad fa-file-contract me-1"></i>Control
-                                    Directo con la Empresa</h6>
+                                    Directo con la Empresa
+                                    <span v-if="formData.project_uuid" class="badge bg-info ms-2">Filtrado por proyecto</span>
+                                </h6>
                             </div>
                             <div class="col-12 col-sm-6 col-xl-5">
                                 <label class="form-label" for="fuec_uuid">FUEC asociado</label>
@@ -139,7 +169,7 @@
                                 <label class="form-label required" for="vehicle_uuid">Vehículo</label>
                                 <select id="vehicle_uuid" ref="vehicleSelect" class="form-control select2-input w-100">
                                     <option value="">Seleccione...</option>
-                                    <option v-for="opt in store.catalogs.vehicles" :key="opt.uuid" :value="opt.uuid">{{
+                                    <option v-for="opt in vehiculosFiltrados" :key="opt.uuid" :value="opt.uuid">{{
                                         opt.vehicle_license_plate }}</option>
                                 </select>
                                 <div v-if="validationErrors.vehicle_uuid" class="invalid-feedback d-block">{{
@@ -151,11 +181,71 @@
                                 <select id="third_party_uuid" ref="driverSelect"
                                     class="form-control select2-input w-100">
                                     <option value="">Seleccione...</option>
-                                    <option v-for="opt in store.catalogs.drivers" :key="opt.uuid" :value="opt.uuid">{{
+                                    <option v-for="opt in conductoresFiltrados" :key="opt.uuid" :value="opt.uuid">{{
                                         opt.first_name }} {{ opt.last_name }}</option>
                                 </select>
                                 <div v-if="validationErrors.third_party_uuid" class="invalid-feedback d-block">{{
                                     validationErrors.third_party_uuid }}</div>
+                                <div class="form-check form-switch mt-2" v-if="formData.project_uuid">
+                                    <input class="form-check-input" type="checkbox" id="showAllDrivers" v-model="mostrarTodos">
+                                    <label class="form-check-label small text-muted" for="showAllDrivers">Mostrar todos los conductores/vehículos (fuera del proyecto)</label>
+                                </div>
+                            </div>
+                        </template>
+
+                        <!-- SECCIÓN 2B: VEHÍCULO EXTERNO / SUBCONTRATADO (plataforma) -->
+                        <template v-if="isExternalType">
+                            <div class="col-12">
+                                <hr class="my-2">
+                                <h6 class="fw-medium text-primary"><i class="fad fa-truck me-1"></i>Vehículo externo / subcontratado
+                                    <span class="badge bg-warning text-dark ms-2">{{ tipoLabel }}</span>
+                                </h6>
+                            </div>
+                            <div class="col-12 col-sm-6 col-xl-3">
+                                <label class="form-label required" for="vehicle_license_plate">Placa del vehículo</label>
+                                <input id="vehicle_license_plate" v-model="formData.vehicle_license_plate" class="form-control"
+                                    :class="{ 'is-invalid': validationErrors.vehicle_license_plate }" type="text"
+                                    placeholder="Ej: ABC123" autocomplete="off" style="text-transform: uppercase" />
+                                <div v-if="validationErrors.vehicle_license_plate" class="invalid-feedback d-block">{{
+                                    validationErrors.vehicle_license_plate }}</div>
+                            </div>
+                            <div class="col-12 col-sm-6 col-xl-4">
+                                <label class="form-label required" for="driver_name_and_surname">Nombre del conductor</label>
+                                <input id="driver_name_and_surname" v-model="formData.driver_name_and_surname" class="form-control"
+                                    :class="{ 'is-invalid': validationErrors.driver_name_and_surname }" type="text"
+                                    placeholder="Nombre y apellido" autocomplete="off" />
+                                <div v-if="validationErrors.driver_name_and_surname" class="invalid-feedback d-block">{{
+                                    validationErrors.driver_name_and_surname }}</div>
+                            </div>
+                            <div class="col-12 col-sm-6 col-xl-2">
+                                <label class="form-label" for="driver_license_number">Licencia</label>
+                                <input id="driver_license_number" v-model="formData.driver_license_number" class="form-control" type="text"
+                                    placeholder="N.º licencia" autocomplete="off" />
+                            </div>
+                            <div class="col-12 col-sm-6 col-xl-3">
+                                <label class="form-label" for="vehicle_class_uuid">Clase de vehículo</label>
+                                <select id="vehicle_class_uuid" ref="vehicleClassSelect" class="form-control select2-input w-100">
+                                    <option value="">Seleccione...</option>
+                                    <option v-for="opt in store.catalogs.vehicleClasses" :key="opt.uuid" :value="opt.uuid">{{
+                                        opt.description ?? opt.class_code_class ?? opt.uuid }}</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-sm-6 col-xl-5">
+                                <label class="form-label" for="fuec_uuid_ext">FUEC asociado (opcional)</label>
+                                <select id="fuec_uuid_ext" ref="fuecSelect" class="form-control select2-input w-100">
+                                    <option value="">Seleccione...</option>
+                                    <option v-for="opt in store.catalogs.fuecs" :key="opt.uuid" :value="opt.uuid">{{
+                                        opt.fuec_number ?? opt.uuid }}</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-sm-6 col-xl-4" v-if="formData.type_of_control_sheet === 'EXTERNO_PLATAFORMA'">
+                                <label class="form-label" for="vehicle_uuid_ext">Vehículo de plataforma (si está registrado)</label>
+                                <select id="vehicle_uuid_ext" ref="vehicleSelect" class="form-control select2-input w-100">
+                                    <option value="">No está registrado / ingreso manual</option>
+                                    <option v-for="opt in vehiculosFiltrados" :key="opt.uuid" :value="opt.uuid">{{
+                                        opt.vehicle_license_plate }}</option>
+                                </select>
+                                <div class="form-text text-muted small">Si la placa ya existe en plataforma, selecciónela para trazabilidad.</div>
                             </div>
                         </template>
 
@@ -245,12 +335,15 @@ const diasServicio = computed(() => {
 
 const formatFecha = (fecha) => {
     if (!fecha) return '';
-    const [y, m, d] = fecha.split('-').map(Number);
+    const clean = String(fecha).slice(0, 10);
+    const [y, m, d] = clean.split('-').map(Number);
+    if (!y || !m || !d) return clean;
     return `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}/${y}`;
 };
 
 const formData = reactive({
     company_uuid: '',
+    project_uuid: '',
     official_name_and_surname: '',
     service_date: '',
     start_date: '',
@@ -267,22 +360,70 @@ const formData = reactive({
     is_active: '1',
 });
 
-
+const mostrarTodos = ref(false);
 
 // --- REFS PARA SELECT2 ---
 const statusSelect = ref(null);
 const companySelect = ref(null);
+const projectSelect = ref(null);
+const typeSelect = ref(null);
 const vehicleSelect = ref(null);
 const driverSelect = ref(null);
 const fuecSelect = ref(null);
+const vehicleClassSelect = ref(null);
 
 const selectConfigs = computed(() => [
     { ref: statusSelect, field: 'is_active', placeholder: 'Seleccionar...' },
     { ref: companySelect, field: 'company_uuid', placeholder: 'Seleccionar...' },
+    { ref: projectSelect, field: 'project_uuid', placeholder: 'Seleccione el proyecto...' },
+    { ref: typeSelect, field: 'type_of_control_sheet', placeholder: 'Seleccionar...' },
     { ref: vehicleSelect, field: 'vehicle_uuid', placeholder: 'Seleccionar...' },
     { ref: driverSelect, field: 'third_party_uuid', placeholder: 'Seleccionar...' },
     { ref: fuecSelect, field: 'fuec_uuid', placeholder: 'Seleccionar...' },
+    { ref: vehicleClassSelect, field: 'vehicle_class_uuid', placeholder: 'Seleccionar...' },
 ]);
+
+// --- COMPUTADOS DE PROYECTO / TIPO / FILTRADO ---
+const isExternalType = computed(() => ['SUBCONTRATADO', 'CON_VEHICULO_CONTRATADO', 'EXTERNO_PLATAFORMA'].includes(formData.type_of_control_sheet));
+const tipoLabel = computed(() => ({
+    SUBCONTRATADO: 'Subcontratado',
+    CON_VEHICULO_CONTRATADO: 'Vehículo contratado',
+    EXTERNO_PLATAFORMA: 'Externo de plataforma',
+}[formData.type_of_control_sheet] || formData.type_of_control_sheet));
+
+const proyectoSeleccionado = computed(() => {
+    if (!formData.project_uuid) return null;
+    const fromList = (store.projects || []).find(p => p.uuid === formData.project_uuid);
+    if (fromList) return fromList;
+    if (store.projectDetail && store.projectDetail.uuid === formData.project_uuid) return store.projectDetail;
+    return null;
+});
+
+const asignacionesProyecto = computed(() => {
+    const d = store.projectDetail;
+    if (!d || d.uuid !== formData.project_uuid) return [];
+    const todas = d.driverVehicleAssignments || d.driver_vehicle_assignments || d.assignments || [];
+    const activas = todas.filter(a => a.is_active !== false && a.is_active !== 0);
+    return activas.length ? activas : todas;
+});
+
+const vehiculosFiltrados = computed(() => {
+    const all = store.catalogs.vehicles || [];
+    if (!formData.project_uuid || mostrarTodos.value || !asignacionesProyecto.value.length) return all;
+    const uuids = new Set(asignacionesProyecto.value.map(a => a.vehicle_uuid).filter(Boolean));
+    const filtered = all.filter(v => uuids.has(v.uuid));
+    return filtered.length ? filtered : all;
+});
+
+const conductoresFiltrados = computed(() => {
+    const all = store.catalogs.drivers || [];
+    if (!formData.project_uuid || mostrarTodos.value || !asignacionesProyecto.value.length) return all;
+    const uuids = new Set(asignacionesProyecto.value.map(a => a.third_party_uuid).filter(Boolean));
+    const filtered = all.filter(c => uuids.has(c.uuid));
+    return filtered.length ? filtered : all;
+});
+
+
 
 // ─── Hook Select2 ─────────────────────────────────────────────────────────────
 const { initSelect2, setValues: setSelect2Values, syncFromSelect2, destroySelect2, applyAllValidations } = useSelect2(formData, validationErrors);
@@ -295,12 +436,66 @@ watch(() => formData.third_party_uuid, (newUuid) => {
         const selectedDriver = store.catalogs.drivers.find(d => d.uuid === newUuid);
         if (selectedDriver) {
             formData.official_name_and_surname = `${selectedDriver.first_name} ${selectedDriver.last_name}`;
-        } else {
+        } else if (!isExternalType.value) {
             formData.official_name_and_surname = '';
         }
-    } else {
+    } else if (!isExternalType.value) {
         formData.official_name_and_surname = '';
     }
+});
+
+// Al cambiar de empresa, recargar proyectos
+watch(() => formData.company_uuid, async (newCompany) => {
+    if (newCompany) {
+        await store.loadProjects(newCompany);
+        await nextTick();
+        setSelect2Values(selectConfigs.value);
+    } else {
+        store.projects = [];
+    }
+});
+
+// Al elegir proyecto: cargar asignaciones y sugerir fechas del proyecto
+watch(() => formData.project_uuid, async (newProject) => {
+    mostrarTodos.value = false;
+    if (!newProject) {
+        store.projectDetail = null;
+        return;
+    }
+    const detail = await store.loadProjectDetail(newProject);
+    const proj = detail || proyectoSeleccionado.value;
+    if (proj) {
+        const pStart = typeof proj.start_date === 'string' ? proj.start_date.slice(0, 10) : '';
+        const pEnd = typeof proj.completion_date === 'string' ? proj.completion_date.slice(0, 10) : '';
+        if (!isEditMode.value) {
+            if (pStart && !formData.start_date) formData.start_date = pStart;
+            if (pEnd && !formData.end_date) formData.end_date = pEnd;
+        }
+        // Si el conductor/vehículo actual no pertenece al proyecto, limpiarlos
+        if (asignacionesProyecto.value.length && !mostrarTodos.value) {
+            const vOk = asignacionesProyecto.value.some(a => a.vehicle_uuid === formData.vehicle_uuid);
+            const cOk = asignacionesProyecto.value.some(a => a.third_party_uuid === formData.third_party_uuid);
+            if (formData.vehicle_uuid && !vOk) formData.vehicle_uuid = '';
+            if (formData.third_party_uuid && !cOk) formData.third_party_uuid = '';
+            await nextTick();
+            setSelect2Values(selectConfigs.value);
+        }
+    }
+});
+
+// Al cambiar a tipo externo, autocompletar responsable con conductor manual
+watch(() => formData.driver_name_and_surname, (val) => {
+    if (isExternalType.value && val && !formData.official_name_and_surname) {
+        formData.official_name_and_surname = val;
+    }
+});
+
+// Al cambiar el tipo de planilla, reinicializar selects del bloque correspondiente
+watch(() => formData.type_of_control_sheet, async () => {
+    await nextTick();
+    try { destroySelect2(selectConfigs.value); } catch (e) {}
+    initSelect2(selectConfigs.value);
+    setSelect2Values(selectConfigs.value);
 });
 
 
@@ -309,6 +504,10 @@ const validateForm = () => {
     Object.keys(validationErrors).forEach(key => delete validationErrors[key]);
 
     const required = ['company_uuid', 'start_date', 'type_of_control_sheet'];
+    // El proyecto es el punto de partida de toda planilla nueva
+    if (!isEditMode.value) required.push('project_uuid');
+
+    // Recorrido del servicio: opcional (el conductor registra los recorridos en la operación)
 
     required.forEach(field => {
         if (!formData[field]) validationErrors[field] = 'Este campo es obligatorio';
@@ -328,16 +527,44 @@ const validateForm = () => {
         }
     }
 
+    // Validar contenencia en el proyecto
+    const proj = proyectoSeleccionado.value;
+    if (proj && formData.project_uuid) {
+        const pStart = typeof proj.start_date === 'string' ? proj.start_date.slice(0, 10) : null;
+        const pEnd = typeof proj.completion_date === 'string' ? proj.completion_date.slice(0, 10) : null;
+        if (pStart && formData.start_date && formData.start_date < pStart) {
+            validationErrors.start_date = `La fecha de inicio no puede ser anterior al proyecto (${formatFecha(pStart)})`;
+        }
+        if (pEnd && formData.end_date && formData.end_date > pEnd) {
+            validationErrors.end_date = `La fecha de fin no puede superar el proyecto (${formatFecha(pEnd)})`;
+        }
+    }
+
     if (formData.type_of_control_sheet === 'DIRECTO_CON_LA_EMPRESA') {
         ['vehicle_uuid', 'third_party_uuid'].forEach(field => {
             if (!formData[field]) validationErrors[field] = 'Este campo es obligatorio';
         });
+    } else {
+        if (!formData.vehicle_license_plate || !formData.vehicle_license_plate.trim()) {
+            validationErrors.vehicle_license_plate = 'La placa es obligatoria para vehículo externo/subcontratado';
+        }
+        if (!formData.driver_name_and_surname || !formData.driver_name_and_surname.trim()) {
+            validationErrors.driver_name_and_surname = 'El nombre del conductor es obligatorio';
+        }
     }
 
     return Object.keys(validationErrors).length === 0;
 };
 
 const goBack = () => router.push('/planilla-de-control-de-prestacion-servicios');
+
+const buildPayload = () => {
+    // Los recorridos los registra el conductor en la operación diaria, no en este formulario.
+    const payload = { ...formData };
+    if (!payload.daily_route || !payload.daily_route.trim()) payload.daily_route = null;
+    if (payload.vehicle_license_plate) payload.vehicle_license_plate = payload.vehicle_license_plate.toUpperCase().trim();
+    return payload;
+};
 
 const handleSubmit = async () => {
     syncFromSelect2(selectConfigs.value);
@@ -351,14 +578,16 @@ const handleSubmit = async () => {
 
     try {
         submitting.value = true;
+        const payload = buildPayload();
         if (isEditMode.value) {
-            await store.updateItem(route.params.id, formData);
+            await store.updateItem(route.params.id, payload);
         } else {
-            await store.createItem(formData);
+            await store.createItem(payload);
         }
         goBack();
     } catch (error) {
-        toast('Error', 'No se pudo procesar la solicitud', 'error');
+        const msg = error?.response?.data?.message || 'No se pudo procesar la solicitud';
+        toast('Error', msg, 'error');
     } finally {
         submitting.value = false;
     }
@@ -368,26 +597,42 @@ const handleSubmit = async () => {
 onMounted(async () => {
     isViewLoading.value = true;
     try {
-        await store.loadFormOptions();
-
         if (!isSuperAdmin.value) {
             formData.company_uuid = userStore.company_uuid;
+        }
+        await store.loadFormOptions(formData.company_uuid || undefined);
+        if (formData.company_uuid) {
+            await store.loadProjects(formData.company_uuid);
+        } else if (store.catalogs.projects?.length) {
+            store.projects = store.catalogs.projects;
         }
 
         if (isEditMode.value) {
             const item = await store.fetchProfileById(route.params.id);
             if (item) {
                 Object.assign(formData, item);
-                formData.type_of_control_sheet = 'DIRECTO_CON_LA_EMPRESA';
+                if (!formData.type_of_control_sheet) formData.type_of_control_sheet = 'DIRECTO_CON_LA_EMPRESA';
+                // Mapear controles hijos a campos planos para edición (API en snake_case)
+                const internal = item.internal_control || item.internalControl || null;
+                const sub = item.subcontracted_control || item.subcontractedControl || null;
+                if (internal) {
+                    formData.vehicle_uuid = internal.vehicle_uuid || formData.vehicle_uuid || '';
+                    formData.third_party_uuid = internal.third_party_uuid || formData.third_party_uuid || '';
+                    if (!formData.fuec_uuid) formData.fuec_uuid = internal.fuec_uuid || '';
+                }
+                if (sub) {
+                    formData.vehicle_license_plate = sub.vehicle_license_plate || '';
+                    formData.driver_name_and_surname = sub.driver_name_and_surname || '';
+                    formData.driver_license_number = sub.driver_license_number || '';
+                    formData.vehicle_class_uuid = sub.vehicle_class_uuid || '';
+                }
+                const norm = (v) => typeof v === 'string' && v.includes('T') ? v.slice(0, 10) : (v || '');
+                formData.service_date = norm(formData.service_date);
+                formData.start_date = norm(formData.start_date) || norm(item.service_date);
+                formData.end_date = norm(formData.end_date) || formData.start_date;
                 formData.is_active = (item.is_active == 1 || item.is_active === true || item.is_active === '1') ? '1' : '0';
-                // Sincronizar fechas: usar start_date si existe, si no usar service_date
-                if (!formData.start_date) {
-                    formData.start_date = item.service_date || '';
-                }
-                // Si la fecha de fin no existe, usar la fecha de inicio (servicio de un día)
-                if (!formData.end_date) {
-                    formData.end_date = formData.start_date;
-                }
+                if (formData.company_uuid) await store.loadProjects(formData.company_uuid);
+                if (formData.project_uuid) await store.loadProjectDetail(formData.project_uuid);
             }
         }
     } finally {

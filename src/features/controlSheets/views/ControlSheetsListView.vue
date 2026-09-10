@@ -1,8 +1,8 @@
 <template>
-    <BasePageHeader :title="'Listado de ' + 'ControlSheets'" description="Gestión del módulo en el sistema."
+    <BasePageHeader title="Listado de Planillas de Control" description="Gestión de planillas de control vehicular en el sistema."
         icon="fad fa-clipboard-list text-primary" :show-refresh="true" :show-create="true" :show-bg="true"
         :loading="isViewLoading || store.loading" :compact="true"
-        :breadcrumbs="[{ label: 'ControlSheets' }, { label: 'Listado' }]" @refresh="refreshTable" @create="goToCreate"
+        :breadcrumbs="[{ label: 'Planillas de Control' }, { label: 'Listado' }]" @refresh="refreshTable" @create="goToCreate"
         :canCreate="can('control_sheets.create')" />
 
     <!-- BARRA DE BÚSQUEDA -->
@@ -52,7 +52,7 @@
                         <table class="table table-sm mb-0">
                             <thead>
                                 <tr>
-                                    <th v-for="w in ['30%', '20%', '20%', '15%', '15%']" :key="w"
+                                    <th v-for="w in (isSuperAdmin ? ['25%', '20%', '20%', '15%', '10%', '10%'] : ['30%', '20%', '20%', '15%', '15%'])" :key="w"
                                         style="padding:12px 8px">
                                         <div class="skeleton-text" :style="`height:16px;width:${w}`" />
                                     </th>
@@ -100,6 +100,15 @@
                             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                             currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
                             emptyMessage="No se encontraron registros" @page="onPageChange">
+
+                            <Column v-if="isSuperAdmin" field="company.business_name" header="Empresa" sortable style="min-width: 180px;">
+                                <template #body="{ data }">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="fad fa-building text-muted"></i>
+                                        <span class="text-dark fw-medium">{{ data.company?.business_name || '—' }}</span>
+                                    </div>
+                                </template>
+                            </Column>
 
                             <Column field="vehicle.vehicle_license_plate" header="Vehículo" sortable>
                                 <template #body="{ data }">
@@ -170,7 +179,7 @@
                                 <div class="text-center py-5">
                                     <i class="fad fa-clipboard-list fs-1 text-muted opacity-50 mb-3 d-block" />
                                     <h6 class="text-muted mb-1 fw-medium">No hay registros encontrados</h6>
-                                    <p class="text-muted small mb-3">Comienza creando tu primera hoja de control.</p>
+                                    <p class="text-muted small mb-3">Comienza creando tu primera planilla de control.</p>
                                     <button v-if="can('control_sheets.create')" class="btn btn-primary btn-sm"
                                         @click="goToCreate">
                                         <i class="fad fa-plus me-1" />Nuevo Registro
@@ -214,7 +223,7 @@
  * @resource {ControlSheet}
  */
 
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useControlSheetsStore } from '../store/controlSheets.store.js';
 import { usePermissionsStore } from '@store';
@@ -228,6 +237,8 @@ import Column from 'primevue/column';
 const router = useRouter();
 const store = useControlSheetsStore();
 const permissionsStore = usePermissionsStore();
+
+const isSuperAdmin = computed(() => permissionsStore.roles?.includes('SUPERADMIN'));
 
 const isViewLoading = ref(true);
 const searchQuery = ref('');
@@ -248,7 +259,11 @@ const goToEdit = (uuid) => router.push(`/planillas-de-control-de-servicios/edita
 
 const handleDelete = (item) => confirmDelete(item, {
     title: '¿Eliminar registro?',
-    nameField: 'vehicle.vehicle_license_plate',
+    html: `<p class="mb-2">¿Estás seguro de eliminar la planilla del vehículo <strong>"${item.vehicle?.vehicle_license_plate || 'este registro'}"</strong>?</p>
+           <div class="alert alert-warning small mb-0 mt-2">
+               <i class="fad fa-exclamation-triangle me-1"></i>
+               Esta acción no se puede deshacer.
+           </div>`
 });
 
 onMounted(async () => {
@@ -256,7 +271,8 @@ onMounted(async () => {
         searchQuery.value = store.search;
         await store.fetchItems();
     } finally {
-        setTimeout(() => { isViewLoading.value = false; initTooltips(); }, 300);
+        isViewLoading.value = false;
+        initTooltips();
     }
 });
 

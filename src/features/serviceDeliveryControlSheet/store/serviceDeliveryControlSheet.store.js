@@ -18,6 +18,9 @@ export const useServiceDeliveryControlSheetStore = defineStore('serviceDeliveryC
         loading: false,
         error: null,
         catalogs: {},
+        projects: [],
+        projectDetail: null,
+        projectFilter: '',
         pagination: { currentPage: 1, itemsPerPage: 10, totalItems: 0, totalPages: 0 },
         search: '',
     }),
@@ -56,6 +59,7 @@ export const useServiceDeliveryControlSheetStore = defineStore('serviceDeliveryC
                     page: this.pagination.currentPage,
                     per_page: this.pagination.itemsPerPage,
                     search: this.search || undefined,
+                    project_uuid: this.projectFilter || undefined,
                 });
                 const p = response?.data ?? response;
                 this.items = p.data ?? [];
@@ -70,23 +74,44 @@ export const useServiceDeliveryControlSheetStore = defineStore('serviceDeliveryC
          * Carga los catálogos necesarios para los formularios.
          * @returns {Promise<Object>} Catálogos cargados.
          */
-        async loadCatalogs() {
-            // No usamos _run aquí para dar un feedback de 'warning' en lugar de 'error',
-            // ya que la falla en la carga de catálogos puede no ser bloqueante.
+        async loadCatalogs(companyUuid) {
             this.loading = true;
             try {
-                const catalogs = await serviceDeliveryControlSheetService.getFormOptions();
+                const catalogs = await serviceDeliveryControlSheetService.getFormOptions(companyUuid);
                 this.catalogs = catalogs;
+                if (catalogs.projects?.length) this.projects = catalogs.projects;
                 return catalogs;
             } catch (error) {
                 await toast('Advertencia', 'No se pudieron cargar algunas opciones del formulario.', 'warning');
-                // No relanzamos el error para no bloquear la renderización del formulario si los catálogos fallan
                 return {};
             } finally {
                 this.loading = false;
             }
         },
-        loadFormOptions() { return this.loadCatalogs(); },
+
+        async loadProjects(companyUuid) {
+            try {
+                const list = await serviceDeliveryControlSheetService.listProjects(companyUuid);
+                this.projects = Array.isArray(list) ? list : [];
+                return this.projects;
+            } catch (error) {
+                await toast('Advertencia', 'No se pudieron cargar los proyectos.', 'warning');
+                return [];
+            }
+        },
+
+        async loadProjectDetail(uuid) {
+            if (!uuid) { this.projectDetail = null; return null; }
+            try {
+                this.projectDetail = await serviceDeliveryControlSheetService.getProjectDetail(uuid);
+                return this.projectDetail;
+            } catch (error) {
+                this.projectDetail = null;
+                return null;
+            }
+        },
+        loadFormOptions(companyUuid) { return this.loadCatalogs(companyUuid); },
+        setProjectFilter(uuid) { this.projectFilter = uuid || ''; this.pagination.currentPage = 1; return this.fetchItems(); },
 
         /**
          * Actualiza un elemento localmente en el array de items.

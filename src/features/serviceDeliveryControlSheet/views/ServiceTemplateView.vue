@@ -1,548 +1,953 @@
 <template>
-    <!-- ════ WRAPPER ══════════════════════════════════════════════ -->
-    <div class="pct-root">
+    <div class="service-template-view fade-in">
+        <!-- ═══════════════════════════════════════════════════════════
+             1. HEADER DE PÁGINA (ESTÁNDAR DEL SISTEMA)
+        ═══════════════════════════════════════════════════════════ -->
+        <div class="row gx-2 gx-md-3">
+            <div class="col-12 col-xxl-10 offset-xxl-1 col-xl-12">
+                <BasePageHeader
+                    title="Control Operativo de Servicio"
+                    subtitle="Planilla de Control y Prestación de Servicios de Transporte (PCP)"
+                    icon="fad fa-clipboard-list-check text-primary"
+                    :breadcrumbs="breadcrumbs"
+                    :show-back="true"
+                    @back="goBack"
+                >
+                    <template #actions>
+                        <div class="d-none d-md-flex align-items-center gap-2 bg-light px-3 py-1.5 rounded-pill border">
+                            <i class="fad fa-clock text-primary"></i>
+                            <span class="fs-12 fw-bold text-700 font-monospace">{{ clockStr }}</span>
+                        </div>
+                        <button class="btn btn-falcon-default btn-sm px-3 rounded-pill" type="button" @click="goBack" title="Regresar al listado">
+                            <i class="fad fa-arrow-left me-1"></i>
+                            <span>Regresar</span>
+                        </button>
+                    </template>
+                </BasePageHeader>
 
-        <!-- ════ HEADER ══════════════════════════════════════════════ -->
-        <header class="pct-header">
-            <div class="pct-logo">🚌</div>
-            <h1 class="pct-title">
-                Planilla de Control
-                <span>Prestación de Servicios de Transporte</span>
-            </h1>
-            <div class="pct-header-right">
-                <div class="pct-badge-date">{{ clockStr }}</div>
-            </div>
-        </header>
-
-        <!-- ════ STEPPER ══════════════════════════════════════════════ -->
-        <div class="pct-stepper">
-            <div v-for="s in steps" :key="s.n" class="pct-step"
-                :class="{ active: currentStep === s.n, done: currentStep > s.n }">
-                <div class="pct-step-circle">
-                    <span v-if="currentStep > s.n">✓</span>
-                    <span v-else>{{ s.n }}</span>
-                </div>
-                <div class="pct-step-label">{{ s.label }}</div>
-            </div>
-        </div>
-
-        <!-- ════ MAIN ══════════════════════════════════════════════ -->
-        <div class="pct-main" v-if="!isViewLoading">
-
-            <!-- ── STEP 1: SELECCIÓN ─────────────────────────────────── -->
-            <template v-if="currentStep === 1">
-
-                <div class="pct-card">
-                    <div class="pct-card-head">
-                        <div class="pct-card-icon">🚗</div>
-                        <h2>Selección servicio asignado</h2>
-                        <span class="pct-tag pct-tag-req">Requerido</span>
-                    </div>
-                    <div class="pct-card-body">
-                        <div class="pct-field">
-                            <label class="form-label" for="servicioId">Servicio</label>
-                            <select id="servicioId" ref="servicioSelect" v-model="formData.servicioId" class="form-control select2-input w-100">
-                                <option value="">— Seleccione un servicio —</option>
-                                <option v-for="s in serviciosCatalogo" :key="s.uuid" :value="s.uuid">
-                                    {{ s.daily_route }} · {{ s.type_of_control_sheet === 'DIRECTO_CON_LA_EMPRESA' ?
-                                        'Directo' : 'Subcontratado' }}
-                                </option>
-                            </select>
-                            <div v-if="validationErrors.servicioId" class="invalid-feedback d-block">
-                                {{ validationErrors.servicioId }}
+                <!-- ═══════════════════════════════════════════════════════
+                     2. STEPPER INTERACTIVO DE PROCESO
+                ═══════════════════════════════════════════════════════ -->
+                <div class="card border-0 shadow-sm mb-4 stepper-card overflow-hidden">
+                    <div class="card-body p-2 p-md-3">
+                        <div class="stepper-track">
+                            <div
+                                v-for="s in steps"
+                                :key="s.n"
+                                class="stepper-item"
+                                :class="{
+                                    'active': currentStep === s.n,
+                                    'done': currentStep > s.n,
+                                    'clickable': currentStep > s.n
+                                }"
+                                @click="handleStepClick(s.n)"
+                            >
+                                <div class="step-indicator">
+                                    <i v-if="currentStep > s.n" class="fas fa-check"></i>
+                                    <i v-else :class="s.icon"></i>
+                                </div>
+                                <div class="step-content d-none d-sm-block">
+                                    <span class="step-number">Paso 0{{ s.n }}</span>
+                                    <h6 class="step-label mb-0">{{ s.label }}</h6>
+                                </div>
                             </div>
                         </div>
-                        <template v-if="servicioSeleccionado">
-                            <div class="pct-divider"><span>Detalle del Servicio</span></div>
-                            <div class="pct-info-box">
-                                <div class="pct-info-item">
-                                    <label>Código</label>
-                                    <div class="pct-info-value">{{ servicioSeleccionado.uuid?.slice(0, 8) }}…</div>
+                    </div>
+                </div>
+
+                <!-- ═══════════════════════════════════════════════════════
+                     3. CONTENEDOR PRINCIPAL (PASOS 1 AL 6)
+                ═══════════════════════════════════════════════════════ -->
+                <div v-if="!isViewLoading">
+
+                    <!-- ───────────────────────────────────────────────────
+                         PASO 1: SELECCIÓN DEL SERVICIO ASIGNADO
+                    ─────────────────────────────────────────────────── -->
+                    <div v-if="currentStep === 1" class="fade-in">
+                        <div class="card border-0 shadow-sm mb-3 fade-in-up">
+                            <div class="card-header bg-light py-2 px-3 border-bottom">
+                                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="fad fa-steering-wheel text-primary"></i>
+                                        <h6 class="mb-0 fw-semibold text-dark">Selección del Servicio Asignado</h6>
+                                    </div>
+                                    <span class="badge bg-primary bg-opacity-10 text-primary">
+                                        <i class="fad fa-asterisk me-1" style="font-size: 8px;"></i>Paso requerido
+                                    </span>
                                 </div>
-                                <div class="pct-info-item">
-                                    <label>Tipo</label>
-                                    <div class="pct-info-value">{{ servicioSeleccionado.type_of_control_sheet ===
-                                        'DIRECTO_CON_LA_EMPRESA' ? 'Directo con la empresa' : 'Subcontratado' }}</div>
-                                </div>
-                                <div class="pct-info-item">
-                                    <label>Ruta diaria</label>
-                                    <div class="pct-info-value">{{ servicioSeleccionado.daily_route }}</div>
-                                </div>
-                                <div class="pct-info-item">
-                                    <label>Vehículo</label>
-                                    <div class="pct-info-value">{{ servicioSeleccionado.vehicle_license_plate || '—' }}
+                            </div>
+
+                            <div class="card-body p-3 p-md-4">
+                                <div class="row g-3">
+                                    <!-- Filtro de Proyecto -->
+                                    <div class="col-12 col-md-5">
+                                        <label class="form-label fw-medium text-700" style="font-size: 0.9rem;" for="proyectoFiltro">
+                                            <i class="fad fa-folder text-primary me-1"></i> Filtrar por Proyecto
+                                        </label>
+                                        <select id="proyectoFiltro" v-model="proyectoFiltro" class="form-select">
+                                            <option value="">— Todos los proyectos —</option>
+                                            <option v-for="p in proyectosList" :key="p.uuid" :value="p.uuid">
+                                                {{ p.project_name }}
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Selector de Servicio -->
+                                    <div class="col-12 col-md-7">
+                                        <label class="form-label required fw-medium text-700" style="font-size: 0.9rem;" for="servicioId">
+                                            <i class="fad fa-bus-alt text-primary me-1"></i> Planilla / Servicio Asignado
+                                        </label>
+                                        <select
+                                            id="servicioId"
+                                            ref="servicioSelect"
+                                            v-model="formData.servicioId"
+                                            class="form-control select2-input w-100"
+                                        >
+                                            <option value="">— Seleccione un servicio —</option>
+                                            <option v-for="s in serviciosFiltrados" :key="s.uuid" :value="s.uuid">
+                                                {{ s.daily_route || recorridosTextoDe(s) }} · {{ tipoCorto(s.type_of_control_sheet) }}{{ s.project?.project_name ? ' · ' + s.project.project_name : '' }}
+                                            </option>
+                                        </select>
+                                        <div v-if="validationErrors.servicioId" class="invalid-feedback d-block mt-1">
+                                            {{ validationErrors.servicioId }}
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="pct-info-item">
-                                    <label>Conductor</label>
-                                    <div class="pct-info-value">{{ servicioSeleccionado.driver_name || '—' }}</div>
-                                </div>
-                                <div class="pct-info-item">
-                                    <label>Fecha del servicio</label>
-                                    <div class="pct-info-value pct-accent">{{
-                                        servicioSeleccionado.service_date || '—' }}</div>
-                                </div>
-                                <div v-if="servicioDias > 1" class="pct-info-item" style="grid-column: 1 / -1;">
-                                    <label>Duración del servicio</label>
-                                    <div class="pct-info-value">
-                                        <span class="badge rounded-pill"
-                                            style="background: var(--accent-light); color: var(--accent); border: 1px solid var(--accent-dim); padding: 3px 10px; font-size: 11px;">
-                                            <i class="fad fa-calendar-alt me-1"></i>
-                                            {{ servicioDias }} planillas diarias ({{ servicioSeleccionado.start_date }}
-                                            → {{ servicioSeleccionado.end_date }})
+
+                                <!-- Detalle del Servicio Seleccionado -->
+                                <div v-if="servicioSeleccionado" class="mt-4 service-preview-box rounded-3 border p-3 p-md-4 bg-light bg-opacity-50">
+                                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 pb-2 border-bottom">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="badge bg-primary px-3 py-1 text-uppercase fw-bold fs-11">
+                                                {{ tipoLargo(servicioSeleccionado.type_of_control_sheet) }}
+                                            </span>
+                                            <span
+                                                class="badge rounded-pill px-2.5 py-1"
+                                                :class="servicioSeleccionado.is_active == 1 || servicioSeleccionado.is_active === true ? 'bg-success bg-opacity-10 text-success' : 'bg-secondary bg-opacity-10 text-secondary'"
+                                            >
+                                                <i class="fas fa-circle me-1" style="font-size: 7px;"></i>
+                                                {{ servicioSeleccionado.is_active == 1 || servicioSeleccionado.is_active === true ? 'Servicio Activo' : 'Inactivo' }}
+                                            </span>
+                                        </div>
+                                        <span class="text-muted fs-11 font-monospace">
+                                            UUID: {{ servicioSeleccionado.uuid?.slice(0, 13) }}…
                                         </span>
                                     </div>
-                                </div>
-                                <div class="pct-info-item">
-                                    <label>Funcionario</label>
-                                    <div class="pct-info-value">{{ servicioSeleccionado.official_name_and_surname || '—'
-                                    }}</div>
-                                </div>
-                                <div class="pct-info-item">
-                                    <label>Estado</label>
-                                    <div class="pct-info-value"
-                                        :class="servicioSeleccionado.is_active == 1 || servicioSeleccionado.is_active === true ? 'pct-accent' : 'pct-inactive'">
-                                        {{ servicioSeleccionado.is_active == 1 || servicioSeleccionado.is_active ===
-                                            true ? 'Activo' : 'Inactivo' }}
+
+                                    <div class="row g-3">
+                                        <!-- Vehículo con estilo placa colombiana -->
+                                        <div class="col-12 col-sm-6 col-lg-3">
+                                            <div class="bg-white rounded-3 p-3 border h-100 shadow-sm">
+                                                <small class="text-muted d-block fw-semibold mb-2 text-uppercase fs-10">Vehículo Asignado</small>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <div class="colombia-plate-badge shadow-sm">
+                                                        <div class="plate-country">COLOMBIA</div>
+                                                        <div class="plate-code">{{ servicioSeleccionado.vehicle_license_plate || 'SIN-PLACA' }}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Conductor Asignado -->
+                                        <div class="col-12 col-sm-6 col-lg-3">
+                                            <div class="bg-white rounded-3 p-3 border h-100 shadow-sm">
+                                                <small class="text-muted d-block fw-semibold mb-1 text-uppercase fs-10">Conductor</small>
+                                                <div class="d-flex align-items-center gap-2 mt-1">
+                                                    <div class="avatar-circle bg-primary bg-opacity-10 text-primary fw-bold">
+                                                        <i class="fad fa-user-tie"></i>
+                                                    </div>
+                                                    <span class="fw-bold text-dark fs-13 text-truncate" :title="conductorSeleccionadoNombre">
+                                                        {{ conductorSeleccionadoNombre }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Proyecto -->
+                                        <div class="col-12 col-sm-6 col-lg-3">
+                                            <div class="bg-white rounded-3 p-3 border h-100 shadow-sm">
+                                                <small class="text-muted d-block fw-semibold mb-1 text-uppercase fs-10">Proyecto Vinculado</small>
+                                                <div class="fw-bold text-primary fs-13 mt-1 d-flex align-items-center gap-1.5">
+                                                    <i class="fad fa-briefcase"></i>
+                                                    <span>{{ servicioSeleccionado.project?.project_name || 'Sin proyecto asignado' }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Fecha del Servicio -->
+                                        <div class="col-12 col-sm-6 col-lg-3">
+                                            <div class="bg-white rounded-3 p-3 border h-100 shadow-sm">
+                                                <small class="text-muted d-block fw-semibold mb-1 text-uppercase fs-10">Fecha de Operación</small>
+                                                <div class="fw-bold text-dark fs-13 mt-1 d-flex align-items-center gap-1.5">
+                                                    <i class="fad fa-calendar-star text-success"></i>
+                                                    <span>{{ formatFecha(servicioSeleccionado.service_date) }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Recorridos / Rutas -->
+                                        <div class="col-12">
+                                            <div class="bg-white rounded-3 p-3 border shadow-sm">
+                                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                                    <small class="text-muted fw-semibold text-uppercase fs-10">
+                                                        Recorridos Programados ({{ recorridosServicio.length }})
+                                                    </small>
+                                                    <span v-if="servicioDias > 1" class="badge bg-info bg-opacity-10 text-info rounded-pill px-2.5 py-1 fs-11">
+                                                        <i class="fad fa-calendar-alt me-1"></i> Multi-día: {{ servicioDias }} días ({{ servicioSeleccionado.start_date }} al {{ servicioSeleccionado.end_date }})
+                                                    </span>
+                                                </div>
+                                                <p class="mb-0 fw-medium text-dark fs-13">
+                                                    <i class="fad fa-route text-muted me-1.5"></i>
+                                                    {{ recorridosTextoDe(servicioSeleccionado) || servicioSeleccionado.daily_route || 'Sin rutas registradas' }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Desglose Multi-día si aplica -->
+                                    <div v-if="esMultiDia" class="mt-3 bg-white rounded-3 p-3 border shadow-sm">
+                                        <h6 class="fw-bold text-dark mb-2 fs-12 text-uppercase tracking-wider">
+                                            <i class="fad fa-calendar-check text-primary me-1"></i> Control de Planillas Diarias del Servicio
+                                        </h6>
+                                        <div class="row g-2">
+                                            <div v-for="p in planillasDiarias" :key="p.uuid" class="col-12 col-md-6 col-lg-4">
+                                                <div class="p-2 rounded border d-flex align-items-center justify-content-between bg-light">
+                                                    <span class="fs-12 fw-semibold">{{ formatFecha(p.service_date) }}</span>
+                                                    <span
+                                                        class="badge rounded-pill px-2 py-0.5 fs-10"
+                                                        :class="p.is_active == 1 || p.is_active === true ? 'bg-success text-white' : 'bg-secondary bg-opacity-25 text-muted'"
+                                                    >
+                                                        <i class="fas fa-circle me-1" style="font-size: 6px;"></i>
+                                                        {{ p.is_active == 1 || p.is_active === true ? 'Pendiente / Abierto' : 'Cerrado' }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <template v-if="esMultiDia">
-                                <div class="pct-divider"><span>Planillas Diarias</span></div>
-                                <div class="pct-dias-box">
-                                    <div v-for="p in planillasDiarias" :key="p.uuid" class="pct-dia-row">
-                                        <span class="pct-dia-fecha">{{ formatFecha(p.service_date) }}</span>
-                                        <span class="pct-dia-flag"
-                                            :class="p.is_active == 1 || p.is_active === true ? 'pct-dia-abierto' : 'pct-dia-cerrado'">
-                                            <i :class="p.is_active == 1 || p.is_active === true
-                                                ? 'fad fa-check-circle me-1'
-                                                : 'fad fa-circle me-1'" style="font-size:10px;" />
-                                            {{ p.is_active == 1 || p.is_active === true ? 'Abierto' : 'Cerrado' }}
-                                        </span>
+                            <!-- Footer de navegación -->
+                            <div class="card-footer bg-white py-3 px-3 px-md-4 border-top text-end">
+                                <button class="btn btn-primary rounded-pill px-4 shadow-sm fw-semibold d-inline-flex align-items-center gap-2" @click="goStep2">
+                                    <span>Continuar al Inicio de Servicio</span>
+                                    <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ───────────────────────────────────────────────────
+                         PASO 2: REGISTRO DE INICIO DE SERVICIO
+                    ─────────────────────────────────────────────────── -->
+                    <div v-if="currentStep === 2" class="fade-in">
+                        <!-- Alerta guía -->
+                        <div class="alert alert-info bg-info bg-opacity-10 border-0 shadow-sm d-flex align-items-center gap-3 mb-3 rounded-3 text-dark">
+                            <div class="alert-icon-box bg-info bg-opacity-20 text-info rounded-circle p-2 fs-4">
+                                <i class="fad fa-info-circle"></i>
+                            </div>
+                            <div>
+                                <h6 class="alert-heading mb-0 fw-bold text-dark">Verificación de Salida</h6>
+                                <p class="mb-0 fs-12 text-700">
+                                    Comprueba cuidadosamente la hora de salida y el kilometraje antes de pulsar Iniciar. Estos datos quedarán certificados en la planilla.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="card border-0 shadow-sm mb-3 fade-in-up">
+                            <div class="card-header bg-light py-2 px-3 border-bottom">
+                                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="fad fa-tachometer-alt text-primary"></i>
+                                        <h6 class="mb-0 fw-semibold text-dark">Datos de Salida e Inicio</h6>
+                                    </div>
+                                    <span class="badge bg-primary bg-opacity-10 text-primary">
+                                        <i class="fad fa-asterisk me-1" style="font-size: 8px;"></i>Campos obligatorios
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="card-body p-3 p-md-4">
+                                <div class="row g-3">
+                                    <!-- Hora de Inicio -->
+                                    <div class="col-12 col-sm-6 col-md-3">
+                                        <label class="form-label required fw-medium text-700" style="font-size: 0.9rem;">
+                                             <i class="fad fa-clock text-primary me-1"></i> Hora de Salida
+                                        </label>
+                                        <input v-model="formData.start_time" type="time" step="60" class="form-control font-monospace" />
+                                    </div>
+
+                                    <!-- Kilometraje Inicial -->
+                                    <div class="col-12 col-sm-6 col-md-3">
+                                        <label class="form-label required fw-medium text-700" style="font-size: 0.9rem;">
+                                            <i class="fad fa-tachometer-alt text-primary me-1"></i> Kilometraje Inicial
+                                        </label>
+                                        <div class="input-group">
+                                            <input
+                                                v-model="formData.starting_kilometer"
+                                                type="number"
+                                                placeholder="Ej. 125430"
+                                                min="0"
+                                                class="form-control font-monospace"
+                                            />
+                                            <span class="input-group-text bg-light text-muted fs-12">km</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Nivel de Combustible -->
+                                    <div class="col-12 col-sm-6 col-md-3">
+                                        <label class="form-label fw-medium text-700" style="font-size: 0.9rem;">
+                                            <i class="fad fa-gas-pump text-primary me-1"></i> Combustible Inicial
+                                        </label>
+                                        <div class="input-group">
+                                            <input
+                                                v-model="formData.start_fuel_level"
+                                                type="number"
+                                                placeholder="100"
+                                                min="0"
+                                                class="form-control"
+                                            />
+                                            <span class="input-group-text bg-light text-muted fs-12">Gal</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- N.° Planilla / FUEC -->
+                                    <div class="col-12 col-sm-6 col-md-3">
+                                        <label class="form-label fw-medium text-700" style="font-size: 0.9rem;" for="fuec_uuid">
+                                            <i class="fad fa-file-certificate text-primary me-1"></i> N.° Planilla / FUEC
+                                        </label>
+                                        <select
+                                            id="fuec_uuid"
+                                            ref="fuecSelect"
+                                            v-model="formData.fuec_uuid"
+                                            class="form-control select2-input w-100"
+                                        >
+                                            <option value="">Seleccione FUEC</option>
+                                            <option v-for="item in fuecsCatalogo" :key="item.uuid" :value="item.uuid">
+                                                {{ item.sheet_number || item.fuec_number }}
+                                            </option>
+                                        </select>
                                     </div>
                                 </div>
-                            </template>
-                        </template>
-                    </div>
-                </div>
-                <button class="pct-btn pct-btn-primary" @click="goStep2">
-                    ▶ Continuar al Inicio de Servicio
-                </button>
-            </template>
-
-            <!-- ── STEP 2: INICIO ─────────────────────────────────────── -->
-            <template v-if="currentStep === 2">
-
-                <div class="pct-alert pct-alert-info">
-                    <span class="pct-alert-icon">ℹ️</span>
-                    <div>Verifique la hora y el kilometraje antes de iniciar. Este registro quedará en la planilla
-                        oficial.</div>
-                </div>
-
-                <div class="pct-card">
-                    <div class="pct-card-head">
-                        <div class="pct-card-icon">⏱️</div>
-                        <h2>Registro de Inicio</h2>
-                        <span class="pct-tag pct-tag-req">Requerido</span>
-                    </div>
-                    <div class="pct-card-body">
-                        <div class="pct-row2">
-                            <div class="pct-field">
-                                <label>Hora de Inicio</label>
-                                <input v-model="formData.start_time" type="time" step="60" />
-                            </div>
-                            <div class="pct-field">
-                                <label>Kilometraje Inicial</label>
-                                <input v-model="formData.starting_kilometer" type="number" placeholder="000000" min="0" />
                             </div>
                         </div>
-                        <div class="pct-row2">
-                            <div class="pct-field">
-                                <label>Combustible en Galones</label>
-                                <input v-model="formData.start_fuel_level" type="number" placeholder="100" min="0" />
+
+                        <!-- Recorridos del Servicio si no están predefinidos -->
+                        <div v-if="!tieneRutaDefinida" class="card border-0 shadow-sm mb-3 fade-in-up">
+                            <div class="card-header bg-warning bg-opacity-10 py-2 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fad fa-route text-warning"></i>
+                                    <h6 class="mb-0 fw-semibold text-dark">Registro de Recorridos del Día</h6>
+                                </div>
+                                <button class="btn btn-outline-primary btn-sm rounded-pill fw-semibold px-3" @click="agregarRecorridoDia">
+                                    <i class="fas fa-plus me-1"></i> Agregar Tramo
+                                </button>
                             </div>
-                            <div class="pct-field">
-                                <label class="form-label" for="fuec_uuid">N.° Planilla / FUEC</label>
-                                <select id="fuec_uuid" ref="fuecSelect" v-model="formData.fuec_uuid" class="form-control select2-input w-100">
-                                    <option value="">Seleccione</option>
-                                    <option v-for="item in fuecsCatalogo" :key="item.uuid" :value="item.uuid">
-                                        {{ item.sheet_number || item.fuec_number }}
-                                    </option>
-                                </select>
+
+                            <div class="card-body p-3 p-md-4">
+                                <div v-for="(r, idx) in recorridosDia" :key="idx" class="d-flex align-items-center gap-2 mb-2 py-1">
+                                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-circle fs-11 flex-shrink-0" style="width: 28px; height: 28px; display: grid; place-items: center;">
+                                        {{ idx + 1 }}
+                                    </span>
+                                    <div class="row g-2 flex-fill">
+                                        <div class="col-6 col-md-6">
+                                            <input v-model="r.origin" type="text" class="form-control form-control-sm" placeholder="Origen del tramo" />
+                                        </div>
+                                        <div class="col-6 col-md-6">
+                                            <input v-model="r.destination" type="text" class="form-control form-control-sm" placeholder="Destino del tramo" />
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-link text-danger p-1 flex-shrink-0" @click="quitarRecorridoDia(idx)" title="Quitar recorrido">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+
+                                <div class="mt-3 text-end">
+                                    <button class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold" :disabled="guardandoRecorridos" @click="guardarRecorridosDia">
+                                        <i class="fas" :class="guardandoRecorridos ? 'fa-spinner fa-spin' : 'fa-save me-1'"></i>
+                                        {{ guardandoRecorridos ? 'Guardando...' : 'Guardar Recorridos' }}
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                <div class="pct-btn-group">
-                    <button class="pct-btn pct-btn-ghost" @click="goStep(1)">← Volver</button>
-                    <button class="pct-btn pct-btn-green" :disabled="submitting" @click="iniciarServicio">
-                        <i v-if="submitting" class="fas fa-spinner fa-spin me-2"></i>
-                        🟢 Iniciar Servicio
-                    </button>
-                </div>
-            </template>
-
-            <!-- ── STEP 3: EN CURSO ───────────────────────────────────── -->
-            <template v-if="currentStep === 3">
-
-                <div class="pct-alert pct-alert-success">
-                    <span class="pct-alert-icon">✅</span>
-                    <div>Servicio iniciado a las {{ formData.start_time }} · Km inicial: {{ formData.starting_kilometer }}</div>
-                </div>
-
-                <div class="pct-card">
-                    <div class="pct-card-head">
-                        <div class="pct-card-icon">🛣️</div>
-                        <h2>Servicio en Curso</h2>
-                        <div style="margin-left:auto">
-                            <span class="pct-status-pill pct-status-active">
-                                <span class="pct-dot pct-pulse" />En Ruta
+                        <!-- Si la ruta ya está definida -->
+                        <div v-else class="alert alert-success border-0 shadow-sm d-flex align-items-center gap-2 mb-3 rounded-3 py-2 px-3">
+                            <i class="fad fa-check-circle fs-5 text-success"></i>
+                            <span class="fs-12 fw-medium text-800">
+                                <strong>Ruta Confirmada:</strong> {{ recorridosTextoDe(planillaActiva || servicioSeleccionado) }}
                             </span>
                         </div>
-                    </div>
-                    <div class="pct-card-body">
-                        <div class="pct-timer-display">
-                            <div class="pct-timer-label">Tiempo Transcurrido</div>
-                            <div class="pct-timer-value">{{ timerStr }}</div>
-                        </div>
-                        <div class="pct-divider"><span>Resumen de Inicio</span></div>
-                        <div class="pct-info-box">
-                            <div class="pct-info-item">
-                                <label>Conductor</label>
-                                <div class="pct-info-value">
-                                    {{ conductorSeleccionadoNombre || '—' }}
+
+                        <!-- Inspección preoperacional obligatoria (una sola vez al día por vehículo) -->
+                        <div class="card border-0 shadow-sm mb-3 fade-in-up">
+                            <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fad fa-clipboard-check text-primary"></i>
+                                    <h6 class="mb-0 fw-semibold text-dark">Inspección Preoperacional del Día</h6>
+                                </div>
+                                <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" @click="verificarInspeccionDia(true)" :disabled="inspeccionDia.verificando">
+                                    <i class="fas fa-sync-alt" :class="{ 'fa-spin': inspeccionDia.verificando }"></i> Verificar
+                                </button>
+                            </div>
+                            <div class="card-body p-3 p-md-4">
+                                <div v-if="!planillaVehiculoUuid" class="alert alert-info border-0 shadow-sm d-flex align-items-center gap-2 mb-0 rounded-3 py-2 px-3">
+                                    <i class="fad fa-info-circle fs-5 text-info"></i>
+                                    <span class="fs-12 fw-medium">Vehículo externo sin registro en plataforma: la inspección se verifica manualmente antes de iniciar.</span>
+                                </div>
+                                <div v-else-if="inspeccionDia.verificando || !inspeccionDia.checked" class="alert alert-info border-0 shadow-sm d-flex align-items-center gap-2 mb-0 rounded-3 py-2 px-3">
+                                    <span class="spinner-border spinner-border-sm text-primary"></span>
+                                    <span class="fs-12 fw-medium">Verificando inspección del día…</span>
+                                </div>
+                                <div v-else-if="inspeccionDia.exists" class="alert alert-success border-0 shadow-sm d-flex align-items-center gap-2 mb-0 rounded-3 py-2 px-3">
+                                    <i class="fad fa-check-circle fs-5 text-success"></i>
+                                    <span class="fs-12 fw-medium">Inspección del día registrada ✓ ({{ inspeccionDia.fecha }}). Solo se exige una vez al día.</span>
+                                </div>
+                                <div v-else class="alert alert-warning border-0 shadow-sm mb-0 rounded-3 py-2 px-3">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="fad fa-exclamation-triangle fs-5 text-warning"></i>
+                                        <span class="fs-12 fw-medium">Sin inspección para este vehículo en la fecha del servicio ({{ fechaPlanilla || '—' }}). Debe registrarse una sola vez al día antes de iniciar.</span>
+                                    </div>
+                                    <div class="d-flex flex-wrap gap-2 mt-2">
+                                        <router-link :to="inspeccionCrearLink" class="btn btn-warning btn-sm rounded-pill px-3 fw-semibold">
+                                            <i class="fas fa-clipboard-check me-1"></i> Realizar inspección ahora
+                                        </router-link>
+                                        <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" @click="verificarInspeccionDia(true)" :disabled="inspeccionDia.verificando">
+                                            Verificar de nuevo
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="pct-info-item">
-                                <label>Vehículo</label>
-                                <div class="pct-info-value">
-                                    {{ vehiculoSeleccionadoPlaca || '—' }}
+                        </div>
+
+                        <!-- Footer acciones -->
+                        <div class="d-flex align-items-center justify-content-between gap-2 mt-4">
+                            <button class="btn btn-outline-secondary rounded-pill px-3 fw-semibold" @click="goStep(1)">
+                                <i class="fas fa-arrow-left me-1"></i> Volver
+                            </button>
+                            <button class="btn btn-success rounded-pill px-4 shadow-sm fw-bold d-inline-flex align-items-center gap-2" :disabled="submitting" @click="iniciarServicio">
+                                <i v-if="submitting" class="fas fa-spinner fa-spin"></i>
+                                <i v-else class="fas fa-play-circle"></i>
+                                <span>Iniciar Servicio Ahora</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ───────────────────────────────────────────────────
+                         PASO 3: SERVICIO EN CURSO (EN RUTA)
+                    ─────────────────────────────────────────────────── -->
+                    <div v-if="currentStep === 3" class="fade-in">
+                        <!-- Banner Cockpit Activo con Fondo de Card Falcon -->
+                        <div class="card border-0 shadow-sm mb-4 overflow-hidden position-relative">
+                            <!-- Fondo decorativo Falcon (bg-card) -->
+                            <div class="bg-holder d-none d-lg-block bg-card"
+                                style="background-image: url(/assets/img/icons/spot-illustrations/corner-4.png);" />
+                            <div class="card-body p-3 p-md-4 position-relative">
+                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-success bg-opacity-10 text-success px-3 py-1.5 fw-bold rounded-pill text-uppercase d-flex align-items-center gap-2 fs-11">
+                                            <span class="pulse-indicator bg-success"></span>
+                                            Servicio en Curso · En Ruta
+                                        </span>
+                                        <span class="badge bg-primary bg-opacity-10 text-primary px-2.5 py-1 fs-11 font-monospace">
+                                            Salida: {{ formData.start_time }}
+                                        </span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="colombia-plate-badge shadow-sm">
+                                            <div class="plate-country">COLOMBIA</div>
+                                            <div class="plate-code">{{ vehiculoSeleccionadoPlaca }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Display del Cronómetro Central -->
+                                <div class="row align-items-center my-3">
+                                    <div class="col-12 col-md-6 text-center text-md-start">
+                                        <small class="text-700 text-uppercase fw-semibold fs-11 tracking-wider d-block mb-1">
+                                            Tiempo Transcurrido en Operación
+                                        </small>
+                                        <div class="odometer-timer font-monospace fw-bolder text-primary">
+                                            {{ timerStr }}
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12 col-md-6 mt-3 mt-md-0">
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <div class="py-1 px-2">
+                                                    <small class="text-700 d-block fs-11 text-uppercase fw-semibold mb-1">Km Inicial</small>
+                                                    <span class="fw-bold fs-14 font-monospace text-dark">{{ Number(formData.starting_kilometer).toLocaleString('es-CO') }} km</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="py-1 px-2">
+                                                    <small class="text-700 d-block fs-11 text-uppercase fw-semibold mb-1">Conductor</small>
+                                                    <span class="fw-bold fs-13 text-truncate d-block text-dark" :title="conductorSeleccionadoNombre">{{ conductorSeleccionadoNombre }}</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="py-1 px-2">
+                                                    <small class="text-700 d-block fs-11 text-uppercase fw-semibold mb-1">Proyecto</small>
+                                                    <span class="fw-bold fs-13 text-truncate d-block text-dark">{{ servicioSeleccionado?.project?.project_name || '—' }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="pct-info-item">
-                                <label>Hora Inicio</label>
-                                <div class="pct-info-value pct-accent">{{ formData.start_time }}</div>
-                            </div>
-                            <div class="pct-info-item">
-                                <label>Km Inicial</label>
-                                <div class="pct-info-value">{{ Number(formData.starting_kilometer).toLocaleString('es-CO')
-                                }} km</div>
-                            </div>
                         </div>
-                        <div class="pct-divider"><span>Novedades en Ruta</span></div>
-                        <div class="pct-field">
-                            <label>Registrar novedad intermedia (opcional)</label>
-                            <textarea v-model="formData.route_novelty" placeholder="Demora, desvío, incidente…" />
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Planilla repuesto -->
-                <div class="pct-card">
-                    <div class="pct-card-head">
-                        <div class="pct-card-icon">🔄</div>
-                        <h2>Planilla de Repuesto</h2>
-                        <span class="pct-tag pct-tag-opt">Acción</span>
-                    </div>
-                    <div class="pct-card-body">
-                        <p class="pct-text-muted" style="margin-bottom:12px;font-size:12px">
-                            Si la planilla original se dañó, extravió o requiere reemplazo, solicite una planilla de
-                            repuesto a despacho.
-                        </p>
-                        <button class="pct-btn pct-btn-outline" @click="openModalRepuesto">
-                            🔄 Solicitar Planilla de Repuesto
-                        </button>
-                    </div>
-                </div>
+                        <!-- Recorridos y Novedades -->
+                        <div class="row g-3 mb-4">
+                            <!-- Recorridos del día -->
+                            <div class="col-12 col-lg-7">
+                                <div class="card border-0 shadow-sm h-100 fade-in-up">
+                                    <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="fad fa-route text-primary"></i>
+                                            <h6 class="mb-0 fw-semibold text-dark">Recorridos de la Planilla ({{ recorridosDia.length }})</h6>
+                                        </div>
+                                        <button class="btn btn-outline-primary btn-sm rounded-pill py-0.5 px-3 fs-11 fw-semibold" @click="agregarRecorridoDia">
+                                            <i class="fas fa-plus me-1"></i> Agregar Tramo
+                                        </button>
+                                    </div>
+                                    <div class="card-body p-3">
+                                        <div v-if="!recorridosDia.length" class="alert alert-warning bg-warning bg-opacity-10 border-0 text-dark p-2.5 fs-12 mb-2 d-flex align-items-center gap-2 rounded-3">
+                                            <i class="fad fa-exclamation-triangle text-warning"></i>
+                                            <span>Sin recorridos detallados. Agregue los tramos ejecutados hoy.</span>
+                                        </div>
 
-                <button class="pct-btn pct-btn-red" @click="goStep4">
-                    ⛔ Finalizar Servicio
-                </button>
-            </template>
+                                        <div v-for="(r, idx) in recorridosDia" :key="idx" class="d-flex align-items-center gap-2 mb-2 py-1">
+                                            <span class="badge bg-primary bg-opacity-10 text-primary rounded-circle fs-11 flex-shrink-0" style="width: 28px; height: 28px; display: grid; place-items: center;">{{ idx + 1 }}</span>
+                                            <div class="row g-2 flex-fill">
+                                                <div class="col-6 col-sm-6">
+                                                    <input v-model="r.origin" type="text" class="form-control form-control-sm" placeholder="Origen del tramo" />
+                                                </div>
+                                                <div class="col-6 col-sm-6">
+                                                    <input v-model="r.destination" type="text" class="form-control form-control-sm" placeholder="Destino del tramo" />
+                                                </div>
+                                            </div>
+                                            <button class="btn btn-link text-danger p-1 flex-shrink-0" @click="quitarRecorridoDia(idx)" title="Eliminar">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
 
-            <!-- ── STEP 4: FINALIZACIÓN ───────────────────────────────── -->
-            <template v-if="currentStep === 4">
-
-                <div class="pct-alert pct-alert-warn">
-                    <span class="pct-alert-icon">⚠️</span>
-                    <div>Diligencie los datos de cierre. La hora y el kilometraje final son obligatorios.</div>
-                </div>
-
-                <div class="pct-card">
-                    <div class="pct-card-head">
-                        <div class="pct-card-icon">🏁</div>
-                        <h2>Datos de Finalización</h2>
-                        <span class="pct-tag pct-tag-req">Requerido</span>
-                    </div>
-                    <div class="pct-card-body">
-                        <div class="pct-row2">
-                            <div class="pct-field">
-                                <label>Hora de Finalización</label>
-                                <input v-model="formData.end_time" type="time" step="60" />
-                            </div>
-                            <div class="pct-field">
-                                <label>Kilometraje Final</label>
-                                <input v-model="formData.ending_kilometer" type="number" placeholder="000000" min="0" />
-                            </div>
-                        </div>
-                        <div class="pct-row2">
-                            <div class="pct-field">
-                                <label>Numero de peajes</label>
-                                <input v-model="formData.number_of_tolls" type="number" placeholder="0" min="0" max="100" />
-                            </div>
-                            <div class="pct-field">
-                                <label>Valor total peajes</label>
-                                <input v-model="formData.total_toll_value" type="number" placeholder="0" min="0" />
-                            </div>
-                        </div>
-                        <div class="pct-field">
-                            <label>Novedades al Cierre</label>
-                            <textarea v-model="formData.end_novelty"
-                                placeholder="Sin novedad / descripción de novedades al terminar…" />
-                        </div>
-                    </div>
-                </div>
-
-                <div class="pct-btn-group">
-                    <button class="pct-btn pct-btn-ghost" @click="goStep(3)">← Volver</button>
-                    <button class="pct-btn pct-btn-primary" @click="goStep5">Continuar a Firmas →</button>
-                </div>
-            </template>
-
-            <!-- ── STEP 5: FIRMAS ─────────────────────────────────────── -->
-            <template v-if="currentStep === 5">
-
-                <div class="pct-alert pct-alert-success">
-                    <span class="pct-alert-icon">✅</span>
-                    <div>
-                        Servicio completado: {{ resumen.duracion }} · {{ resumen.kmTotal }} km recorridos.
-                    </div>
-                </div>
-
-                <!-- Resumen -->
-                <div class="pct-card">
-                    <div class="pct-card-head">
-                        <div class="pct-card-icon">📊</div>
-                        <h2>Resumen del Servicio</h2>
-                    </div>
-                    <div class="pct-card-body" style="padding:0">
-                        <table class="pct-summary-table">
-                            <tr v-for="row in resumenRows" :key="row.label">
-                                <td>{{ row.label }}</td>
-                                <td>{{ row.value }}</td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Firma Funcionario -->
-                <div class="pct-card">
-                    <div class="pct-card-head">
-                        <div class="pct-card-icon">🖊️</div>
-                        <h2>Firma del Funcionario</h2>
-                        <span class="pct-tag pct-tag-req">Requerido</span>
-                    </div>
-                    <div class="pct-card-body">
-                        <div class="pct-field">
-                            <label>Nombre del Funcionario</label>
-                            <input v-model="firma.funcionarioNombre" type="text" placeholder="Nombre completo" />
-                        </div>
-                        <div class="pct-field">
-                            <label>Firma</label>
-                            <div class="pct-firma-wrap">
-                                <canvas ref="canvasFuncionarioRef" width="640" height="130" />
-                                <div class="pct-firma-hint" :style="{ opacity: firmaFuncionarioVacia ? 1 : 0 }">
-                                    ✍️ Firme aquí
+                                        <div class="text-end mt-2">
+                                            <button class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold" :disabled="guardandoRecorridos" @click="guardarRecorridosDia">
+                                                <i class="fas" :class="guardandoRecorridos ? 'fa-spinner fa-spin' : 'fa-save me-1'"></i>
+                                                {{ guardandoRecorridos ? 'Guardando...' : 'Guardar Recorridos' }}
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <button class="pct-firma-clear" @click="clearFirma('funcionario')">Borrar firma</button>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Firma Conductor -->
-                <div class="pct-card">
-                    <div class="pct-card-head">
-                        <div class="pct-card-icon">🚘</div>
-                        <h2>Firma del Conductor</h2>
-                        <span class="pct-tag pct-tag-req">Requerido</span>
-                    </div>
-                    <div class="pct-card-body">
-                        <div class="pct-field">
-                            <label>Nombre del Conductor</label>
-                            <input v-model="firma.conductorNombre" type="text"
-                                placeholder="Nombre completo del conductor" />
-                        </div>
-                        <div class="pct-field">
-                            <label>Firma</label>
-                            <div class="pct-firma-wrap">
-                                <canvas ref="canvasConductorRef" width="640" height="130" />
-                                <div class="pct-firma-hint" :style="{ opacity: firmaConductorVacia ? 1 : 0 }">
-                                    ✍️ Firme aquí
+                            <!-- Novedades y Repuesto -->
+                            <div class="col-12 col-lg-5">
+                                <div class="card border-0 shadow-sm h-100 fade-in-up">
+                                    <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="fad fa-clipboard-notes text-primary"></i>
+                                            <h6 class="mb-0 fw-semibold text-dark">Novedades y Soporte</h6>
+                                        </div>
+                                        <button class="btn btn-outline-secondary btn-sm rounded-pill py-0.5 px-3 fs-11" @click="openModalRepuesto">
+                                            <i class="fad fa-sync-alt me-1"></i> Planilla Repuesto
+                                        </button>
+                                    </div>
+                                    <div class="card-body p-3 d-flex flex-column justify-content-between">
+                                        <div>
+                                            <label class="form-label fw-medium text-muted small mb-1">
+                                                Registrar Novedad en Ruta (opcional)
+                                            </label>
+                                            <textarea
+                                                v-model="formData.route_novelty"
+                                                rows="3"
+                                                class="form-control fs-13"
+                                                placeholder="Desvíos, congestión, demoras, incidentes en carretera..."
+                                            ></textarea>
+                                        </div>
+                                        <div class="mt-3 p-2.5 rounded-3 bg-primary bg-opacity-10 text-primary fs-11 border border-primary border-opacity-10">
+                                            <i class="fad fa-info-circle me-1"></i> Si experimentas daños físicos en la planilla de papel, puedes solicitar una planilla de repuesto oficial a despacho.
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <button class="pct-firma-clear" @click="clearFirma('conductor')">Borrar firma</button>
+                        </div>
+
+                        <!-- Botón para Finalizar Servicio -->
+                        <div class="card border-0 shadow-sm bg-white p-3 rounded-3 text-end">
+                            <button class="btn btn-danger rounded-pill px-4 shadow-sm fw-bold d-inline-flex align-items-center gap-2" @click="goStep4">
+                                <i class="fas fa-flag-checkered"></i>
+                                <span>Finalizar Servicio y Registrar Cierre</span>
+                            </button>
                         </div>
                     </div>
-                </div>
 
-                <!-- Planilla de repuesto también aquí -->
-                <div class="pct-card">
-                    <div class="pct-card-head">
-                        <div class="pct-card-icon">🔄</div>
-                        <h2>Planilla de Repuesto</h2>
-                        <span class="pct-tag pct-tag-opt">Acción</span>
-                    </div>
-                    <div class="pct-card-body">
-                        <p class="pct-text-muted" style="margin-bottom:12px;font-size:12px">
-                            Si necesita una planilla de repuesto antes de guardar, solicítela aquí.
-                        </p>
-                        <button class="pct-btn pct-btn-outline" @click="openModalRepuesto">
-                            🔄 Solicitar Planilla de Repuesto
-                        </button>
-                    </div>
-                </div>
+                    <!-- ───────────────────────────────────────────────────
+                         PASO 4: FINALIZACIÓN Y DATOS DE CIERRE
+                    ─────────────────────────────────────────────────── -->
+                    <div v-if="currentStep === 4" class="fade-in">
+                        <div class="alert alert-warning bg-warning bg-opacity-10 border-0 text-dark shadow-sm d-flex align-items-center gap-3 mb-3 rounded-3">
+                            <div class="alert-icon-box bg-warning bg-opacity-20 text-warning rounded-circle p-2 fs-4">
+                                <i class="fad fa-exclamation-circle"></i>
+                            </div>
+                            <div>
+                                <h6 class="alert-heading mb-0 fw-bold text-dark">Diligenciamiento de Cierre</h6>
+                                <p class="mb-0 fs-12 text-700">
+                                    La hora de fin y el kilometraje final son estrictamente obligatorios para calcular la liquidación del recorrido.
+                                </p>
+                            </div>
+                        </div>
 
-                <!-- Avance de planillas diarias (multi-día) -->
-                <div v-if="esMultiDia" class="pct-card">
-                    <div class="pct-card-head">
-                        <div class="pct-card-icon">📅</div>
-                        <h2>Planillas Diarias del Servicio</h2>
-                        <span class="pct-tag pct-tag-opt">{{ planillasPendientes.length }} pendiente(s)</span>
-                    </div>
-                    <div class="pct-card-body" style="padding:0">
-                        <table class="pct-summary-table">
-                            <tr v-for="p in planillasDiarias" :key="p.uuid"
-                                :class="planillaActiva && planillaActiva.uuid === p.uuid ? 'pct-dia-activo' : ''">
-                                <td>{{ formatFecha(p.service_date) }}</td>
-                                <td>
-                                    <span class="pct-dia-flag"
-                                        :class="p.is_active == 1 || p.is_active === true ? 'pct-dia-abierto' : 'pct-dia-cerrado'">
-                                        <i :class="p.is_active == 1 || p.is_active === true
-                                            ? 'fad fa-check-circle me-1'
-                                            : 'fad fa-circle me-1'" style="font-size:10px;" />
-                                        {{ p.is_active == 1 || p.is_active === true ? 'Abierto' : 'Cerrado' }}
+                        <div class="card border-0 shadow-sm mb-3 fade-in-up">
+                            <div class="card-header bg-light py-2 px-3 border-bottom">
+                                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="fad fa-flag-checkered text-primary"></i>
+                                        <h6 class="mb-0 fw-semibold text-dark">Parámetros de Llegada y Gastos</h6>
+                                    </div>
+                                    <span class="badge bg-primary bg-opacity-10 text-primary">
+                                        <i class="fad fa-asterisk me-1" style="font-size: 8px;"></i>Campos obligatorios
                                     </span>
-                                </td>
-                            </tr>
-                        </table>
+                                </div>
+                            </div>
+
+                            <div class="card-body p-3 p-md-4">
+                                <div class="row g-3">
+                                    <!-- Hora de Finalización -->
+                                    <div class="col-12 col-sm-6 col-md-3">
+                                        <label class="form-label required fw-medium text-700" style="font-size: 0.9rem;">
+                                            <i class="fad fa-clock text-primary me-1"></i> Hora de Finalización
+                                        </label>
+                                        <input v-model="formData.end_time" type="time" step="60" class="form-control font-monospace" />
+                                    </div>
+
+                                    <!-- Kilometraje Final -->
+                                    <div class="col-12 col-sm-6 col-md-3">
+                                        <label class="form-label required fw-medium text-700" style="font-size: 0.9rem;">
+                                            <i class="fad fa-tachometer-alt text-primary me-1"></i> Kilometraje Final
+                                        </label>
+                                        <div class="input-group">
+                                            <input
+                                                v-model="formData.ending_kilometer"
+                                                type="number"
+                                                placeholder="Ej. 125680"
+                                                min="0"
+                                                class="form-control font-monospace"
+                                            />
+                                            <span class="input-group-text bg-light text-muted fs-12">km</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Cálculo de Km en Tiempo Real -->
+                                    <div class="col-12 col-sm-6 col-md-3">
+                                        <label class="form-label fw-medium text-muted" style="font-size: 0.9rem;">
+                                            <i class="fad fa-road text-success me-1"></i> Recorrido Estimado
+                                        </label>
+                                        <div class="p-2 rounded bg-light border text-center h-75 d-flex align-items-center justify-content-center">
+                                            <span class="fw-bold fs-14 text-primary font-monospace">
+                                                {{ Math.max(0, (Number(formData.ending_kilometer || 0) - Number(formData.starting_kilometer || 0))) }} km
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Peajes -->
+                                    <div class="col-12 col-sm-6 col-md-3">
+                                        <label class="form-label fw-medium text-700" style="font-size: 0.9rem;">
+                                            <i class="fad fa-ticket-alt text-primary me-1"></i> N.° de Peajes
+                                        </label>
+                                        <input v-model="formData.number_of_tolls" type="number" placeholder="0" min="0" max="50" class="form-control" />
+                                    </div>
+
+                                    <!-- Valor Total Peajes -->
+                                    <div class="col-12 col-sm-6 col-md-4">
+                                        <label class="form-label fw-medium text-700" style="font-size: 0.9rem;">
+                                            <i class="fad fa-dollar-sign text-success me-1"></i> Valor Total Peajes
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light text-muted">$</span>
+                                            <input v-model="formData.total_toll_value" type="number" placeholder="0" min="0" class="form-control" />
+                                        </div>
+                                    </div>
+
+                                    <!-- Novedades de Cierre -->
+                                    <div class="col-12 col-md-8">
+                                        <label class="form-label fw-medium text-700" style="font-size: 0.9rem;">
+                                            <i class="fad fa-comment-alt-lines text-primary me-1"></i> Novedades al Cierre
+                                        </label>
+                                        <input v-model="formData.end_novelty" type="text" class="form-control" placeholder="Sin novedad / reporte de entrega a satisfacción..." />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-center justify-content-between gap-2 mt-4">
+                            <button class="btn btn-outline-secondary rounded-pill px-3 fw-semibold" @click="goStep(3)">
+                                <i class="fas fa-arrow-left me-1"></i> Volver a En Ruta
+                            </button>
+                            <button class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold d-inline-flex align-items-center gap-2" @click="goStep5">
+                                <span>Continuar a Firmas y Certificación</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
                     </div>
+
+                    <!-- ───────────────────────────────────────────────────
+                         PASO 5: RESUMEN Y FIRMAS DIGITALES
+                    ─────────────────────────────────────────────────── -->
+                    <div v-if="currentStep === 5" class="fade-in">
+                        <!-- KPI Card Resumen -->
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fad fa-analytics text-primary"></i>
+                                    <h6 class="mb-0 fw-semibold text-dark">Resumen de Liquidación del Servicio</h6>
+                                </div>
+                                <span class="badge bg-success bg-opacity-10 text-success fw-bold px-3 py-1">
+                                    Completado: {{ resumen.duracion }}
+                                </span>
+                            </div>
+                            <div class="card-body p-3 p-md-4">
+                                <div class="row g-3">
+                                    <div class="col-6 col-md-3">
+                                        <div class="bg-light p-3 rounded-3 border text-center">
+                                            <small class="text-700 d-block text-uppercase fs-10 fw-semibold">Distancia Recorrida</small>
+                                            <span class="fw-bolder fs-4 text-primary font-monospace">{{ resumen.kmTotal }}</span>
+                                            <span class="text-700 fs-11 ms-1">km</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="bg-light p-3 rounded-3 border text-center">
+                                            <small class="text-700 d-block text-uppercase fs-10 fw-semibold">Tiempo Operativo</small>
+                                            <span class="fw-bolder fs-4 text-success font-monospace">{{ resumen.duracion }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="bg-light p-3 rounded-3 border text-center">
+                                            <small class="text-700 d-block text-uppercase fs-10 fw-semibold">Odómetro Salida → Fin</small>
+                                            <span class="fw-bold fs-13 font-monospace d-block text-truncate text-dark">
+                                                {{ formData.starting_kilometer }} → {{ formData.ending_kilometer }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="bg-light p-3 rounded-3 border text-center">
+                                            <small class="text-700 d-block text-uppercase fs-10 fw-semibold">Vehículo</small>
+                                            <span class="fw-bold fs-14 text-dark d-block text-truncate">{{ vehiculoSeleccionadoPlaca }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Firmas Digitales -->
+                        <div class="row g-3 mb-4">
+                            <!-- Firma Funcionario -->
+                            <div class="col-12 col-md-6">
+                                <div class="card border-0 shadow-sm h-100 signature-card">
+                                    <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="fad fa-user-check text-primary"></i>
+                                            <h6 class="mb-0 fw-semibold text-dark">Firma del Funcionario / Cliente</h6>
+                                        </div>
+                                        <span class="badge bg-primary bg-opacity-10 text-primary">Requerido</span>
+                                    </div>
+                                    <div class="card-body p-3">
+                                        <div class="mb-3">
+                                            <label class="form-label required fw-medium text-700" style="font-size: 0.9rem;">Nombre Completo</label>
+                                            <input v-model="firma.funcionarioNombre" type="text" class="form-control" placeholder="Nombre de quien recibe el servicio" />
+                                        </div>
+
+                                        <label class="form-label required fw-medium text-700" style="font-size: 0.9rem;">Trazo de Firma</label>
+                                        <div class="signature-pad-wrapper rounded border bg-white position-relative">
+                                            <canvas ref="canvasFuncionarioRef" width="500" height="150" class="w-100 signature-canvas"></canvas>
+                                            <div v-if="firmaFuncionarioVacia" class="signature-hint position-absolute top-50 start-50 translate-middle text-muted fs-12 pointer-events-none">
+                                                <i class="fad fa-pen-alt me-1"></i> Firme aquí (táctil o mouse)
+                                            </div>
+                                        </div>
+                                        <div class="text-end mt-2">
+                                            <button type="button" class="btn btn-link text-danger btn-sm p-0 fs-11 text-decoration-none" @click="clearFirma('funcionario')">
+                                                <i class="fas fa-trash-alt me-1"></i> Borrar y reintentar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Firma Conductor -->
+                            <div class="col-12 col-md-6">
+                                <div class="card border-0 shadow-sm h-100 signature-card">
+                                    <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="fad fa-steering-wheel text-success"></i>
+                                            <h6 class="mb-0 fw-semibold text-dark">Firma del Conductor</h6>
+                                        </div>
+                                        <span class="badge bg-success bg-opacity-10 text-success">Requerido</span>
+                                    </div>
+                                    <div class="card-body p-3">
+                                        <div class="mb-3">
+                                            <label class="form-label required fw-medium text-700" style="font-size: 0.9rem;">Nombre del Conductor</label>
+                                            <input v-model="firma.conductorNombre" type="text" class="form-control" placeholder="Nombre completo del conductor" />
+                                        </div>
+
+                                        <label class="form-label required fw-medium text-700" style="font-size: 0.9rem;">Trazo de Firma</label>
+                                        <div class="signature-pad-wrapper rounded border bg-white position-relative">
+                                            <canvas ref="canvasConductorRef" width="500" height="150" class="w-100 signature-canvas"></canvas>
+                                            <div v-if="firmaConductorVacia" class="signature-hint position-absolute top-50 start-50 translate-middle text-muted fs-12 pointer-events-none">
+                                                <i class="fad fa-pen-alt me-1"></i> Firme aquí (táctil o mouse)
+                                            </div>
+                                        </div>
+                                        <div class="text-end mt-2">
+                                            <button type="button" class="btn btn-link text-danger btn-sm p-0 fs-11 text-decoration-none" @click="clearFirma('conductor')">
+                                                <i class="fas fa-trash-alt me-1"></i> Borrar y reintentar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Indicador si es multi-día -->
+                        <div v-if="esMultiDia" class="alert alert-info bg-info bg-opacity-10 text-dark border-0 shadow-sm d-flex align-items-center gap-2 mb-3 rounded-3 py-2 px-3">
+                            <i class="fad fa-calendar-alt text-info fs-5"></i>
+                            <span class="fs-12">
+                                Guardando planilla del día <strong>{{ planillaActiva ? formatFecha(planillaActiva.service_date) : '—' }}</strong>. Al completar, avanzará automáticamente a la siguiente planilla diaria pendiente.
+                            </span>
+                        </div>
+
+                        <!-- Acciones -->
+                        <div class="d-flex align-items-center justify-content-between gap-2 mt-4">
+                            <button class="btn btn-outline-secondary rounded-pill px-3 fw-semibold" @click="goStep(4)">
+                                <i class="fas fa-arrow-left me-1"></i> Volver a Métricas
+                            </button>
+                            <button class="btn btn-success rounded-pill px-4 shadow-sm fw-bold d-inline-flex align-items-center gap-2" :disabled="submitting" @click="guardarPlanilla">
+                                <i v-if="submitting" class="fas fa-spinner fa-spin"></i>
+                                <i v-else class="fas fa-check-circle"></i>
+                                <span>{{ esMultiDia ? `Guardar Planilla del Día (${planillaActiva ? formatFecha(planillaActiva.service_date) : ''})` : 'Guardar y Certificar Planilla' }}</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ───────────────────────────────────────────────────
+                         PASO 6: FINALIZADO CON ÉXITO
+                    ─────────────────────────────────────────────────── -->
+                    <div v-if="currentStep === 6" class="fade-in">
+                        <div class="card border-0 shadow-sm text-center py-5 px-3 rounded-4">
+                            <div class="avatar-shape bg-success bg-opacity-10 text-success rounded-circle p-4 mx-auto mb-3" style="width: 80px; height: 80px; display: grid; place-items: center;">
+                                <i class="fad fa-badge-check fs-1"></i>
+                            </div>
+                            <h4 class="fw-bold text-900 mb-1">¡Planilla Registrada con Éxito!</h4>
+                            <p class="text-muted fs-13 mb-4 mx-auto" style="max-width: 480px;">
+                                La planilla de control de prestación de servicios ha sido legalizada, firmada y almacenada correctamente en el sistema.
+                            </p>
+
+                            <div class="d-flex align-items-center justify-content-center gap-3 flex-wrap">
+                                <button class="btn btn-primary rounded-pill px-4 fw-semibold shadow-sm" @click="reiniciar">
+                                    <i class="fas fa-plus me-1.5"></i> Registrar Nueva Planilla
+                                </button>
+                                <router-link to="/planilla-de-control-de-prestacion-servicios" class="btn btn-outline-secondary rounded-pill px-4 fw-semibold">
+                                    <i class="fas fa-list me-1.5"></i> Ver Listado de Planillas
+                                </router-link>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
-                <div v-if="esMultiDia" class="pct-alert pct-alert-info">
-                    <span class="pct-alert-icon">ℹ️</span>
-                    <div>
-                        Firmando la planilla del <strong>{{ planillaActiva ? formatFecha(planillaActiva.service_date) : '—' }}</strong>.
-                        Al guardar, el sistema avanzará automáticamente a la siguiente planilla diaria pendiente.
-                    </div>
+                <!-- Skeleton / Loader -->
+                <div v-else class="d-flex flex-column align-items-center justify-content-center py-5" style="min-height: 400px;">
+                    <div class="spinner-border text-primary mb-3" role="status"></div>
+                    <span class="text-muted fw-semibold fs-13">Cargando datos del servicio...</span>
                 </div>
 
-                <button class="pct-btn pct-btn-green" :disabled="submitting" @click="guardarPlanilla">
-                    <i v-if="submitting" class="fas fa-spinner fa-spin me-2"></i>
-                    💾 {{ esMultiDia
-                        ? `Guardar Planilla del Día (${planillaActiva ? formatFecha(planillaActiva.service_date) : '—'})`
-                        : 'Guardar Planilla Completa' }}
-                </button>
-            </template>
-
-            <!-- ── DONE ───────────────────────────────────────────────── -->
-            <template v-if="currentStep === 6">
-                <div class="pct-card pct-card-done">
-                    <div style="font-size:52px;margin-bottom:12px">✅</div>
-                    <h2 style="font-size:18px;font-weight:700;margin-bottom:8px">Planilla Guardada</h2>
-                    <p class="pct-text-muted" style="margin-bottom:20px;font-size:13px">
-                        La planilla de control ha sido registrada exitosamente en el sistema.
-                    </p>
-                    <span class="pct-status-pill pct-status-done">🗂️ Planilla Completa</span>
-                    <div style="margin-top:20px">
-                        <button class="pct-btn pct-btn-primary" @click="reiniciar">＋ Nueva Planilla</button>
-                    </div>
-                </div>
-            </template>
-
-        </div><!-- /.pct-main -->
-
-        <!-- Loader -->
-        <div v-if="isViewLoading" class="pct-main d-flex justify-content-center align-items-center" style="min-height: 400px;">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Cargando...</span>
             </div>
         </div>
 
-        <!-- ════ MODAL PLANILLA REPUESTO ════════════════════════════ -->
+        <!-- ═══════════════════════════════════════════════════════════
+             MODAL: SOLICITUD DE PLANILLA DE REPUESTO
+        ═══════════════════════════════════════════════════════════ -->
         <teleport to="body">
-            <div v-if="modal.repuesto" class="pct-modal-bg" @click.self="modal.repuesto = false">
-                <div class="pct-modal">
-                    <div class="pct-modal-title">🔄 Solicitud de Planilla de Repuesto</div>
-
-                    <div class="pct-field">
-                        <label>Motivo de la Solicitud</label>
-                        <select v-model="repuesto.motivo">
-                            <option value="">— Seleccione motivo —</option>
-                            <option>Planilla original dañada (agua / rotura)</option>
-                            <option>Planilla extraviada en ruta</option>
-                            <option>Error de diligenciamiento</option>
-                            <option>Planilla no entregada por despacho</option>
-                            <option>Otro motivo</option>
-                        </select>
-                    </div>
-                    <div class="pct-field">
-                        <label>Descripción del Motivo</label>
-                        <textarea v-model="repuesto.descripcion" placeholder="Explique brevemente la situación…" />
-                    </div>
-                    <div class="pct-row2">
-                        <div class="pct-field">
-                            <label>Solicitado por</label>
-                            <input v-model="repuesto.solicitante" type="text" placeholder="Nombre del solicitante" />
+            <!-- Modal Formulario -->
+            <div v-if="modal.repuesto" class="modal-backdrop-custom d-flex align-items-center justify-content-center" @click.self="modal.repuesto = false">
+                <div class="modal-dialog-custom bg-white rounded-3 shadow-lg border p-4 w-100 fade-in" style="max-width: 520px;">
+                    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fad fa-sync-alt text-primary fs-5"></i>
+                            <h6 class="modal-title mb-0 fw-semibold text-dark">Solicitud de Planilla de Repuesto</h6>
                         </div>
-                        <div class="pct-field">
-                            <label>Hora de Solicitud</label>
-                            <input :value="repuesto.hora" type="time" readonly />
-                        </div>
+                        <button type="button" class="btn-close" @click="modal.repuesto = false"></button>
                     </div>
 
-                    <div class="pct-btn-group" style="margin-top:8px">
-                        <button class="pct-btn pct-btn-ghost" @click="modal.repuesto = false">Cancelar</button>
-                        <button class="pct-btn pct-btn-outline" @click="enviarRepuesto">📤 Enviar Solicitud</button>
+                    <div class="row g-3 mb-4">
+                        <div class="col-12">
+                            <label class="form-label required fw-medium text-700" style="font-size: 0.9rem;">Motivo de la Solicitud</label>
+                            <select v-model="repuesto.motivo" class="form-select">
+                                <option value="">— Seleccione el motivo —</option>
+                                <option>Planilla original dañada (agua / rotura)</option>
+                                <option>Planilla extraviada en ruta</option>
+                                <option>Error de diligenciamiento</option>
+                                <option>Planilla no entregada por despacho</option>
+                                <option>Otro motivo</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-medium text-700" style="font-size: 0.9rem;">Descripción Detallada</label>
+                            <textarea v-model="repuesto.descripcion" rows="3" class="form-control fs-13" placeholder="Explique brevemente lo ocurrido..."></textarea>
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label fw-medium text-700" style="font-size: 0.9rem;">Solicitado por</label>
+                            <input v-model="repuesto.solicitante" type="text" class="form-control" placeholder="Nombre completo" />
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label fw-medium text-700" style="font-size: 0.9rem;">Hora de Solicitud</label>
+                            <input :value="repuesto.hora" type="time" readonly class="form-control bg-light" />
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-end gap-2">
+                        <button class="btn btn-outline-secondary btn-sm px-3 rounded-pill" @click="modal.repuesto = false">Cancelar</button>
+                        <button class="btn btn-primary btn-sm px-4 fw-semibold rounded-pill" @click="enviarRepuesto">
+                            <i class="fad fa-paper-plane me-1"></i> Enviar Solicitud a Despacho
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Modal confirmación -->
-            <div v-if="modal.repuestoOk" class="pct-modal-bg" @click.self="modal.repuestoOk = false">
-                <div class="pct-modal" style="text-align:center">
-                    <div style="font-size:44px;margin-bottom:12px">📋</div>
-                    <div class="pct-modal-title" style="justify-content:center">Solicitud Enviada</div>
-                    <p class="pct-text-muted" style="font-size:13px;margin-bottom:6px">
-                        La solicitud de planilla de repuesto ha sido enviada a despacho.
+            <!-- Modal Éxito Envío -->
+            <div v-if="modal.repuestoOk" class="modal-backdrop-custom d-flex align-items-center justify-content-center" @click.self="modal.repuestoOk = false">
+                <div class="modal-dialog-custom bg-white rounded-4 shadow-lg border p-4 text-center w-100 fade-in" style="max-width: 440px;">
+                    <div class="icon-shape bg-success bg-opacity-10 text-success rounded-circle p-3 mx-auto mb-3" style="width: 60px; height: 60px; display: grid; place-items: center;">
+                        <i class="fad fa-check-circle fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold text-900 mb-1">Solicitud Enviada a Despacho</h5>
+                    <p class="text-muted fs-13 mb-3">
+                        Se ha generado el requerimiento formal para la asignación de una planilla de repuesto.
                     </p>
-                    <p class="pct-text-muted" style="font-size:12px;margin-bottom:20px">
-                        Ref. Solicitud: {{ repuesto.ref }}
-                    </p>
-                    <button class="pct-btn pct-btn-primary" @click="modal.repuestoOk = false">Entendido</button>
+                    <div class="badge bg-light text-dark border p-2 mb-4 font-monospace fs-12 d-inline-block">
+                        Radicado: {{ repuesto.ref }}
+                    </div>
+                    <div>
+                        <button class="btn btn-primary w-100 fw-semibold rounded-pill" @click="modal.repuestoOk = false">Entendido</button>
+                    </div>
                 </div>
             </div>
         </teleport>
 
-    </div><!-- /.pct-root -->
+    </div>
 </template>
 
 <script setup>
-import { toast } from '@/utils/toast.js';
-/**
- * @author Darwin Montes
- * @version 1.0.0
- * @created_at 2026-06-19
- * @module {Features.Fleet}
- * @resource {ServiceDeliveryControlSheet}
- */
-
 import { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { toast } from '@/utils/toast.js';
+import BasePageHeader from '@/components/BasePageHeader.vue';
 import { useServiceDeliveryControlSheetStore } from '../store/serviceDeliveryControlSheet.store.js';
 import serviceDeliveryControlSheetService from '../services/serviceDeliveryControlSheet.service.js';
+import vehicleInspectionsService from '../../vehicleInspections/services/vehicleInspections.service.js';
 import { usePermissionsStore, useUserStore } from '@store';
 import { useSelect2 } from '@/hooks/useSelect2.js';
 
@@ -560,12 +965,17 @@ const submitting = ref(false);
 const validationErrors = reactive({});
 const currentStep = ref(1);
 
+const breadcrumbs = [
+    { label: 'Hojas de Control', to: '/planilla-de-control-de-prestacion-servicios' },
+    { label: 'Control Operativo', active: true }
+];
+
 const steps = [
-    { n: 1, label: 'Selección' },
-    { n: 2, label: 'Inicio' },
-    { n: 3, label: 'En Curso' },
-    { n: 4, label: 'Finalizar' },
-    { n: 5, label: 'Firmas' },
+    { n: 1, label: 'Selección', icon: 'fad fa-search' },
+    { n: 2, label: 'Inicio', icon: 'fad fa-play-circle' },
+    { n: 3, label: 'En Ruta', icon: 'fad fa-route' },
+    { n: 4, label: 'Finalizar', icon: 'fad fa-flag-checkered' },
+    { n: 5, label: 'Firmas', icon: 'fad fa-file-signature' },
 ];
 
 const formData = reactive({
@@ -602,13 +1012,155 @@ const repuesto = reactive({
 
 const serviciosCatalogo = ref([]);
 const fuecsCatalogo = ref([]);
+const proyectosList = ref([]);
+const proyectoFiltro = ref('');
 
 // --- COMPUTADOS ---
 const servicioSeleccionado = computed(() => {
     return serviciosCatalogo.value.find(s => s.uuid === formData.servicioId) || null;
 });
 
-// Índice de la planilla diaria en proceso (para servicios multi-día).
+const serviciosFiltrados = computed(() => {
+    if (!proyectoFiltro.value) return serviciosCatalogo.value;
+    return serviciosCatalogo.value.filter(s => (s.project_uuid || s.project?.uuid) === proyectoFiltro.value);
+});
+
+const tipoCorto = (t) => ({
+    DIRECTO_CON_LA_EMPRESA: 'Directo',
+    SUBCONTRATADO: 'Subcontratado',
+    CON_VEHICULO_CONTRATADO: 'Veh. contratado',
+    EXTERNO_PLATAFORMA: 'Externo',
+}[t] || t || '—');
+
+const tipoLargo = (t) => ({
+    DIRECTO_CON_LA_EMPRESA: 'Directo con la empresa',
+    SUBCONTRATADO: 'Subcontratado',
+    CON_VEHICULO_CONTRATADO: 'Con vehículo contratado',
+    EXTERNO_PLATAFORMA: 'Vehículo externo de plataforma',
+}[t] || t || '—');
+
+const recorridosTextoDe = (s) => {
+    if (!s) return '';
+    if (Array.isArray(s.routes) && s.routes.length) {
+        return s.routes.map(r => `${r.origin || ''} - ${r.destination || ''}`.trim().replace(/^- | -$/g, '')).filter(Boolean).join(' · ');
+    }
+    return s.daily_route || '';
+};
+
+const recorridosServicio = computed(() => servicioSeleccionado.value?.routes || []);
+const recorridosPlanillaActiva = computed(() => planillaActiva.value?.routes || []);
+
+// Vehículo y conductor de la planilla activa (para la inspección del día).
+const planillaVehiculoUuid = computed(() =>
+    planillaActiva.value?.internal_control?.vehicle_uuid
+    || servicioSeleccionado.value?.internal_control?.vehicle_uuid
+    || ''
+);
+const planillaConductorUuid = computed(() =>
+    planillaActiva.value?.internal_control?.third_party_uuid
+    || servicioSeleccionado.value?.internal_control?.third_party_uuid
+    || userStore.uuid_driver
+    || userStore.third_party_uuid
+    || ''
+);
+const fechaPlanilla = computed(() => {
+    const f = planillaActiva.value?.service_date || servicioSeleccionado.value?.service_date || '';
+    return String(f).substring(0, 10);
+});
+
+// Inspección preoperacional: obligatoria una sola vez al día por vehículo.
+const inspeccionDia = ref({ checked: false, exists: false, uuid: null, fecha: '', verificando: false });
+
+const verificarInspeccionDia = async (manual = false) => {
+    const vUuid = planillaVehiculoUuid.value;
+    if (!vUuid) {
+        inspeccionDia.value = { checked: true, exists: null, uuid: null, fecha: fechaPlanilla.value, verificando: false };
+        return true;
+    }
+    inspeccionDia.value.verificando = true;
+    try {
+        const res = await vehicleInspectionsService.checkToday(vUuid, fechaPlanilla.value);
+        inspeccionDia.value = {
+            checked: true,
+            exists: !!res.exists,
+            uuid: res.inspection?.uuid || null,
+            fecha: fechaPlanilla.value,
+            verificando: false,
+        };
+        return !!res.exists;
+    } catch (e) {
+        inspeccionDia.value = { checked: false, exists: false, uuid: null, fecha: '', verificando: false };
+        if (manual) toast('Error', 'No se pudo verificar la inspección', 'error');
+        return false;
+    }
+};
+
+const inspeccionCrearLink = computed(() => {
+    const q = new URLSearchParams({
+        vehicle_uuid: planillaVehiculoUuid.value || '',
+        inspection_date: fechaPlanilla.value || '',
+        driver_uuid: planillaConductorUuid.value || '',
+        return_to: '/planilla-de-control-de-prestacion-servicios/control-de-servicios',
+    });
+    return `/inspeccion-vehiculos/crear?${q.toString()}`;
+});
+
+// Indica si la planilla activa ya tiene ruta definida
+const tieneRutaDefinida = computed(() => {
+    if ((planillaActiva.value?.routes || []).length) return true;
+    const legacy = (planillaActiva.value?.daily_route || servicioSeleccionado.value?.daily_route || '').trim();
+    return !!legacy;
+});
+
+// Recorridos del día: editables en vivo
+const recorridosDia = ref([]);
+const guardandoRecorridos = ref(false);
+
+const normalizarRecorridos = (list) => {
+    if (!Array.isArray(list)) return [];
+    return list
+        .map(r => ({
+            origin: r?.origin || '',
+            destination: r?.destination || '',
+        }))
+        .filter(r => r.origin || r.destination);
+};
+
+const agregarRecorridoDia = () => {
+    recorridosDia.value.push({ origin: '', destination: '' });
+};
+
+const quitarRecorridoDia = (idx) => {
+    recorridosDia.value.splice(idx, 1);
+};
+
+const guardarRecorridosDia = async () => {
+    const uuid = planillaActivaUuid.value;
+    if (!uuid) return toast('Atención', 'Seleccione primero el servicio del día', 'warning');
+    const validos = normalizarRecorridos(recorridosDia.value);
+    if (!validos.length) return toast('Atención', 'Agregue al menos un recorrido con origen y destino', 'warning');
+    guardandoRecorridos.value = true;
+    try {
+        const updated = await store.updateItem(uuid, { routes: validos });
+        const saved = updated?.routes || validos;
+        const aplicar = (nodo) => {
+            if (nodo && nodo.uuid === uuid) nodo.routes = saved.map(r => ({ ...r }));
+        };
+        serviciosCatalogo.value.forEach(s => {
+            aplicar(s);
+            (s.children || []).forEach(aplicar);
+        });
+        recorridosDia.value = normalizarRecorridos(saved);
+        persistirProgreso();
+        toast('¡Éxito!', `Se guardaron ${recorridosDia.value.length} recorrido(s) del día`, 'success');
+    } catch (err) {
+        toast('Error', err?.response?.data?.message || 'No se pudieron guardar los recorridos', 'error');
+    } finally {
+        guardandoRecorridos.value = false;
+    }
+};
+
+// Planillas multi-día
 const planillaIndex = ref(0);
 
 const planillasDiarias = computed(() => {
@@ -658,15 +1210,6 @@ const resumen = reactive({
     kmTotal: 0,
 });
 
-const resumenRows = computed(() => [
-    { label: 'Servicio', value: servicioSeleccionado.value?.daily_route || '—' },
-    { label: 'Vehículo', value: vehiculoSeleccionadoPlaca.value },
-    { label: 'Inicio', value: `${formData.start_time} (Km ${formData.starting_kilometer})` },
-    { label: 'Fin', value: `${formData.end_time} (Km ${formData.ending_kilometer})` },
-    { label: 'Recorrido', value: `${resumen.kmTotal} km` },
-    { label: 'Duración', value: resumen.duracion },
-]);
-
 // --- RELOJ Y TEMPORIZADOR ---
 const clockStr = ref('');
 const timerStr = ref('00:00:00');
@@ -681,7 +1224,7 @@ const updateClock = () => {
 
 const startTimer = () => {
     if (timerInterval) clearInterval(timerInterval);
-    const [h, m] = formData.start_time.split(':').map(Number);
+    const [h, m] = (formData.start_time || '00:00').split(':').map(Number);
     const start = new Date();
     start.setHours(h, m, 0);
     startTimeSeconds = Math.floor(start.getTime() / 1000);
@@ -711,7 +1254,6 @@ const selectConfigs = [
     { ref: fuecSelect, field: 'fuec_uuid', placeholder: 'Seleccione FUEC' },
 ];
 
-// --- UTILIDADES DE PLANILLAS DIARIAS ---
 const formatFecha = (fecha) => {
     if (!fecha) return '—';
     const parts = String(fecha).substring(0, 10).split('-');
@@ -741,7 +1283,96 @@ const marcarPlanillaCerrada = (uuid) => {
     if (idx !== -1) hijos[idx] = { ...hijos[idx], is_active: false };
 };
 
+// --- PERSISTENCIA ANTE RECARGAS ---
+// Si la planilla está iniciada (en ruta), recargar la página no la reinicia ni
+// la cierra: al ingresar de nuevo se retoma en el paso 3. Solo se limpia al
+// guardar/cerrar definitivamente o al pulsar Nueva Planilla.
+const PROGRESO_KEY = 'pct-servicio-en-curso';
+
+const persistirProgreso = () => {
+    try {
+        if (!formData.servicioId) return;
+        localStorage.setItem(PROGRESO_KEY, JSON.stringify({
+            servicioId: formData.servicioId,
+            planillaUuid: planillaActivaUuid.value,
+            currentStep: currentStep.value,
+            start_time: formData.start_time,
+            starting_kilometer: formData.starting_kilometer,
+            start_fuel_level: formData.start_fuel_level,
+            fuec_uuid: formData.fuec_uuid,
+            route_novelty: formData.route_novelty,
+            end_time: formData.end_time,
+            ending_kilometer: formData.ending_kilometer,
+            number_of_tolls: formData.number_of_tolls,
+            total_toll_value: formData.total_toll_value,
+            end_novelty: formData.end_novelty,
+            savedAt: Date.now(),
+        }));
+    } catch (e) { /* almacenamiento no disponible */ }
+};
+
+const leerProgreso = () => {
+    try {
+        const raw = localStorage.getItem(PROGRESO_KEY);
+        return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+};
+
+const limpiarProgreso = () => {
+    try { localStorage.removeItem(PROGRESO_KEY); } catch (e) {}
+};
+
+const restaurarProgreso = async () => {
+    const prog = leerProgreso();
+    const queryId = route.query.service_uuid || route.query.id;
+    const targetId = queryId || prog?.servicioId;
+    if (!targetId) return;
+    const existe = serviciosCatalogo.value.find(s => s.uuid === targetId);
+    if (!existe) {
+        if (!queryId) limpiarProgreso();
+        return;
+    }
+    if (queryId && prog && prog.servicioId !== queryId) limpiarProgreso();
+    formData.servicioId = targetId;
+    await nextTick();
+    await nextTick();
+    setSelect2Values([selectConfigs[0]]);
+    const activa = planillaActiva.value;
+    if (!activa) return;
+    const enRuta = (activa.is_active == 1 || activa.is_active === true) && !!activa.start_time && !activa.end_time;
+    if (!enRuta) {
+        // Pendiente sin iniciar: queda seleccionado en el paso 1. Sin pendientes: limpiar.
+        const pendientes = esMultiDia.value ? planillasPendientes.value.length : ((existe.is_active == 1 || existe.is_active === true) ? 1 : 0);
+        if (!pendientes) limpiarProgreso();
+        return;
+    }
+    // En ruta: retomar datos y paso.
+    cargarDatosPlanilla(activa);
+    if (prog && prog.planillaUuid === activa.uuid) {
+        if (prog.route_novelty) formData.route_novelty = prog.route_novelty;
+        if (prog.end_time) {
+            formData.end_time = prog.end_time;
+            formData.ending_kilometer = prog.ending_kilometer ?? '';
+            formData.number_of_tolls = prog.number_of_tolls ?? 0;
+            formData.total_toll_value = prog.total_toll_value ?? 0;
+            formData.end_novelty = prog.end_novelty || '';
+        }
+    }
+    if (prog && prog.currentStep >= 4 && formData.end_time) {
+        goStep(4);
+    } else {
+        if (currentStep.value !== 3) goStep(3);
+        startTimer();
+    }
+    persistirProgreso();
+};
+
+
 // --- NAVEGACIÓN ---
+const goBack = () => {
+    router.back();
+};
+
 const goStep = (n) => {
     currentStep.value = n;
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -750,6 +1381,12 @@ const goStep = (n) => {
             initCanvas('funcionario');
             initCanvas('conductor');
         });
+    }
+};
+
+const handleStepClick = (n) => {
+    if (currentStep.value > n) {
+        goStep(n);
     }
 };
 
@@ -773,6 +1410,20 @@ const iniciarServicio = async () => {
     if (!formData.start_time || !formData.starting_kilometer) {
         return toast('Atención', 'La hora de inicio y el kilometraje son obligatorios.', 'warning');
     }
+    // Inspección preoperacional obligatoria (una sola vez al día por vehículo).
+    if (planillaVehiculoUuid.value) {
+        if (!inspeccionDia.value.checked) await verificarInspeccionDia();
+        if (!inspeccionDia.value.exists) {
+            return toast('Atención', 'Registre primero la inspección preoperacional del día para este vehículo (se exige una sola vez al día).', 'warning');
+        }
+    }
+    if (!tieneRutaDefinida.value) {
+        const enEditor = normalizarRecorridos(recorridosDia.value).length;
+        if (!enEditor) {
+            return toast('Atención', 'Este servicio no tiene ruta definida. Registre y guarde al menos un recorrido antes de iniciar.', 'warning');
+        }
+        return toast('Atención', 'Tiene recorridos sin guardar. Pulse «Guardar recorridos» antes de iniciar el servicio.', 'warning');
+    }
     try {
         submitting.value = true;
         await store.startService(planillaActivaUuid.value, {
@@ -783,19 +1434,31 @@ const iniciarServicio = async () => {
         });
         goStep(3);
         startTimer();
+        persistirProgreso();
     } catch (err) {
         console.error(err);
+        toast('Error', 'No se pudo iniciar el servicio', 'error');
     } finally {
         submitting.value = false;
     }
 };
 
 const goStep4 = () => {
+    const guardados = (planillaActiva.value?.routes || []).length;
+    const legacy = (planillaActiva.value?.daily_route || servicioSeleccionado.value?.daily_route || '').trim();
+    const enEditor = normalizarRecorridos(recorridosDia.value).length;
+    if (!guardados && !legacy && !enEditor) {
+        return toast('Atención', 'Registre y guarde al menos un recorrido del día antes de finalizar.', 'warning');
+    }
+    if (enEditor && enEditor !== guardados) {
+        return toast('Atención', 'Tiene recorridos sin guardar. Pulse «Guardar recorridos del día» antes de finalizar.', 'warning');
+    }
     if (!formData.end_time) {
         const now = new Date();
         formData.end_time = now.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false });
     }
     goStep(4);
+    persistirProgreso();
 };
 
 const goStep5 = () => {
@@ -809,12 +1472,13 @@ const goStep5 = () => {
     if (diffMin < 0) diffMin += 1440;
     resumen.duracion = `${Math.floor(diffMin / 60)}h ${diffMin % 60}m`;
     resumen.duracionFormatted = `${String(Math.floor(diffMin / 60)).padStart(2, '0')}:${String(diffMin % 60).padStart(2, '0')}:00`;
-    resumen.kmTotal = Number(formData.ending_kilometer) - Number(formData.starting_kilometer);
+    resumen.kmTotal = Math.max(0, Number(formData.ending_kilometer) - Number(formData.starting_kilometer));
 
     if (!firma.funcionarioNombre) firma.funcionarioNombre = servicioSeleccionado.value?.official_name_and_surname || '';
     if (!firma.conductorNombre) firma.conductorNombre = conductorSeleccionadoNombre.value;
 
     goStep(5);
+    persistirProgreso();
 };
 
 // --- FIRMAS (CANVAS) ---
@@ -853,8 +1517,8 @@ const initCanvas = (type) => {
         if (!drawing) return;
         const { x, y } = getPos(e);
         ctx.lineTo(x, y);
-        ctx.strokeStyle = '#000';
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#0f172a';
+        ctx.lineWidth = 2.5;
         ctx.lineCap = 'round';
         ctx.stroke();
     };
@@ -891,18 +1555,18 @@ const openModalRepuesto = () => {
 
 const enviarRepuesto = () => {
     if (!repuesto.motivo) return toast('Error', 'Debe seleccionar un motivo', 'error');
-    repuesto.ref = 'REQ-' + Math.random().toString(36).substring(7).toUpperCase();
+    repuesto.ref = 'REP-' + Math.random().toString(36).substring(2, 8).toUpperCase();
     modal.repuesto = false;
     modal.repuestoOk = true;
 };
 
 const guardarPlanilla = async () => {
     if (firmaFuncionarioVacia.value || firmaConductorVacia.value) {
-        return toast('Falta Firma', 'Ambas firmas son obligatorias para guardar la planilla.', 'warning');
+        return toast('Falta Firma', 'Ambas firmas digitales son requeridas para certificar la planilla.', 'warning');
     }
 
     if (!planillaActivaUuid.value) {
-        return toast('Atención', 'No hay una planilla activa para guardar.', 'warning');
+        return toast('Atención', 'No hay una planilla activa seleccionada.', 'warning');
     }
 
     try {
@@ -926,9 +1590,8 @@ const guardarPlanilla = async () => {
 
         const restantes = planillasPendientes.value;
         if (esMultiDia.value && restantes.length > 0) {
-            await toast('¡Éxito!', `Planilla del día guardada. Quedan ${restantes.length} planilla(s) pendiente(s).`, 'success');
+            toast('¡Éxito!', `Planilla diaria guardada. Quedan ${restantes.length} planilla(s) pendiente(s).`, 'success');
 
-            // Preparar el siguiente día (continúa el recorrido con el km final del día anterior)
             formData.start_time = '';
             formData.starting_kilometer = formData.ending_kilometer || formData.starting_kilometer;
             formData.end_time = '';
@@ -945,6 +1608,7 @@ const guardarPlanilla = async () => {
             firma.conductorNombre = '';
 
             goStep(2);
+            persistirProgreso();
             nextTick(() => {
                 initCanvas('funcionario');
                 initCanvas('conductor');
@@ -952,15 +1616,18 @@ const guardarPlanilla = async () => {
             return;
         }
 
+        limpiarProgreso();
         goStep(6);
     } catch (err) {
         console.error(err);
+        toast('Error', 'No se pudo guardar la planilla.', 'error');
     } finally {
         submitting.value = false;
     }
 };
 
 const reiniciar = () => {
+    limpiarProgreso();
     Object.assign(formData, {
         servicioId: '',
         start_time: '',
@@ -1001,9 +1668,21 @@ onMounted(async () => {
 
         const catalogs = await store.loadFormOptions();
         fuecsCatalogo.value = catalogs.fuecs || [];
+        try {
+            const { useUserStore } = await import('@store');
+            const userStore = useUserStore();
+            if (userStore.company_uuid) await store.loadProjects(userStore.company_uuid);
+            proyectosList.value = store.projects || catalogs.projects || [];
+        } catch (e) {
+            proyectosList.value = catalogs.projects || [];
+        }
 
         await nextTick();
         initSelect2([selectConfigs[0]]);
+        setSelect2Values([selectConfigs[0]]);
+
+        // Retomar servicio en curso (recarga o reingreso): paso 3 si sigue en ruta.
+        await restaurarProgreso();
     } catch (err) {
         console.error(err);
     } finally {
@@ -1018,6 +1697,7 @@ onUnmounted(() => {
 });
 
 watch(() => formData.servicioId, (newVal) => {
+    inspeccionDia.value = { checked: false, exists: false, uuid: null, fecha: '', verificando: false };
     if (!newVal) {
         reiniciar();
         return;
@@ -1028,7 +1708,6 @@ watch(() => formData.servicioId, (newVal) => {
 
     planillaIndex.value = 0;
 
-    // Servicio multi-día con todas las planillas diarias completadas.
     if (esMultiDia.value && planillasPendientes.value.length === 0) {
         goStep(6);
         return;
@@ -1038,836 +1717,315 @@ watch(() => formData.servicioId, (newVal) => {
 
     const activa = planillaActiva.value || s;
     if (activa.start_time) {
-        // Planilla iniciada pero no finalizada → retomar en curso.
         goStep(3);
         startTimer();
     } else if (!esMultiDia.value && activa.end_time && activa.ending_kilometer) {
-        // Servicio de un solo día ya finalizado.
         goStep(6);
     }
-    // En cualquier otro caso permanece en el Paso 1 para revisar la selección
-    // y las planillas diarias antes de continuar.
+});
+
+watch(proyectoFiltro, (nuevo) => {
+    if (!nuevo) return;
+    const actual = serviciosCatalogo.value.find(s => s.uuid === formData.servicioId);
+    const pertenece = actual && ((actual.project_uuid || actual.project?.uuid) === nuevo);
+    if (formData.servicioId && !pertenece) {
+        formData.servicioId = '';
+        planillaIndex.value = 0;
+        nextTick(() => setSelect2Values([selectConfigs[0]]));
+    }
+});
+
+watch(planillaActivaUuid, (uuid) => {
+    if (!uuid) {
+        recorridosDia.value = [];
+        return;
+    }
+    recorridosDia.value = normalizarRecorridos(planillaActiva.value?.routes || []);
+});
+
+// Al entrar al paso 2 se verifica la inspección del día (una sola vez al día).
+watch(currentStep, (n) => {
+    if (n === 2 && formData.servicioId) verificarInspeccionDia();
 });
 </script>
 
 <style scoped>
-/* ─── TOKENS ──────────────────────────────────────────────── */
-.pct-root {
-    --bg: #f1f5f9;
-    --surface: #ffffff;
-    --surface-2: #f8fafc;
-    --border: #e2e8f0;
-    --border-dark: #cbd5e1;
-    --accent: #1d4ed8;
-    --accent-light: #eff6ff;
-    --accent-dim: #bfdbfe;
-    --green: #16a34a;
-    --green-light: #f0fdf4;
-    --green-dim: #bbf7d0;
-    --red: #dc2626;
-    --red-light: #fef2f2;
-    --red-dim: #fecaca;
-    --amber: #d97706;
-    --amber-light: #fffbeb;
-    --amber-dim: #fde68a;
-    --text: #0f172a;
-    --text-muted: #64748b;
-    --text-dim: #94a3b8;
-    --radius: 8px;
-    --radius-lg: 14px;
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, .08), 0 1px 2px rgba(0, 0, 0, .05);
-    --shadow: 0 4px 6px rgba(0, 0, 0, .07), 0 2px 4px rgba(0, 0, 0, .05);
-    --font-ui: 'Segoe UI', system-ui, sans-serif;
-    --font-mono: 'Cascadia Code', 'Fira Code', monospace;
-
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font-ui);
-    font-size: 14px;
-    min-height: 100vh;
-    padding-bottom: 60px;
+/* ─── TIPOGRAFÍA & BASE ─────────────────────────────────────── */
+.service-template-view {
+    font-family: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #344050;
 }
 
-/* ─── HEADER ──────────────────────────────────────────────── */
-.pct-header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 13px 22px;
-    display: flex;
-    align-items: center;
-    gap: 13px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: var(--shadow-sm);
+h1, h2, h3, h4, h5, h6,
+.modal-title,
+.step-label,
+.step-number {
+    font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-.pct-logo {
-    width: 36px;
-    height: 36px;
-    background: var(--accent);
-    border-radius: 9px;
-    display: grid;
-    place-items: center;
-    font-size: 18px;
-    flex-shrink: 0;
+/* ─── GENERALES & ANIMACIONES ───────────────────────────────── */
+.fade-in {
+    animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.pct-title {
-    font-size: 13px;
-    font-weight: 700;
-    line-height: 1.35;
-    color: var(--text);
-}
-
-.pct-title span {
-    display: block;
-    font-size: 11px;
-    font-weight: 400;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: .05em;
-}
-
-.pct-header-right {
-    margin-left: auto;
-}
-
-.pct-badge-date {
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 4px 10px;
-    font-size: 11px;
-    color: var(--text-muted);
-    font-variant-numeric: tabular-nums;
-}
-
-/* ─── STEPPER ─────────────────────────────────────────────── */
-.pct-stepper {
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    padding: 22px 22px 0;
-    max-width: 720px;
-    margin: 0 auto;
-}
-
-.pct-step {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    flex: 1;
-    position: relative;
-}
-
-.pct-step:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    top: 13px;
-    left: calc(50% + 14px);
-    right: calc(-50% + 14px);
-    height: 2px;
-    background: var(--border);
-    transition: background .4s;
-}
-
-.pct-step.done:not(:last-child)::after {
-    background: var(--accent);
-}
-
-.pct-step-circle {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    border: 2px solid var(--border-dark);
-    background: var(--surface);
-    display: grid;
-    place-items: center;
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--text-dim);
-    transition: all .25s;
-    position: relative;
-    z-index: 1;
-}
-
-.pct-step.active .pct-step-circle {
-    border-color: var(--accent);
-    color: var(--accent);
-    background: var(--accent-light);
-    box-shadow: 0 0 0 3px var(--accent-dim);
-}
-
-.pct-step.done .pct-step-circle {
-    border-color: var(--accent);
-    background: var(--accent);
-    color: #fff;
-}
-
-.pct-step-label {
-    font-size: 9px;
-    font-weight: 700;
-    color: var(--text-dim);
-    text-align: center;
-    text-transform: uppercase;
-    letter-spacing: .05em;
-    white-space: nowrap;
-}
-
-.pct-step.active .pct-step-label {
-    color: var(--accent);
-}
-
-.pct-step.done .pct-step-label {
-    color: var(--text-muted);
-}
-
-/* ─── MAIN ────────────────────────────────────────────────── */
-.pct-main {
-    max-width: 720px;
-    margin: 20px auto;
-    padding: 0 16px;
-}
-
-/* ─── CARDS ───────────────────────────────────────────────── */
-.pct-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    margin-bottom: 14px;
-    box-shadow: var(--shadow-sm);
-    animation: pct-fadeUp .25s ease both;
-}
-
-@keyframes pct-fadeUp {
+@keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(8px);
+        transform: translateY(6px);
     }
-
     to {
         opacity: 1;
         transform: translateY(0);
     }
 }
 
-.pct-card-done {
-    text-align: center;
-    padding: 40px 28px;
+.font-monospace {
+    font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
 }
 
-.pct-card-head {
+.fs-10 { font-size: 0.65rem !important; }
+.fs-11 { font-size: 0.75rem !important; }
+.fs-12 { font-size: 0.8125rem !important; }
+.fs-13 { font-size: 0.875rem !important; }
+.fs-14 { font-size: 0.9375rem !important; }
+.fs-15 { font-size: 1.05rem !important; }
+
+/* ─── STEPPER FALCON ────────────────────────────────────────── */
+.stepper-card {
+    background: #ffffff;
+    border-radius: 0.5rem;
+}
+
+.stepper-track {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface-2);
+    justify-content: space-between;
+    position: relative;
+    gap: 0.5rem;
 }
 
-.pct-card-icon {
-    width: 28px;
-    height: 28px;
-    border-radius: 7px;
-    background: var(--accent-light);
-    border: 1px solid var(--accent-dim);
-    display: grid;
-    place-items: center;
-    font-size: 13px;
+.stepper-track::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 40px;
+    right: 40px;
+    height: 3px;
+    background: #edf2f9;
+    z-index: 0;
 }
 
-.pct-card-head h2 {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text);
+.stepper-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    position: relative;
+    z-index: 1;
+    background: #ffffff;
+    padding: 0 0.5rem;
+    cursor: default;
+    transition: all 0.2s ease;
 }
 
-.pct-tag {
-    margin-left: auto;
-    font-size: 10px;
-    font-weight: 700;
-    padding: 3px 8px;
-    border-radius: 4px;
-    text-transform: uppercase;
-    letter-spacing: .05em;
-}
-
-.pct-tag-req {
-    background: var(--accent-light);
-    color: var(--accent);
-    border: 1px solid var(--accent-dim);
-}
-
-.pct-tag-opt {
-    background: var(--surface);
-    color: var(--text-muted);
-    border: 1px solid var(--border-dark);
-}
-
-.pct-card-body {
-    padding: 16px;
-}
-
-/* ─── FORM ────────────────────────────────────────────────── */
-.pct-field {
-    margin-bottom: 13px;
-}
-
-.pct-field:last-child {
-    margin-bottom: 0;
-}
-
-.pct-field label {
-    display: block;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: .06em;
-    margin-bottom: 5px;
-}
-
-.pct-field input,
-.pct-field select,
-.pct-field textarea {
-    width: 100%;
-    background: var(--surface);
-    border: 1px solid var(--border-dark);
-    border-radius: var(--radius);
-    color: var(--text);
-    font-family: var(--font-ui);
-    font-size: 13px;
-    padding: 8px 11px;
-    outline: none;
-    appearance: none;
-    transition: border-color .2s, box-shadow .2s;
-}
-
-.pct-field input:focus,
-.pct-field select:focus,
-.pct-field textarea:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-dim);
-}
-
-.pct-field input[readonly] {
-    background: var(--surface-2);
-    color: var(--text-muted);
-}
-
-.pct-field select {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2364748b'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 11px center;
-    padding-right: 30px;
+.stepper-item.clickable {
     cursor: pointer;
 }
 
-.pct-field textarea {
-    resize: vertical;
-    min-height: 66px;
+.stepper-item.clickable:hover .step-indicator {
+    transform: scale(1.08);
 }
 
-.pct-row2 {
+.step-indicator {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #edf2f9;
+    color: #748194;
+    border: 2px solid #d8e2ef;
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-}
-
-@media(max-width:500px) {
-    .pct-row2 {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* ─── INFO BOX ────────────────────────────────────────────── */
-.pct-info-box {
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    border-left: 3px solid var(--accent);
-    border-radius: var(--radius);
-    padding: 11px 14px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px 20px;
-    margin-bottom: 13px;
-}
-
-.pct-info-item label {
-    font-size: 10px;
+    place-items: center;
+    font-size: 0.9rem;
     font-weight: 700;
-    color: var(--text-dim);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.stepper-item.active .step-indicator {
+    background: #2c7be5;
+    color: #ffffff;
+    border-color: #1a68d1;
+    box-shadow: 0 0 0 4px rgba(44, 123, 229, 0.2);
+}
+
+.stepper-item.done .step-indicator {
+    background: #00d27a;
+    color: #ffffff;
+    border-color: #00b86b;
+}
+
+.step-number {
+    font-size: 0.6875rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: .06em;
-    margin-bottom: 2px;
+    color: #9da9bb;
     display: block;
+    line-height: 1;
+    margin-bottom: 2px;
 }
 
-.pct-info-value {
-    font-size: 13px;
+.step-label {
+    font-size: 0.8125rem;
     font-weight: 600;
-    color: var(--text);
+    color: #5e6e82;
 }
 
-.pct-accent {
-    color: var(--accent) !important;
+.stepper-item.active .step-label {
+    color: #12263f;
+    font-weight: 700;
 }
 
-.pct-inactive {
-    color: var(--text-muted) !important;
+.stepper-item.done .step-label {
+    color: #00d27a;
 }
 
-@media(max-width:420px) {
-    .pct-info-box {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* ─── TIMER ───────────────────────────────────────────────── */
-.pct-timer-display {
+/* ─── PLACA ESTILO COLOMBIANO ───────────────────────────────── */
+.colombia-plate-badge {
+    background: #facc15;
+    color: #0b1727;
+    border: 2px solid #12263f;
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-family: 'Arial Black', Impact, sans-serif;
     text-align: center;
-    padding: 18px 10px;
-}
-
-.pct-timer-label {
-    font-size: 10px;
-    font-weight: 700;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: .08em;
-    margin-bottom: 6px;
-}
-
-.pct-timer-value {
-    font-family: var(--font-mono);
-    font-size: 40px;
-    font-weight: 700;
-    color: var(--accent);
-    letter-spacing: .04em;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 100px;
     line-height: 1;
 }
 
-/* ─── BUTTONS ─────────────────────────────────────────────── */
-.pct-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 7px;
-    font-family: var(--font-ui);
-    font-size: 13px;
-    font-weight: 600;
-    padding: 10px 18px;
-    border-radius: var(--radius);
-    border: none;
-    cursor: pointer;
-    transition: all .18s;
-    letter-spacing: .01em;
-    width: 100%;
-}
-
-.pct-btn-primary {
-    background: var(--accent);
-    color: #fff;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, .15);
-}
-
-.pct-btn-primary:hover {
-    background: #1e40af;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(29, 78, 216, .3);
-}
-
-.pct-btn-green {
-    background: var(--green);
-    color: #fff;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, .12);
-}
-
-.pct-btn-green:hover {
-    background: #15803d;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(22, 163, 74, .3);
-}
-
-.pct-btn-red {
-    background: var(--red);
-    color: #fff;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, .12);
-}
-
-.pct-btn-red:hover {
-    background: #b91c1c;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(220, 38, 38, .3);
-}
-
-.pct-btn-ghost {
-    background: var(--surface-2);
-    color: var(--text-muted);
-    border: 1px solid var(--border-dark);
-}
-
-.pct-btn-ghost:hover {
-    color: var(--text);
-    border-color: var(--text-muted);
-}
-
-.pct-btn-outline {
-    background: var(--accent-light);
-    color: var(--accent);
-    border: 1px solid var(--accent-dim);
-}
-
-.pct-btn-outline:hover {
-    background: #dbeafe;
-}
-
-.pct-btn-group {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-}
-
-@media(max-width:420px) {
-    .pct-btn-group {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* ─── STATUS PILLS ────────────────────────────────────────── */
-.pct-status-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 11px;
-    border-radius: 99px;
-    font-size: 11px;
-    font-weight: 700;
+.plate-country {
+    font-size: 7px;
+    letter-spacing: 2px;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: .05em;
+    color: #4d5969;
+    margin-bottom: 2px;
 }
 
-.pct-status-active {
-    background: var(--green-light);
-    border: 1px solid var(--green-dim);
-    color: var(--green);
-}
-
-.pct-status-done {
-    background: var(--accent-light);
-    border: 1px solid var(--accent-dim);
-    color: var(--accent);
-}
-
-.pct-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: currentColor;
-}
-
-.pct-pulse {
-    animation: pct-pulse 1.4s ease-in-out infinite;
-}
-
-@keyframes pct-pulse {
-
-    0%,
-    100% {
-        opacity: 1
-    }
-
-    50% {
-        opacity: .3
-    }
-}
-
-/* ─── ALERTS ──────────────────────────────────────────────── */
-.pct-alert {
-    border-radius: var(--radius);
-    padding: 11px 13px;
-    font-size: 12px;
-    line-height: 1.5;
-    margin-bottom: 14px;
-    display: flex;
-    gap: 9px;
-    align-items: flex-start;
-}
-
-.pct-alert-icon {
+.plate-code {
     font-size: 15px;
-    flex-shrink: 0;
-    line-height: 1.1;
+    font-weight: 900;
+    letter-spacing: 1.5px;
 }
 
-.pct-alert-success {
-    background: var(--green-light);
-    border: 1px solid var(--green-dim);
-    color: var(--green);
+/* ─── COCKPIT EN RUTA ───────────────────────────────────────── */
+.odometer-timer {
+    font-size: 3.25rem;
+    letter-spacing: 2px;
+    color: #2c7be5;
+    line-height: 1;
 }
 
-.pct-alert-warn {
-    background: var(--amber-light);
-    border: 1px solid var(--amber-dim);
-    color: var(--amber);
+.pulse-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    animation: pulseGlow 1.5s infinite;
 }
 
-.pct-alert-info {
-    background: var(--accent-light);
-    border: 1px solid var(--accent-dim);
-    color: var(--accent);
+@keyframes pulseGlow {
+    0% { transform: scale(0.95); opacity: 0.6; }
+    50% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 8px rgba(0, 210, 122, 0.6); }
+    100% { transform: scale(0.95); opacity: 0.6; }
 }
 
-/* ─── DIVIDER ─────────────────────────────────────────────── */
-.pct-divider {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 4px 0 12px;
+/* ─── AVATAR / ICON SHAPES ──────────────────────────────────── */
+.avatar-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 14px;
 }
 
-.pct-divider::before,
-.pct-divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
+.icon-shape {
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
 }
 
-.pct-divider span {
-    font-size: 10px;
-    color: var(--text-dim);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .06em;
-    white-space: nowrap;
+/* ─── FIRMAS Y CANVAS ───────────────────────────────────────── */
+.signature-card {
+    background: #ffffff;
+    border-radius: 0.5rem;
 }
 
-/* ─── SUMMARY TABLE ───────────────────────────────────────── */
-.pct-summary-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.pct-summary-table td {
-    padding: 8px 14px;
-    font-size: 12px;
-    border-bottom: 1px solid var(--border);
-}
-
-.pct-summary-table tr:last-child td {
-    border-bottom: none;
-}
-
-.pct-summary-table td:first-child {
-    color: var(--text-muted);
-    font-weight: 700;
-    text-transform: uppercase;
-    font-size: 10px;
-    letter-spacing: .05em;
-    width: 42%;
-    background: var(--surface-2);
-}
-
-.pct-summary-table td:last-child {
-    color: var(--text);
-    font-weight: 500;
-}
-
-/* ─── FIRMA ───────────────────────────────────────────────── */
-.pct-firma-wrap {
-    border: 1.5px dashed var(--border-dark);
-    border-radius: var(--radius);
+.signature-pad-wrapper {
     background: #fafafa;
+    border: 1.5px dashed #d8e2ef !important;
     overflow: hidden;
-    position: relative;
+    cursor: crosshair;
 }
 
-.pct-firma-wrap canvas {
+.signature-pad-wrapper:hover {
+    border-color: #2c7be5 !important;
+}
+
+.signature-canvas {
     display: block;
-    width: 100%;
-    height: 120px;
-    cursor: crosshair;
+    height: 140px;
     touch-action: none;
 }
 
-.pct-firma-hint {
-    position: absolute;
-    inset: 0;
-    display: grid;
-    place-items: center;
-    color: var(--text-dim);
-    font-size: 12px;
+.signature-hint {
+    user-select: none;
     pointer-events: none;
-    transition: opacity .2s;
 }
 
-.pct-firma-clear {
-    margin-top: 5px;
-    font-size: 11px;
-    color: var(--text-muted);
-    background: none;
-    border: none;
-    cursor: pointer;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-    font-family: var(--font-ui);
-    padding: 0;
-    width: auto;
-}
-
-.pct-firma-clear:hover {
-    color: var(--red);
-}
-
-/* ─── MODAL ───────────────────────────────────────────────── */
-.pct-modal-bg {
+/* ─── MODAL CUSTOM ─────────────────────────────────────────── */
+.modal-backdrop-custom {
     position: fixed;
     inset: 0;
-    background: rgba(15, 23, 42, .4);
-    z-index: 200;
-    display: grid;
-    place-items: center;
-    backdrop-filter: blur(3px);
-    animation: pct-fadeIn .18s;
+    background: rgba(11, 23, 39, 0.55);
+    z-index: 1055;
+    backdrop-filter: blur(4px);
+    padding: 1rem;
 }
 
-@keyframes pct-fadeIn {
+.modal-dialog-custom {
+    animation: modalSlide 0.2s ease-out;
+}
+
+@keyframes modalSlide {
     from {
-        opacity: 0
+        opacity: 0;
+        transform: translateY(12px) scale(0.98);
     }
-
     to {
-        opacity: 1
+        opacity: 1;
+        transform: translateY(0) scale(1);
     }
 }
 
-.pct-modal {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    width: min(480px, calc(100vw - 28px));
-    padding: 22px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, .2);
-    animation: pct-slideUp .22s ease;
-    max-height: 90vh;
-    overflow-y: auto;
-}
-
-@keyframes pct-slideUp {
-    from {
-        transform: translateY(16px);
-        opacity: 0
-    }
-
-    to {
-        transform: translateY(0);
-        opacity: 1
-    }
-}
-
-.pct-modal-title {
-    font-size: 14px;
-    font-weight: 700;
-    margin-bottom: 16px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--text);
-}
-
-/* ─── UTILS ───────────────────────────────────────────────── */
-.pct-text-muted {
-    color: var(--text-muted);
-}
-
-/* ==================== SELECT2 UI FIXES ==================== */
+/* ─── SELECT2 FIXES DENTRO DE VISTA ─────────────────────────── */
 :deep(.select2-container .select2-selection--single) {
-    height: 38px !important;
-    border: 1px solid var(--border-dark) !important;
-    border-radius: var(--radius) !important;
-    background-color: var(--surface) !important;
+    height: 42px !important;
+    border: 1px solid #d8e2ef !important;
+    border-radius: 0.375rem !important;
     display: flex !important;
     align-items: center !important;
 }
 
 :deep(.select2-container--open .select2-selection--single) {
-    border-color: var(--accent) !important;
-    box-shadow: 0 0 0 3px var(--accent-dim) !important;
-}
-
-:deep(.select2-container .select2-selection--single .select2-selection__rendered) {
-    color: var(--text) !important;
-    font-size: 13px !important;
-    padding-left: 11px !important;
+    border-color: #2c7be5 !important;
+    box-shadow: 0 0 0 3px rgba(44, 123, 229, 0.2) !important;
 }
 
 :deep(.is-invalid-select2 .select2-selection) {
-    border-color: var(--red) !important;
-}
-
-/* ─── PLANILLAS DIARIAS ────────────────────────────────────── */
-.pct-dias-box {
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 10px 14px;
-    margin-bottom: 13px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.pct-dia-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    padding: 6px 4px;
-    border-bottom: 1px dashed var(--border);
-}
-
-.pct-dia-row:last-child {
-    border-bottom: none;
-}
-
-.pct-dia-fecha {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text);
-}
-
-.pct-dia-flag {
-    display: inline-flex;
-    align-items: center;
-    font-size: 11px;
-    font-weight: 600;
-    padding: 3px 9px;
-    border-radius: 999px;
-    white-space: nowrap;
-}
-
-.pct-dia-abierto {
-    background: var(--green-light);
-    color: var(--green);
-    border: 1px solid var(--green-dim);
-}
-
-.pct-dia-cerrado {
-    background: var(--surface);
-    color: var(--text-muted);
-    border: 1px solid var(--border-dark);
-}
-
-.pct-summary-table tr.pct-dia-activo {
-    background: var(--accent-light);
-}
-
-.pct-summary-table tr.pct-dia-activo td {
-    color: var(--accent);
-    font-weight: 700;
+    border-color: #e63757 !important;
 }
 </style>

@@ -245,7 +245,7 @@ onMounted(async () => {
     try {
         await Promise.all([store.fetchItems(), store.fetchRolesCatalog()]);
     } finally {
-        setTimeout(() => isViewLoading.value = false, 300);
+        isViewLoading.value = false;
     }
 });
 </script>

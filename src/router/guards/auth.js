@@ -62,12 +62,24 @@ export async function authGuard(to, from, next) {
     }
 }
 
-async function waitForAuthHydration(authStore, timeoutMs = 2000) {
+async function waitForAuthHydration(authStore, timeoutMs = 1000) {
     if (authStore.isHydrated) return;
     return new Promise((resolve) => {
+        if (authStore.isHydrated) return resolve();
+
         const timer = setTimeout(() => resolve(), timeoutMs);
+
+        const pollInterval = setInterval(() => {
+            if (authStore.isHydrated) {
+                clearInterval(pollInterval);
+                clearTimeout(timer);
+                resolve();
+            }
+        }, 10);
+
         const unsubscribe = authStore.$subscribe((mutation, state) => {
-            if (state.isHydrated) {
+            if (state.isHydrated || authStore.isHydrated) {
+                clearInterval(pollInterval);
                 clearTimeout(timer);
                 unsubscribe();
                 resolve();

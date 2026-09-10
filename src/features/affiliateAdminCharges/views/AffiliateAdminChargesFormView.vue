@@ -274,12 +274,12 @@
 
             <!-- BOTONES -->
             <div class="col-12 mt-4 pt-3 border-top">
-              <div class="d-flex justify-content-end gap-2">
-                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" @click="goBack"
+              <div class="d-flex flex-column-reverse flex-sm-row justify-content-sm-end gap-2">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-3 w-100 w-sm-auto order-1 order-sm-0" @click="goBack"
                   :disabled="submitting">
                   <i class="fas fa-times me-1"></i> Cancelar
                 </button>
-                <button type="submit" class="btn btn-success rounded-pill px-5" :disabled="submitting">
+                <button type="submit" class="btn btn-success rounded-pill px-4 shadow-sm w-100 w-sm-auto order-0 order-sm-1" :disabled="submitting">
                   <span v-show="submitting" class="spinner-border spinner-border-sm me-1" role="status"></span>
                   <i v-show="!submitting" class="fas fa-check me-1"></i>
                   <span v-show="submitting">{{ isEditMode ? 'Actualizando...' : 'Guardando...' }}</span>

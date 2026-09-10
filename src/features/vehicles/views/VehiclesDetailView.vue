@@ -887,7 +887,8 @@ const loadVehicle = async () => {
     } catch (error) {
         console.error('Error cargando vehículo:', error);
     } finally {
-        setTimeout(() => { isViewLoading.value = false; initTooltips(); }, 300);
+        isViewLoading.value = false;
+        initTooltips();
     }
 };
 

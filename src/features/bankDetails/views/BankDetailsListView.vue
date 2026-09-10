@@ -214,7 +214,8 @@ onMounted(async () => {
         searchQuery.value = store.search;
         await store.fetchItems();
     } finally {
-        setTimeout(() => { isViewLoading.value = false; initTooltips(); }, 300);
+        isViewLoading.value = false;
+        initTooltips();
     }
 });
 

@@ -626,7 +626,8 @@ const loadCompany = async () => {
         await Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo cargar la empresa.', confirmButtonText: 'Reintentar' })
             .then(r => r.isConfirmed ? loadCompany() : router.push('/empresa/listas-empresa'));
     } finally {
-        setTimeout(() => { isViewLoading.value = false; initTooltips(); }, 300);
+        isViewLoading.value = false;
+        initTooltips();
     }
 };
 
