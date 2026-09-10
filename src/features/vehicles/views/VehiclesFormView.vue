@@ -4,6 +4,13 @@
             <BasePageHeader :title="pageTitle" :subtitle="pageSubtitle" icon="fad fa-clipboard-list text-primary"
                 :breadcrumbs="breadcrumbs" :show-back="true" @back="goBack" />
 
+            <WizardProgress
+                v-if="!isEditMode"
+                current="vehiculo"
+                :show-skip="false"
+                :show-finish="false"
+            />
+
             <div class="card border-0 shadow-sm fade-in-up" style="animation-delay: 0.1s;">
                 <div class="card-header bg-light py-2 px-3 border-bottom">
                     <div class="d-flex align-items-center gap-2">
@@ -550,8 +557,10 @@ import { useRoute, useRouter } from 'vue-router';
 import { useVehiclesStore } from '../store/vehicles.store.js';
 import { usePermissionsStore, useUserStore } from '@store';
 import { useSelect2 } from '@/hooks/useSelect2.js';
+import { useDocumentWizard } from '@/hooks/useDocumentWizard.js';
 import BasePageHeader from '@/components/BasePageHeader.vue';
 import BaseFormActions from '@/components/BaseFormActions.vue';
+import WizardProgress from '@/components/WizardProgress.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -727,12 +736,24 @@ const handleSubmit = async () => {
 
         if (isEditMode.value) {
             await store.updateItem(uuid, payload);
+            goBack();
         } else {
             const newItem = await store.createItem(payload);
             uuid = newItem?.uuid || newItem?.id;
+            // Tras crear, encadenar el asistente de documentos (si hay pasos permitidos)
+            if (uuid) {
+                const { firstStep, stepRoute } = useDocumentWizard();
+                const step = firstStep(permissionsStore);
+                if (!step) {
+                    goBack();
+                } else {
+                    router.push(stepRoute(step.key, uuid));
+                    return;
+                }
+            } else {
+                goBack();
+            }
         }
-
-        goBack();
     } catch (error) {
         toast('Error', 'No se pudo procesar la solicitud', 'error');
     } finally {

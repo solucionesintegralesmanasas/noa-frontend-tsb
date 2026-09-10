@@ -4,6 +4,14 @@
             <BasePageHeader :title="pageTitle" :subtitle="pageSubtitle" icon="fad fa-clipboard-list text-primary"
                 :breadcrumbs="breadcrumbs" :show-back="true" @back="goBack" />
 
+            <WizardProgress
+                v-if="wizardUuid"
+                :current="route.params.documentType"
+                :done-keys="wizardDoneKeys"
+                @skip="goNextStep"
+                @finish="goExit"
+            />
+
             <div class="card border-0 shadow-sm fade-in-up" style="animation-delay: 0.1s;">
                 <div class="card-header bg-light py-2 py-md-3 px-3 px-md-4 border-bottom">
                     <div class="d-flex align-items-center gap-2">
@@ -17,7 +25,7 @@
                 </div>
 
                 <div class="card-body p-2 p-md-3 p-lg-4">
-                    <form @submit.prevent="handleSubmit" class="row g-3">
+                    <form ref="docFormRef" @submit.prevent="handleSubmit" class="row g-3">
 
                         <!-- ==================== PÓLIZA - NUEVO ==================== -->
                         <template v-if="route.params.documentType === 'poliza' && !isEditMode">
@@ -90,7 +98,7 @@
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label required fw-medium" style="font-size: 0.9rem;">Vehículo</label>
-                                <select ref="vehicleSelect" v-model="formData.vehicle_uuid" class="form-control w-100"
+                                <select ref="vehicleSelect" v-model="formData.vehicle_uuid" class="form-control w-100" :disabled="!!wizardUuid"
                                     :class="fieldClass('vehicle_uuid')" @blur="markAsTouched('vehicle_uuid')" required>
                                     <option value="">Seleccionar vehículo</option>
                                     <option v-for="vehicle in store.catalogs.vehicles" :key="vehicle.uuid"
@@ -211,7 +219,7 @@
 
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label required fw-medium" style="font-size: 0.9rem;">Vehículo</label>
-                                <select ref="vehicleSelect" v-model="formData.vehicle_uuid" class="form-control w-100"
+                                <select ref="vehicleSelect" v-model="formData.vehicle_uuid" class="form-control w-100" :disabled="!!wizardUuid"
                                     :class="fieldClass('vehicle_uuid')" @blur="markAsTouched('vehicle_uuid')" required>
                                     <option value="">Seleccionar vehículo</option>
                                     <option v-for="vehicle in store.catalogs.vehicles" :key="vehicle.uuid"
@@ -295,7 +303,7 @@
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label required fw-medium" style="font-size: 0.9rem;">Vehículo</label>
-                                <select ref="vehicleSelect" v-model="formData.vehicle_uuid" class="form-control w-100"
+                                <select ref="vehicleSelect" v-model="formData.vehicle_uuid" class="form-control w-100" :disabled="!!wizardUuid"
                                     :class="fieldClass('vehicle_uuid')" @blur="markAsTouched('vehicle_uuid')" required>
                                     <option value="">Seleccionar vehículo</option>
                                     <option v-for="vehicle in store.catalogs.vehicles" :key="vehicle.uuid"
@@ -381,7 +389,7 @@
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label required fw-medium" style="font-size: 0.9rem;">Vehículo</label>
-                                <select ref="vehicleSelect" v-model="formData.vehicle_uuid" class="form-control w-100"
+                                <select ref="vehicleSelect" v-model="formData.vehicle_uuid" class="form-control w-100" :disabled="!!wizardUuid"
                                     :class="fieldClass('vehicle_uuid')" @blur="markAsTouched('vehicle_uuid')" required>
                                     <option value="">Seleccionar vehículo</option>
                                     <option v-for="vehicle in store.catalogs.vehicles" :key="vehicle.uuid"
@@ -435,13 +443,16 @@
 
 <script setup>
 import { toast } from '@/utils/toast.js';
-import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useVehicleDocumentsStore } from '../store/vehicleDocuments.store.js';
 import { usePermissionsStore, useUserStore } from '@store';
 import { useSelect2 } from '@/hooks/useSelect2.js';
+import { useNoAutocomplete } from '@/hooks/useNoAutocomplete.js';
 import BasePageHeader from '@/components/BasePageHeader.vue';
 import BaseFormActions from '@/components/BaseFormActions.vue';
+import WizardProgress from '@/components/WizardProgress.vue';
+import { useDocumentWizard } from '@/hooks/useDocumentWizard.js';
 import vehicleDocumentsService from '../services/vehicleDocuments.service.js';
 
 const route = useRoute();
@@ -452,6 +463,17 @@ const userStore = useUserStore();
 const isSuperAdmin = computed(() => permissionsStore.roles?.includes('SUPERADMIN'));
 
 const isEditMode = computed(() => route.params.id !== undefined);
+
+/** Modo asistente: creación encadenada tras registrar el vehículo (?wizard=<uuid>) */
+const wizardUuid = computed(() => (!isEditMode.value && route.query.wizard) ? String(route.query.wizard) : null);
+const { nextStepRoute, prevStepRoute, exitRoute, fetchExistingDocs, getSessionDone, markStepDone, clearSessionDone } = useDocumentWizard();
+const wizardDoneKeys = ref([]);
+
+const goExit = () => {
+    clearSessionDone(wizardUuid.value);
+    router.push(exitRoute(wizardUuid.value));
+};
+const goNextStep = () => router.push(nextStepRoute(route.params.documentType, wizardUuid.value, permissionsStore));
 
 /** Computed para BasePageHeader (evita expresiones complejas en el template) */
 const pageSubtitle = computed(() => isEditMode.value ? 'Modifica los datos del registro en el sistema' : 'Completa los datos para crear un nuevo registro');
@@ -501,8 +523,6 @@ const formData = reactive({
     file: null,
 });
 
-const filePreviews = reactive({});
-
 // Refs de Select2
 const statusSelect = ref(null);
 const companySelect = ref(null);
@@ -522,6 +542,64 @@ const selectConfigs = computed(() => {
 });
 
 const { initSelect2, setValues: setSelect2Values, syncFromSelect2, destroySelect2, applyAllValidations } = useSelect2(formData, validationErrors);
+
+// Sin sugerencias del navegador en el asistente
+const docFormRef = ref(null);
+const { scrub: scrubAutocomplete } = useNoAutocomplete(docFormRef);
+
+// Foto del estado prístino para reiniciar entre pasos del asistente
+const pristineCreateState = { ...formData };
+
+const resetCreateState = () => {
+    Object.assign(formData, pristineCreateState);
+    Object.keys(validationErrors).forEach((key) => delete validationErrors[key]);
+    Object.keys(touchedFields).forEach((key) => delete touchedFields[key]);
+    editingPolicyUuids.rce = null;
+    editingPolicyUuids.rcc = null;
+    wizardDoneKeys.value = [];
+};
+
+const documentTypeFor = (type) => {
+    if (type === 'poliza') return 'poliza';
+    if (type === 'soat') return 'SOAT';
+    if (type === 'tecnomecanica') return 'RTM';
+    return type;
+};
+
+/** Inicializa un paso de creación (montaje o cambio de tipo en el asistente) */
+const initCreateStep = async () => {
+    formData.document_type = documentTypeFor(route.params.documentType);
+    if (!isSuperAdmin.value) formData.company_uuid = userStore.company_uuid;
+    if (wizardUuid.value) {
+        formData.vehicle_uuid = wizardUuid.value;
+        // Progreso inmediato de sesión (checks secuenciales sin esperar al backend)
+        wizardDoneKeys.value = getSessionDone(wizardUuid.value);
+        try {
+            const found = await fetchExistingDocs(wizardUuid.value);
+            const done = new Set(['vehiculo', ...getSessionDone(wizardUuid.value)]);
+            if (found.soat) done.add('soat');
+            if (found.rce && found.rcc) done.add('poliza');
+            if (found.rtm) done.add('tecnomecanica');
+            if (found.tarjeta) done.add('tarjeta');
+            wizardDoneKeys.value = [...done];
+        } catch {
+            wizardDoneKeys.value = getSessionDone(wizardUuid.value);
+        }
+    }
+    await nextTick();
+    initSelect2(selectConfigs.value);
+    setSelect2Values(selectConfigs.value);
+    scrubAutocomplete();
+};
+
+// Al cambiar de tipo de documento dentro del asistente se reutiliza la vista:
+// reiniciar estado en vez de conservar el paso anterior
+watch(() => route.params.documentType, async (to, from) => {
+    if (isEditMode.value || !wizardUuid.value || to === from) return;
+    destroySelect2(selectConfigs.value);
+    resetCreateState();
+    await initCreateStep();
+});
 
 const validateForm = () => {
     Object.keys(validationErrors).forEach(key => delete validationErrors[key]);
@@ -569,6 +647,7 @@ const validateForm = () => {
 };
 
 const getBackRoute = () => {
+    if (wizardUuid.value) return prevStepRoute(route.params.documentType, wizardUuid.value, permissionsStore);
     const type = route.params.documentType;
     if (type) return `/vehiculos-documentos/${type}`;
     return '/vehiculos-documentos';
@@ -576,16 +655,10 @@ const getBackRoute = () => {
 
 const goBack = () => router.push(getBackRoute());
 
-const onFileChange = (event, field) => {
-    const file = event.target.files[0];
-    if (file) {
-        formData[field] = file;
-        filePreviews[field] = URL.createObjectURL(file);
-    }
-};
-
 const handleSubmit = async () => {
     syncFromSelect2(selectConfigs.value);
+    // En modo asistente el vehículo queda fijado al que originó el flujo
+    if (wizardUuid.value) formData.vehicle_uuid = wizardUuid.value;
 
     if (!validateForm()) {
         applyAllValidations(selectConfigs.value);
@@ -637,7 +710,12 @@ const handleSubmit = async () => {
             }
         }
 
-        goBack();
+        if (wizardUuid.value) {
+            markStepDone(wizardUuid.value, route.params.documentType);
+            goNextStep();
+        } else {
+            goBack();
+        }
     } catch (error) {
         toast('Error', 'No se pudo procesar la solicitud', 'error');
     } finally {
@@ -710,15 +788,7 @@ onMounted(async () => {
                 }
             }
         } else {
-            if (route.params.documentType === 'poliza') {
-                formData.document_type = 'poliza';
-            } else if (route.params.documentType === 'soat') {
-                formData.document_type = 'SOAT';
-            } else if (route.params.documentType === 'tecnomecanica') {
-                formData.document_type = 'RTM';
-            } else {
-                formData.document_type = route.params.documentType;
-            }
+            await initCreateStep();
         }
     } finally {
         setTimeout(async () => {

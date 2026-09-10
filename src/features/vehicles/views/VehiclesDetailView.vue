@@ -17,6 +17,11 @@
         </template>
 
         <template #actions>
+            <button v-if="!isViewLoading" class="btn btn-falcon-default btn-sm px-3" @click="goCompleteDocuments"
+                :disabled="checkingDocs" :aria-busy="checkingDocs" title="Completar documentos del vehículo" data-bs-toggle="tooltip">
+                <i class="fas fa-file-circle-plus me-1" style="font-size: 12px;"></i>
+                <span class="d-none d-sm-inline" style="font-size: 0.8rem;">Documentos</span>
+            </button>
             <button v-if="can('update', 'Vehicle') && !isViewLoading" class="btn btn-primary btn-sm px-3" @click="editVehicle"
                 title="Editar vehículo" data-bs-toggle="tooltip">
                 <i class="fas fa-pen me-1" style="font-size: 12px;"></i>
@@ -599,6 +604,7 @@ import { usePermissionsStore } from '@store';
 import VehiclesService from '../services/vehicles.service.js';
 import { useToast } from 'vue-toastification';
 import BasePageHeader from '@/components/BasePageHeader.vue';
+import { useDocumentWizard } from '@/hooks/useDocumentWizard.js';
 import apiClient from '@/services/api/client.js';
 
 // ===== DEPENDENCIAS =====
@@ -752,6 +758,34 @@ const goBack = () => {
 const editVehicle = () => {
     if (vehicle.value.uuid && can('update', 'Vehicle')) {
         router.push(`/vehiculos/${vehicle.value.uuid}/editar`);
+    }
+};
+
+/** Lleva al primer documento pendiente dentro del asistente */
+const checkingDocs = ref(false);
+const goCompleteDocuments = async () => {
+    const uuid = vehicle.value.uuid || route.params.id;
+    if (!uuid) return;
+    checkingDocs.value = true;
+    try {
+        const { stepRoute, fetchExistingDocs } = useDocumentWizard();
+        const found = await fetchExistingDocs(uuid);
+        const order = [
+            { key: 'soat', done: !!found.soat, perm: 'vehicle_documents.create' },
+            { key: 'poliza', done: !!(found.rce && found.rcc), perm: 'vehicle_documents.create' },
+            { key: 'tecnomecanica', done: !!found.rtm, perm: 'vehicle_documents.create' },
+            { key: 'tarjeta', done: !!found.tarjeta, perm: 'operation_cards.create' },
+        ];
+        const next = order.find((s) => !s.done && can(s.perm));
+        if (next) {
+            router.push(stepRoute(next.key, uuid));
+        } else {
+            toast.success('El vehículo tiene sus documentos al día');
+        }
+    } catch {
+        toast.error('No se pudieron verificar los documentos');
+    } finally {
+        checkingDocs.value = false;
     }
 };
 
