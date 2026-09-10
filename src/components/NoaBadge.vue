@@ -56,11 +56,12 @@ defineProps({
 }
 
 .noa-img {
-    width: 5.4em;
+    width: clamp(150px, 20vw, 210px);
     height: auto;
-    max-height: 2.2em;
+    aspect-ratio: 640 / 220;
     object-fit: contain;
     display: block;
+    flex-shrink: 0;
 }
 
 .noa-text-brand {

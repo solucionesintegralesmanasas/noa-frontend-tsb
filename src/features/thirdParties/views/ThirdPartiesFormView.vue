@@ -21,52 +21,73 @@
                     </div>
                 </div>
 
-                <div class="card-body p-2 p-md-3 p-lg-4 p-md-4">
+                <div class="card-body p-2 p-md-3 p-lg-4">
                     <form @submit.prevent="handleSubmit" class="row g-2 g-md-3" novalidate>
 
-                        <div class="col-12 col-sm-6 col-md-3 col-lg-3">
-                            <label class="form-label required" for="person_type">Tipo de Persona</label>
-                            <select id="person_type" ref="personTypeSelect" class="form-control select2-input w-100">
-                                <option value="">Seleccione...</option>
-                                <option value="NATURAL">Natural</option>
-                                <option value="JURIDICA">Jurídica</option>
-                            </select>
-                            <div v-show="validationErrors.person_type" class="invalid-feedback d-block">
-                                {{ validationErrors.person_type }}
+                        <!-- IDENTIDAD: foto + documento -->
+                        <div class="col-12">
+                            <div class="row g-2 g-md-3 align-items-center">
+                                <div class="col-12 col-md-auto">
+                                    <ProfilePhotoUploader :preview-src="filePreviews.photo" @change="onPhotoSelected" @remove="onPhotoRemoved" />
+                                </div>
+                                <div class="col-12 col-md">
+                                    <div class="row g-2 g-md-3">
+                                        <div class="col-12 col-sm-6 col-md-3 col-lg-3">
+                                            <label class="form-label required" for="person_type">Tipo de Persona</label>
+                                            <select id="person_type" ref="personTypeSelect" class="form-control select2-input w-100">
+                                                <option value="">Seleccione...</option>
+                                                <option value="NATURAL">Natural</option>
+                                                <option value="JURIDICA">Jurídica</option>
+                                            </select>
+                                            <div v-show="validationErrors.person_type" class="invalid-feedback d-block">
+                                                {{ validationErrors.person_type }}
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 col-sm-6 col-md-3 col-lg-3">
+                                            <label class="form-label required" for="document_type_uuid">Tipo de Documento</label>
+                                            <select id="document_type_uuid" ref="docTypeSelect" class="form-control select2-input w-100">
+                                                <option value="">Seleccione...</option>
+                                                <option v-for="opt in store.catalogs.documentTypes" :key="opt.uuid" :value="opt.uuid">
+                                                    {{ opt.name }}
+                                                </option>
+                                            </select>
+                                            <div v-show="validationErrors.document_type_uuid" class="invalid-feedback d-block">
+                                                {{ validationErrors.document_type_uuid }}
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 col-sm-6 col-md-3 col-lg-3">
+                                            <label class="form-label required" for="document_number">Número de Documento</label>
+                                            <input id="document_number" v-model="formData.document_number" class="form-control"
+                                                :class="{ 'is-invalid': validationErrors.document_number }" type="text" autocomplete="off"
+                                                placeholder="Ingresa el número de documento" />
+                                            <div v-show="validationErrors.document_number" class="invalid-feedback d-block">
+                                                {{ validationErrors.document_number }}
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 col-sm-6 col-md-3 col-lg-3">
+                                            <label class="form-label" for="nit_check_digit">Dígito de Verificación</label>
+                                            <input id="nit_check_digit" v-model="formData.nit_check_digit" class="form-control"
+                                                :class="{ 'is-invalid': validationErrors.nit_check_digit }" type="text" autocomplete="off"
+                                                :disabled="formData.person_type !== 'JURIDICA'"
+                                                placeholder="Solo para personas jurídicas" />
+                                            <div v-show="validationErrors.nit_check_digit" class="invalid-feedback d-block">
+                                                {{ validationErrors.nit_check_digit }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="col-12 col-sm-6 col-md-3 col-lg-3">
-                            <label class="form-label required" for="document_type_uuid">Tipo de Documento</label>
-                            <select id="document_type_uuid" ref="docTypeSelect" class="form-control select2-input w-100">
-                                <option value="">Seleccione...</option>
-                                <option v-for="opt in store.catalogs.documentTypes" :key="opt.uuid" :value="opt.uuid">
-                                    {{ opt.name }}
-                                </option>
-                            </select>
-                            <div v-show="validationErrors.document_type_uuid" class="invalid-feedback d-block">
-                                {{ validationErrors.document_type_uuid }}
-                            </div>
-                        </div>
-
-                        <div class="col-12 col-sm-6 col-md-3 col-lg-3">
-                            <label class="form-label required" for="document_number">Número de Documento</label>
-                            <input id="document_number" v-model="formData.document_number" class="form-control"
-                                :class="{ 'is-invalid': validationErrors.document_number }" type="text" autocomplete="off"
-                                placeholder="Ingresa el número de documento" />
-                            <div v-show="validationErrors.document_number" class="invalid-feedback d-block">
-                                {{ validationErrors.document_number }}
-                            </div>
-                        </div>
-
-                        <div class="col-12 col-sm-6 col-md-3 col-lg-3">
-                            <label class="form-label" for="nit_check_digit">Dígito de Verificación</label>
-                            <input id="nit_check_digit" v-model="formData.nit_check_digit" class="form-control"
-                                :class="{ 'is-invalid': validationErrors.nit_check_digit }" type="text" autocomplete="off"
-                                placeholder="Solo para personas jurídicas" />
-                            <div v-show="validationErrors.nit_check_digit" class="invalid-feedback d-block">
-                                {{ validationErrors.nit_check_digit }}
-                            </div>
+                        <!-- IDENTIFICACIÓN -->
+                        <div class="col-12">
+                            <h6 class="text-uppercase fw-bold text-secondary mb-3 mt-2 border-bottom pb-2">
+                                <i class="fas fa-address-card me-2"></i>
+                                Identificación
+                            </h6>
                         </div>
 
                         <div class="col-12" v-if="formData.person_type !== 'JURIDICA'">
@@ -115,6 +136,14 @@
                             </div>
                         </div>
 
+                        <!-- CONTACTO -->
+                        <div class="col-12">
+                            <h6 class="text-uppercase fw-bold text-secondary mb-3 mt-2 border-bottom pb-2">
+                                <i class="fas fa-envelope me-2"></i>
+                                Contacto
+                            </h6>
+                        </div>
+
                         <div class="col-12 col-sm-6 col-md-3 col-lg-3">
                             <label class="form-label required" for="email">Correo Electrónico</label>
                             <input id="email" v-model="formData.email" class="form-control"
@@ -156,7 +185,15 @@
                             </div>
                         </div>
 
-                        <div class="col-12 col-sm-6 col-md-3 col-lg-3">
+                        <!-- DATOS BANCARIOS -->
+                        <div class="col-12">
+                            <h6 class="text-uppercase fw-bold text-secondary mb-3 mt-2 border-bottom pb-2">
+                                <i class="fas fa-piggy-bank me-2"></i>
+                                Datos Bancarios
+                            </h6>
+                        </div>
+
+                        <div class="col-12 col-sm-6 col-md-4 col-lg-4">
                             <label class="form-label" for="bank_account_number">Número de Cuenta Bancaria</label>
                             <input id="bank_account_number" v-model="formData.bank_account_number" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.bank_account_number }" type="text" autocomplete="off"
@@ -166,7 +203,7 @@
                             </div>
                         </div>
 
-                        <div class="col-12 col-sm-6 col-md-3 col-lg-3">
+                        <div class="col-12 col-sm-6 col-md-4 col-lg-4">
                             <label class="form-label" for="bank_account_type">Tipo de Cuenta</label>
                             <select id="bank_account_type" ref="bankAccountTypeSelect" class="form-control select2-input w-100">
                                 <option value="">Seleccione...</option>
@@ -179,7 +216,7 @@
                             </div>
                         </div>
 
-                        <div class="col-12 col-sm-6 col-md-3 col-lg-3">
+                        <div class="col-12 col-sm-6 col-md-4 col-lg-4">
                             <label class="form-label" for="bank_name">Banco</label>
                             <input id="bank_name" v-model="formData.bank_name" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.bank_name }" type="text" autocomplete="off"
@@ -189,7 +226,15 @@
                             </div>
                         </div>
 
-                        <div class="col-12 col-sm-6 col-md-3 col-lg-3">
+                        <!-- FISCAL Y ACCESO -->
+                        <div class="col-12">
+                            <h6 class="text-uppercase fw-bold text-secondary mb-3 mt-2 border-bottom pb-2">
+                                <i class="fas fa-key me-2"></i>
+                                Fiscal y Acceso
+                            </h6>
+                        </div>
+
+                        <div :class="bottomRowColClass">
                             <label class="form-label required" for="tax_regime">Régimen Tributario</label>
                             <select id="tax_regime" ref="taxRegimeSelect" class="form-control select2-input w-100">
                                 <option value="">Seleccione...</option>
@@ -236,7 +281,7 @@
                                 <label class="form-label required" for="partyTypes">Tipo de Tercero</label>
                                 <PrimeMultiSelect v-model="formData.partyTypes" :options="partyTypeOptions"
                                     option-value="value" option-label="label"
-                                    :placeholder="isEmployeeSelected ? 'Empleado (solo)' : 'Seleccione tipo(s)'" class="w-full"
+                                    :placeholder="isEmployeeSelected ? 'Empleado (solo)' : 'Seleccione tipo(s)'" class="w-100"
                                     :selectionLimit="isEmployeeSelected ? 1 : null" :maxSelectedLabels="isEmployeeSelected ? 1 : 3"
                                     :class="{'p-invalid': validationErrors.partyTypes}" />
                                 <small v-if="isEmployeeSelected" class="text-info d-block mt-1" style="font-size:.72rem"><i class="fas fa-info-circle me-1"></i>Empleado solo puede tener el tipo Empleado.</small>
@@ -249,7 +294,7 @@
                                 <label class="form-label" for="rbacRoles">Roles de Acceso</label>
                                 <PrimeMultiSelect v-model="formData.rbacRoles" :options="filteredRbacRoleOptions"
                                     option-value="value" option-label="label"
-                                    :placeholder="isEmployeeSelected ? 'Seleccione un único rol' : 'Seleccione rol(es) de usuario'" class="w-full"
+                                    :placeholder="isEmployeeSelected ? 'Seleccione un único rol' : 'Seleccione rol(es) de usuario'" class="w-100"
                                     :selectionLimit="isEmployeeSelected ? 1 : null" :maxSelectedLabels="isEmployeeSelected ? 1 : 3"
                                     :class="{'p-invalid': validationErrors.rbacRoles}" />
                                 <small v-if="isEmployeeSelected" class="text-info d-block mt-1" style="font-size:.72rem"><i class="fas fa-info-circle me-1"></i>Empleado solo puede tener un único rol (cualquiera, no ligado al tipo).</small>
@@ -266,23 +311,6 @@
                             </select>
                             <div v-show="validationErrors.is_active" class="invalid-feedback d-block">
                                 {{ validationErrors.is_active }}
-                            </div>
-                        </div>
-
-                        <div class="col-12 col-sm-12 col-md-12 col-lg-12 mt-3 text-center">
-                            <div class="d-flex flex-column align-items-center">
-                                <div class="position-relative">
-                                    <img :src="filePreviews.photo || '/assets/img/team/default.png'"
-                                        class="rounded-3 border shadow-sm bg-white img-fluid"
-                                        style="width: 120px; height: 120px; object-fit: cover;">
-                                    <label for="photoInput"
-                                        class="btn btn-sm btn-primary position-absolute bottom-0 end-0 rounded-circle p-1"
-                                        style="transform: translate(50%, 50%); width: 32px; height: 32px; cursor: pointer;">
-                                        <i class="fas fa-camera"></i>
-                                    </label>
-                                </div>
-                                <input type="file" id="photoInput" class="d-none" accept="image/png, image/jpeg, image/webp" @change="onFileChange($event, 'photo')" />
-                                <span class="fs-10 text-muted mt-3 fw-medium">Foto de Perfil</span>
                             </div>
                         </div>
 
@@ -391,7 +419,7 @@
             </div>
 
             <div class="card border-0 shadow-sm mt-3 fade-in-up" style="animation-delay: 0.2s;">
-                <div class="card-body p-2 p-md-3 p-lg-4 p-md-4">
+                <div class="card-body p-2 p-md-3 p-lg-4">
                     <div class="d-flex align-items-start gap-3">
                         <div class="bg-primary bg-opacity-10 rounded-circle p-2 flex-shrink-0">
                             <i class="fad fa-lightbulb text-primary fs-5"></i>
@@ -442,6 +470,7 @@ import apiClient from '@/services/api/client.js';
 import Swal from 'sweetalert2';
 import BasePageHeader from '@/components/BasePageHeader.vue';
 import BaseFormActions from '@/components/BaseFormActions.vue';
+import ProfilePhotoUploader from '@/components/ProfilePhotoUploader.vue';
 import RuesLookupPanel from '@/components/RuesLookupPanel.vue';
 
 const route = useRoute();
@@ -708,12 +737,20 @@ const dynamicBreadcrumb = computed(() => {
 
 const goBack = () => router.push(dynamicBreadcrumb.value.to);
 
-const onFileChange = (event, field) => {
-    const file = event.target.files[0];
-    if (file) {
-        formData[field] = file;
-        filePreviews[field] = URL.createObjectURL(file);
-    }
+const revokePreview = () => {
+    if (filePreviews.photo?.startsWith('blob:')) URL.revokeObjectURL(filePreviews.photo);
+};
+
+const onPhotoSelected = (file) => {
+    revokePreview();
+    formData.photo = file;
+    filePreviews.photo = URL.createObjectURL(file);
+};
+
+const onPhotoRemoved = () => {
+    revokePreview();
+    formData.photo = null;
+    filePreviews.photo = '';
 };
 
 const handleSubmit = async () => {

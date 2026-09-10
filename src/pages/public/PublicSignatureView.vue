@@ -404,7 +404,6 @@ async function saveSignature() {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
 .public-signature-container {
     min-height: 100vh;

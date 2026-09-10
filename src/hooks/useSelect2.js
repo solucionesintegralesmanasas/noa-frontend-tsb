@@ -76,6 +76,9 @@ export function useSelect2(formData, validationErrors) {
                 if (validationErrors && field) delete validationErrors[field];
                 applyValidation(ref, field);
             });
+
+            // Propaga el disabled nativo al widget (el asistente fija el vehículo)
+            if ($el.prop('disabled')) $el.select2('enable', false);
         });
     };
 

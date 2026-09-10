@@ -4,6 +4,14 @@
             <BasePageHeader :title="pageTitle" :subtitle="pageSubtitle" icon="fad fa-clipboard-list text-primary"
                 :breadcrumbs="breadcrumbs" :show-back="true" @back="goBack" />
 
+            <WizardProgress
+                v-if="wizardUuid"
+                current="tarjeta"
+                :done-keys="wizardDoneKeys"
+                @skip="goNextStep"
+                @finish="goExit"
+            />
+
             <div class="card border-0 shadow-sm fade-in-up" style="animation-delay: 0.1s;">
                 <div class="card-header bg-light py-2 py-md-3 px-3 px-md-4 border-bottom">
                     <div class="d-flex align-items-center gap-2">
@@ -17,7 +25,7 @@
                 </div>
 
                 <div class="card-body">
-                    <form @submit.prevent="handleSubmit" class="row g-3" novalidate>
+                    <form ref="cardFormRef" @submit.prevent="handleSubmit" class="row g-3" novalidate>
 
                         <input type="hidden" v-if="!isSuperAdmin" v-model="formData.company_uuid" />
                         <div class="col-12 col-sm-6 col-md-4 col-lg-3" v-if="isSuperAdmin">
@@ -112,7 +120,7 @@
 
                         <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                             <label class="form-label required fw-medium" style="font-size: 0.9rem;">Vehículo</label>
-                            <select ref="vehicleSelect" v-model="formData.vehicle_uuid" class="form-control w-100"
+                            <select ref="vehicleSelect" v-model="formData.vehicle_uuid" class="form-control w-100" :disabled="!!wizardUuid"
                                 :class="{ 'is-invalid': validationErrors.vehicle_uuid }">
                                 <option value="">Seleccionar vehículo</option>
                                 <option v-for="opt in uniqueVehicles" :key="opt.uuid" :value="opt.uuid">
@@ -126,7 +134,7 @@
                         <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                             <label class="form-label required fw-medium" style="font-size: 0.9rem;">N° Interno del
                                 Vehículo</label>
-                            <input type="text" autocomplete="off" class="form-control"
+                            <input type="text" autocomplete="off" class="form-control" id="internal_number"
                                 v-model="formData.internal_number" placeholder="Ej: 001"
                                 :class="{ 'is-invalid': validationErrors.internal_number }" />
                             <div v-if="validationErrors.internal_number" class="invalid-feedback d-block">{{
@@ -193,8 +201,11 @@ import { useOperationCardsStore } from '../store/operationCards.store.js';
 import { useVehiclesStore } from '@/features/vehicles/store/vehicles.store.js';
 import { usePermissionsStore, useUserStore } from '@store';
 import { useSelect2 } from '@/hooks/useSelect2.js';
+import { useNoAutocomplete } from '@/hooks/useNoAutocomplete.js';
 import BasePageHeader from '@/components/BasePageHeader.vue';
 import BaseFormActions from '@/components/BaseFormActions.vue';
+import WizardProgress from '@/components/WizardProgress.vue';
+import { useDocumentWizard } from '@/hooks/useDocumentWizard.js';
 
 const route = useRoute();
 const router = useRouter();
@@ -206,6 +217,17 @@ const isSuperAdmin = computed(() => permissionsStore.roles?.includes('SUPERADMIN
 
 
 const isEditMode = computed(() => route.params.id !== undefined);
+
+/** Modo asistente: creación encadenada tras registrar el vehículo (?wizard=<uuid>) */
+const wizardUuid = computed(() => (!isEditMode.value && route.query.wizard) ? String(route.query.wizard) : null);
+const { nextStepRoute, prevStepRoute, exitRoute, fetchExistingDocs, getSessionDone, markStepDone, clearSessionDone } = useDocumentWizard();
+const wizardDoneKeys = ref([]);
+
+const goExit = () => {
+    clearSessionDone(wizardUuid.value);
+    router.push(exitRoute(wizardUuid.value));
+};
+const goNextStep = () => router.push(nextStepRoute('tarjeta', wizardUuid.value, permissionsStore));
 
 /** Computed para BasePageHeader (evita expresiones complejas en el template) */
 const pageTitle = computed(() => isEditMode.value ? 'Actualizar Tarjeta de Operación' : 'Registrar Tarjeta de Operación');
@@ -266,8 +288,6 @@ watch(() => formData.vehicle_uuid, async (newVal) => {
     }
 });
 
-const filePreviews = reactive({});
-
 // Refs de Select2
 const statusSelect = ref(null);
 const companySelect = ref(null);
@@ -280,6 +300,10 @@ const selectConfigs = computed(() => [
 ]);
 
 const { initSelect2, setValues: setSelect2Values, syncFromSelect2, destroySelect2, applyAllValidations } = useSelect2(formData, validationErrors);
+
+// Sin sugerencias del navegador en el asistente (salvo N° interno)
+const cardFormRef = ref(null);
+useNoAutocomplete(cardFormRef, { except: ['internal_number'] });
 
 const validateForm = () => {
     Object.keys(validationErrors).forEach(key => delete validationErrors[key]);
@@ -299,18 +323,18 @@ const validateForm = () => {
     return Object.keys(validationErrors).length === 0;
 };
 
-const goBack = () => router.push('/tarjetas-de-operacion');
-
-const onFileChange = (event, field) => {
-    const file = event.target.files[0];
-    if (file) {
-        formData[field] = file;
-        filePreviews[field] = URL.createObjectURL(file);
+const goBack = () => {
+    if (wizardUuid.value) {
+        router.push(prevStepRoute('tarjeta', wizardUuid.value, permissionsStore));
+    } else {
+        router.push('/tarjetas-de-operacion');
     }
 };
 
 const handleSubmit = async () => {
     syncFromSelect2(selectConfigs.value);
+    // En modo asistente el vehículo queda fijado al que originó el flujo
+    if (wizardUuid.value) formData.vehicle_uuid = wizardUuid.value;
 
     if (!validateForm()) {
         applyAllValidations(selectConfigs.value);
@@ -330,7 +354,12 @@ const handleSubmit = async () => {
             uuid = newItem?.uuid || newItem?.id;
         }
 
-        goBack();
+        if (wizardUuid.value) {
+            markStepDone(wizardUuid.value, 'tarjeta');
+            goNextStep();
+        } else {
+            goBack();
+        }
     } catch (error) {
         toast('Error', 'No se pudo procesar la solicitud', 'error');
     } finally {
@@ -355,6 +384,23 @@ onMounted(async () => {
                     formData.internal_number = item.vehicle.internal_number;
                 }
                 formData.status = (item.status == 1 || item.status === true || item.status === '1') ? '1' : '0';
+            }
+        } else if (wizardUuid.value) {
+            // Modo asistente: vehículo prefijado y pasos ya cargados para el progreso
+            formData.vehicle_uuid = wizardUuid.value;
+            // Progreso inmediato de sesión (checks secuenciales sin esperar al backend)
+            wizardDoneKeys.value = getSessionDone(wizardUuid.value);
+            try {
+                const found = await fetchExistingDocs(wizardUuid.value);
+                // El vehículo quedó guardado al entrar al asistente
+                const done = new Set(['vehiculo', ...getSessionDone(wizardUuid.value)]);
+                if (found.soat) done.add('soat');
+                if (found.rce && found.rcc) done.add('poliza');
+                if (found.rtm) done.add('tecnomecanica');
+                if (found.tarjeta) done.add('tarjeta');
+                wizardDoneKeys.value = [...done];
+            } catch {
+                wizardDoneKeys.value = getSessionDone(wizardUuid.value);
             }
         }
     } finally {
