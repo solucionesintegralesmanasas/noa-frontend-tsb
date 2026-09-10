@@ -18,6 +18,11 @@ export async function permissionsGuard(to, from, next) {
         }
     }
 
+    // Administradores y Super Administradores tienen acceso global
+    if (permStore.hasRole('super-admin') || permStore.hasRole('super_admin') || permStore.hasRole('Administrador') || permStore.hasRole('Super Administrador') || permStore.hasRole('SUPERADMIN')) {
+        return next();
+    }
+
     const check = (list, fn) => list.every(item => fn(item));
     const hasAccess = any
         ? roles?.some(r => permStore.hasRole(r)) || permissions?.some(p => permStore.can(p))

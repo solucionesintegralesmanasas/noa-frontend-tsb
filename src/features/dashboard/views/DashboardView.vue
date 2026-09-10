@@ -1,6 +1,13 @@
 <template>
-    <div class="row mb-3">
-        <div class="col">
+    <!-- Vista especializada para el rol Conductor -->
+    <ConductorDashboardView
+        v-if="isConductorMode"
+    />
+
+    <!-- Vista de administración general -->
+    <div v-else>
+        <div class="row mb-3">
+            <div class="col">
             <div class="card bg-100 shadow-none border">
                 <div class="card-body py-3 d-flex flex-wrap justify-content-between align-items-center">
                     <div class="d-flex align-items-center">
@@ -275,6 +282,7 @@
             </div>
         </div>
     </div>
+</div>
 </template>
 
 <script setup>
@@ -287,13 +295,28 @@
  */
 
 import { ref, computed, onMounted, watch } from 'vue';
-import { useAuthStore, useUserStore } from '@store';
+import { useRoute } from 'vue-router';
+import { useAuthStore, useUserStore, usePermissionsStore } from '@store';
 import { useDashboardStore } from '../store/dashboard.store';
 import { useGeolocation } from '@/hooks/useGeolocation';
+import ConductorDashboardView from './ConductorDashboardView.vue';
 
+const route = useRoute();
 const authStore = useAuthStore();
 const userStore = useUserStore();
+const permissionsStore = usePermissionsStore();
 const dashboardStore = useDashboardStore();
+
+// ── CONTROL DE ROL Y MODO CONDUCTOR ─────────────────────────
+const isConductorRole = computed(() => {
+    return permissionsStore.hasRole('CONDUCTOR');
+});
+
+const isConductorMode = computed(() => {
+    if (route.query.view === 'conductor') return true;
+    if (route.query.view === 'admin') return false;
+    return isConductorRole.value;
+});
 
 // ── ESTADO GENERAL ──────────────────────────────────────────
 const greeting = computed(() => {
@@ -416,8 +439,17 @@ watch(selectedPeriod, () => {
 
 onMounted(() => {
     currentTenantName.value = authStore.currentTenant?.name || 'Falcon Transportes S.A.S.';
-    geolocalizacion();
-    refreshData();
+    if (!isConductorMode.value) {
+        geolocalizacion();
+        refreshData();
+    }
+});
+
+watch(() => isConductorMode.value, (isConductor) => {
+    if (!isConductor && stats.value.length === 0) {
+        geolocalizacion();
+        refreshData();
+    }
 });
 </script>
 

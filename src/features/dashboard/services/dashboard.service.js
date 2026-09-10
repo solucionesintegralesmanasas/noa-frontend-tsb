@@ -33,6 +33,15 @@ class DashboardService {
     async getAlerts() {
         return await apiClient.global.get('/dashboard/alerts');
     }
+
+    /**
+     * Obtiene el resumen del dashboard para el rol CONDUCTOR
+     * @param {number} days Rango de días a consultar
+     * @returns {Promise<Object>}
+     */
+    async getConductorSummary(days = 30) {
+        return await apiClient.global.get('/dashboard/conductor-summary', { params: { days } });
+    }
 }
 
 export default new DashboardService();

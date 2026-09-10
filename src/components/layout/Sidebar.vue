@@ -496,7 +496,23 @@ const permissionsStore = usePermissionsStore();
 const userStore = useUserStore();
 const { toggleCollapse, isOpen, isActiveLink } = useSidebar();
 
-const showSidebar = computed(() => authStore.isAuthenticated);
+const isConductorRole = computed(() => {
+    return permissionsStore.hasRole('CONDUCTOR');
+});
+
+const isConductorDashboard = computed(() => {
+    if (route.query.view === 'admin') return false;
+    if (route.path.includes('/dashboard/conductor')) return true;
+    if (route.query.view === 'conductor') return true;
+    return route.path === '/dashboard' && isConductorRole.value;
+});
+
+const showSidebar = computed(() => {
+    if (!authStore.isAuthenticated) return false;
+    if (route.meta?.hideSidebar) return false;
+    if (isConductorDashboard.value) return false;
+    return true;
+});
 const companyLogo = computed(() => getMediaUrl(userStore.logo));
 
 const closeMobileSidebar = () => {

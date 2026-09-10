@@ -1,6 +1,6 @@
 <template>
     <nav class="navbar navbar-light navbar-glass navbar-top navbar-expand">
-        <button class="btn navbar-toggler-humburger-icon navbar-toggler me-1 me-sm-3 d-xl-none" type="button"
+        <button v-if="!hideSidebarToggle" class="btn navbar-toggler-humburger-icon navbar-toggler me-1 me-sm-3 d-xl-none" type="button"
             data-bs-toggle="collapse" data-bs-target="#navbarVerticalCollapse" aria-controls="navbarVerticalCollapse"
             aria-expanded="false" aria-label="Toggle Navigation">
             <span class="navbar-toggle-icon">
@@ -8,10 +8,13 @@
             </span>
         </button>
 
-        <router-link class="navbar-brand me-1 me-sm-3 d-xl-none" to="/dashboard">
+        <router-link class="navbar-brand me-1 me-sm-3" :class="{ 'd-xl-none': !showBrand }" to="/dashboard">
             <div class="d-flex align-items-center">
                 <img src="/noa.png" alt="NOA Transportes" width="40" class="me-2" style="height: auto; max-height: 45px;" />
                 <NoaBadge size="22px" />
+                <span v-if="showBrand" class="badge bg-primary bg-opacity-10 text-primary fw-bold ms-2 py-1 px-2 fs-11 d-none d-sm-inline-flex align-items-center gap-1">
+                    <i class="fas fa-steering-wheel"></i> Portal Conductor
+                </span>
             </div>
         </router-link>
 
@@ -140,6 +143,17 @@ import { useUserStore, useAuthStore, usePermissionsStore } from '@store'
 import { getMediaUrl } from '@/utils/media.js'
 import NoaBadge from '@/components/NoaBadge.vue'
 import { useNotificationsStore } from '@/features/notifications/store/notifications.store.js'
+
+const props = defineProps({
+    hideSidebarToggle: {
+        type: Boolean,
+        default: false
+    },
+    showBrand: {
+        type: Boolean,
+        default: false
+    }
+})
 
 const userStore = useUserStore()
 const authStore = useAuthStore()

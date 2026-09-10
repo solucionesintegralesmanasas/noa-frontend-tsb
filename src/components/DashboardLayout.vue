@@ -1,7 +1,7 @@
 <template>
-  <Sidebar />
-  <div class="content">
-    <Navbar />
+  <Sidebar v-if="!shouldHideSidebar" />
+  <div class="content" :class="{ 'no-sidebar-content': shouldHideSidebar }">
+    <Navbar :hide-sidebar-toggle="shouldHideSidebar" :show-brand="shouldHideSidebar" />
     <slot>
       <router-view />
     </slot>
@@ -10,10 +10,30 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { usePermissionsStore } from '@store'
 import Navbar from '@/components/layout/Navbar.vue'
 import Sidebar from '@/components/layout/Sidebar.vue'
 import Footer from '@/components/layout/Footer.vue'
+
+const route = useRoute()
+const permissionsStore = usePermissionsStore()
+
+const isConductorRole = computed(() => {
+  return permissionsStore.hasRole('CONDUCTOR')
+})
+
+const isConductorDashboard = computed(() => {
+  if (route.query.view === 'admin') return false
+  if (route.path.includes('/dashboard/conductor')) return true
+  if (route.query.view === 'conductor') return true
+  return route.path === '/dashboard' && isConductorRole.value
+})
+
+const shouldHideSidebar = computed(() => {
+  return Boolean(route.meta?.hideSidebar) || isConductorDashboard.value
+})
 
 onMounted(() => {
   var isFluid = true
@@ -54,3 +74,20 @@ onMounted(() => {
   })
 })
 </script>
+
+<style scoped>
+.no-sidebar-content {
+  margin-left: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+}
+
+@media (min-width: 768px) {
+  .no-sidebar-content {
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+  }
+}
+</style>

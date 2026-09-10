@@ -10,4 +10,10 @@ export const dashboardRoutes = [
         component: () => import("./views/DashboardView.vue"),
         meta: { layout: "dashboard", auth: true, title: "Dashboard" }
     },
+    {
+        path: "/dashboard/conductor",
+        name: "dashboard.conductor",
+        component: () => import("./views/ConductorDashboardView.vue"),
+        meta: { layout: "dashboard", auth: true, title: "Dashboard Conductor", roles: ["CONDUCTOR"] }
+    },
 ];
