@@ -128,38 +128,39 @@
         <div class="col-12 col-lg-5">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center gap-2">
-                    <i class="fad fa-sliders-h text-primary" style="font-size: 14px;"></i>
+                    <i class="fad fa-toggle-on text-primary" style="font-size: 14px;"></i>
                     <h6 class="mb-0 fw-medium" style="font-size: 0.9rem;">Estado</h6>
                 </div>
                 <div class="card-body py-3">
-                    <dl class="row mb-0 small g-2 g-md-3" style="font-size: 0.85rem;">
+                    <dl class="row mb-0 small g-2 g-md-3 align-items-center" style="font-size: 0.85rem;">
                         <dt class="col-5 text-muted fw-medium">Estado:</dt>
-                        <dd class="col-7 mt-0">
+                        <dd class="col-7 mt-0 mb-0">
                             <span class="badge rounded-pill"
                                 :class="isVehicleActive ? 'badge-subtle-success' : 'badge-subtle-warning'"
                                 style="font-size: 0.7rem; padding: 0.25em 0.6em;">
-                                <i :class="statusIcon" class="me-1" style="font-size: 8px;"></i>
+                                <i :class="statusIcon" class="me-1"></i>
                                 {{ statusLabel }}
                             </span>
                         </dd>
 
-                        <dt class="col-5 text-muted fw-medium mt-2">Pago exacto:</dt>
-                        <dd class="col-7 mt-2">
-                            <span :class="isExactPayment ? 'text-success' : 'text-muted'"
-                                class="fw-medium">
-                                <i :class="isExactPayment ? 'fad fa-check-circle' : 'fad fa-times-circle'"
+                        <dt class="col-5 text-muted fw-medium">Pago exacto:</dt>
+                        <dd class="col-7 mt-0 mb-0">
+                            <span class="badge rounded-pill"
+                                :class="isExactPayment ? 'badge-subtle-success' : 'badge-subtle-secondary'"
+                                style="font-size: 0.7rem; padding: 0.25em 0.6em;">
+                                <i :class="isExactPayment ? 'fad fa-check-circle' : 'fad fa-minus-circle'"
                                     class="me-1"></i>
                                 {{ isExactPayment ? 'Obligatorio' : 'Opcional' }}
                             </span>
                         </dd>
 
-                        <dt class="col-5 text-muted fw-medium mt-2">Registro:</dt>
-                        <dd class="col-7 text-dark mt-2">
+                        <dt class="col-5 text-muted fw-medium">Registro:</dt>
+                        <dd class="col-7 text-dark mt-0 mb-0">
                             {{ formatDate(vehicle.registration_date) }}
                         </dd>
 
-                        <dt class="col-5 text-muted fw-medium mt-2">Autoridad tránsito:</dt>
-                        <dd class="col-7 text-dark mt-2 small">
+                        <dt class="col-5 text-muted fw-medium">Autoridad tránsito:</dt>
+                        <dd class="col-7 text-dark mt-0 mb-0 small">
                             {{ vehicle.transit_authority || '—' }}
                         </dd>
                     </dl>
@@ -651,8 +652,8 @@ const statusLabel = computed(() =>
 
 const statusIcon = computed(() =>
     isVehicleActive.value
-        ? 'fa-check-circle text-success'
-        : 'fa-times-circle text-warning'
+        ? 'fad fa-check-circle'
+        : 'fad fa-pause-circle'
 );
 
 const ownerDisplayName = computed(() => {
@@ -1018,6 +1019,12 @@ table td {
     background: rgba(220, 53, 69, 0.1);
     color: #dc3545;
     border: 1px solid rgba(220, 53, 69, 0.2);
+}
+
+.badge-subtle-secondary {
+    background: rgba(108, 117, 125, 0.1);
+    color: #6c757d;
+    border: 1px solid rgba(108, 117, 125, 0.2);
 }
 
 .badge.rounded-pill {
