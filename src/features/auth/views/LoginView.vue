@@ -130,15 +130,14 @@ const handleLogin = async () => {
 
   isSubmitting.value = true;
 
-  // Activar el spinner global de pantalla completa con mensaje contextual
-  configStore.setLoading(true, 'Iniciando sesión...');
+  // Activar la barra de navegación no invasiva en el top
+  configStore.startNavigation();
 
   try {
     await authStore.login(formData);
     router.push('/dashboard');
   } catch (error) {
-    // Solo en caso de error apagamos el spinner y mostramos el mensaje
-    configStore.setLoading(false);
+    configStore.endNavigation();
     loginError.value = error?.response?.data?.message ?? 'Correo o contraseña incorrectos.';
     handleGlobalError(error, 'LoginView', { redirectToLogin: false });
   } finally {

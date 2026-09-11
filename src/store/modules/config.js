@@ -22,15 +22,22 @@ export const useConfigStore = defineStore('config', {
             this.loadingMessage = message;
         },
         startNavigation() {
-            // Umbral de 80ms: solo muestra barra si la navegación es perceptiblemente lenta
-            this._navTimer = setTimeout(() => {
-                this.isNavigating = true;
-            }, 80);
+            if (this._navTimer) {
+                clearTimeout(this._navTimer);
+                this._navTimer = null;
+            }
+            this.isNavigating = true;
         },
         endNavigation() {
-            clearTimeout(this._navTimer);
-            this._navTimer = null;
-            this.isNavigating = false;
+            if (this._navTimer) {
+                clearTimeout(this._navTimer);
+                this._navTimer = null;
+            }
+            // Garantiza que la barra sea visible incluso en transiciones de ruta instantáneas
+            this._navTimer = setTimeout(() => {
+                this.isNavigating = false;
+                this._navTimer = null;
+            }, 120);
         }
     }
 });

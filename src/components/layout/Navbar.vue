@@ -275,17 +275,14 @@ async function handleLogout() {
 
     isLoggingOut.value = true
 
-    // Activar el spinner global de pantalla completa con mensaje contextual
-    configStore.setLoading(true, 'Cerrando sesión...')
+    // Activar la barra de navegación no invasiva en el top
+    configStore.startNavigation()
 
     try {
-        // Dar tiempo al navegador para renderizar el overlay antes de iniciar el logout
-        await new Promise(resolve => setTimeout(resolve, 150))
         await authStore.logout({ redirect: true })
     } catch (error) {
-        // Solo en caso de error reversamos el estado del spinner
         isLoggingOut.value = false
-        configStore.setLoading(false)
+        configStore.endNavigation()
         console.error('Error during logout:', error)
     }
 }

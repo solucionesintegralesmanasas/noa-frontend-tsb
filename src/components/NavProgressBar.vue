@@ -1,4 +1,4 @@
-﻿<template>
+<template>
     <Transition name="nprogress">
         <div v-if="isVisible" class="nav-progress-bar" role="progressbar"
             aria-label="Cargando pagina" aria-valuemin="0" aria-valuemax="100"
@@ -23,23 +23,23 @@ watch(() => configStore.isNavigating, (navigating) => {
         clearInterval(intervalTimer)
         clearTimeout(hideTimer)
         isVisible.value = true
-        width.value = 10
-        // Simula avance organico hasta 85% mientras carga el chunk
+        width.value = 25
+        // Simula avance orgánico hasta 85% mientras carga la vista
         intervalTimer = setInterval(() => {
             if (width.value < 85) {
                 const remaining = 85 - width.value
-                width.value += Math.random() * Math.min(remaining * 0.3, 12)
+                width.value += Math.random() * Math.min(remaining * 0.35, 15)
             }
-        }, 200)
-    } else {
-        // Completar al 100% y luego ocultar con fade
+        }, 150)
+    } else if (isVisible.value) {
+        // Completar al 100% y luego ocultar con suave desvanecimiento
         clearInterval(intervalTimer)
         intervalTimer = null
         width.value = 100
         hideTimer = setTimeout(() => {
             isVisible.value = false
             setTimeout(() => { width.value = 0 }, 300)
-        }, 300)
+        }, 320)
     }
 })
 
