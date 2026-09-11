@@ -275,14 +275,14 @@ async function handleLogout() {
 
     isLoggingOut.value = true
 
-    // Activar la barra de navegación no invasiva en el top
-    configStore.startNavigation()
+    // Activa el spinner de pantalla completa para cubrir la transición y evitar pantalla en blanco
+    configStore.setLoading(true, 'Cerrando sesión...')
 
     try {
         await authStore.logout({ redirect: true })
     } catch (error) {
         isLoggingOut.value = false
-        configStore.endNavigation()
+        configStore.setLoading(false)
         console.error('Error during logout:', error)
     }
 }

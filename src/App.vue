@@ -31,10 +31,17 @@ onUnmounted(() => {
 const FORM_ROUTES = ['/crear', '/editar', '/nuevo'];
 
 watch(() => route.path, (newPath, oldPath) => {
-  // Apagar el spinner global al llegar a /login (post-logout) o al dashboard (post-login)
-  if (newPath === '/login' || newPath === '/dashboard') {
+  // Apagar el spinner de cierre de sesión de forma segura:
+  // LoginView.vue se encarga en su onMounted de apagarlo cuando ya está pintado en pantalla.
+  // Aquí dejamos un temporizador de seguridad como respaldo para evitar bucles infinitos.
+  if (newPath === '/login') {
+    setTimeout(() => {
+      configStore.setLoading(false);
+    }, 600);
+    return;
+  }
+  if (newPath === '/dashboard') {
     configStore.setLoading(false);
-    if (newPath === '/login') return;
   }
 
   const fromForm = FORM_ROUTES.some(seg => oldPath?.includes(seg));

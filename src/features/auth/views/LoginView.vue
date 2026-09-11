@@ -98,7 +98,7 @@
  * @module {Features.Auth}
  * @resource {Session}
  */
-import { shallowRef } from 'vue';
+import { onMounted, shallowRef } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../store/auth.store.js';
 import { useFormManager } from '@/hooks/useFormManager.js';
@@ -108,6 +108,11 @@ import { useConfigStore } from '@store/modules/config.js';
 const router = useRouter();
 const authStore = useAuthStore();
 const configStore = useConfigStore();
+
+onMounted(() => {
+  // Garantiza que el overlay de "Cerrando sesión..." se apague en cuanto el formulario de login esté montado
+  configStore.setLoading(false);
+});
 
 const { formData, errors, isSubmitting, validate } = useFormManager(
   { email: '', password: '' },
