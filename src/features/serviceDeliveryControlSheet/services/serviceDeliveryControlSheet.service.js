@@ -175,6 +175,16 @@ class ServiceDeliveryControlSheetService extends BaseService {
     }
 
     /**
+     * Guarda el cierre de un solo recorrido (cierre parcial por recorrido).
+     * @param {string} uuid - Identificador de la planilla
+     * @param {Object} data - Datos de cierre del recorrido (route_uuid/route_index, hora, km, firmas, etc)
+     * @returns {Promise<Object>}
+     */
+    closeRoute(uuid, data) {
+        return this._request('POST', `/${uuid}/close-route`, { data });
+    }
+
+    /**
      * Descarga el PDF diario de un registro.
      * @param {string} uuid - Identificador único del registro.
      */

@@ -199,6 +199,24 @@ export const useServiceDeliveryControlSheetStore = defineStore('serviceDeliveryC
         },
 
         /**
+         * Guarda el cierre de un solo recorrido (cierre parcial por recorrido).
+         * @param {string} uuid - UUID del registro.
+         * @param {Object} data - Datos de cierre del recorrido (route_uuid/route_index + campos + firmas).
+         * @returns {Promise<Object>} Respuesta con planilla y route actualizados.
+         */
+        closeRoute(uuid, data) {
+            return this._run(async () => {
+                const response = await serviceDeliveryControlSheetService.closeRoute(uuid, data);
+                const result = response?.data?.data ?? response?.data ?? response;
+                if (result?.planilla) {
+                    this._patchLocal(uuid, result.planilla);
+                }
+                await toast('¡Éxito!', 'Cierre del recorrido guardado correctamente', 'success');
+                return result;
+            }, 'Error al guardar el cierre del recorrido');
+        },
+
+        /**
          * Elimina un registro.
          * @param {string} uuid - UUID del registro a eliminar.
          * @returns {Promise<void>}

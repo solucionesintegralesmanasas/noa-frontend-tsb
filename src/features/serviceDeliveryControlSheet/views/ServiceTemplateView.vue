@@ -406,7 +406,7 @@
                                 <div v-else class="alert alert-warning border-0 shadow-sm mb-0 rounded-3 py-2 px-3">
                                     <div class="d-flex align-items-center gap-2">
                                         <i class="fad fa-exclamation-triangle fs-5 text-warning"></i>
-                                        <span class="fs-12 fw-medium">Sin inspección para este vehículo en la fecha del servicio ({{ fechaPlanilla || '—' }}). Debe registrarse una sola vez al día antes de iniciar.</span>
+                                        <span class="fs-12 fw-medium">Sin inspección de este vehículo el día de hoy ({{ hoyInspeccion || '—' }}). Debe registrarse una sola vez al día antes de iniciar.</span>
                                     </div>
                                     <div class="d-flex flex-wrap gap-2 mt-2">
                                         <router-link :to="inspeccionCrearLink" class="btn btn-warning btn-sm rounded-pill px-3 fw-semibold">
@@ -600,7 +600,127 @@
                             </div>
                         </div>
 
-                        <div class="card border-0 shadow-sm mb-3 fade-in-up">
+                        <div v-if="rutasMulti" class="mb-3">
+                            <div class="alert alert-info bg-info bg-opacity-10 text-dark border-0 shadow-sm d-flex align-items-center gap-2 mb-3 rounded-3 py-2 px-3">
+                                <i class="fad fa-route text-info fs-5"></i>
+                                <span class="fs-12">
+                                    Este servicio tiene <strong>{{ recorridosPlanillaActiva.length }} recorridos</strong>. Ciérrelos de a uno: seleccione el recorrido que va a certificar, diligencie su cierre y pase a firmarlo.
+                                </span>
+                            </div>
+
+                            <div v-if="todosRecorridosCerrados" class="alert alert-success bg-success bg-opacity-10 text-dark border-0 shadow-sm d-flex align-items-center gap-2 mb-3 rounded-3 py-2 px-3">
+                                <i class="fad fa-check-circle text-success fs-5"></i>
+                                <span class="fs-12">
+                                    Todos los recorridos del día están cerrados y firmados individualmente. Continúe a <strong>Firmas y Certificación</strong> para legalizar la planilla completa.
+                                </span>
+                            </div>
+
+                            <div class="d-flex flex-wrap gap-2 mb-3">
+                                <button
+                                    v-for="(r, i) in recorridosPlanillaActiva"
+                                    :key="i"
+                                    type="button"
+                                    class="btn rounded-pill px-3 d-inline-flex align-items-center gap-2 shadow-sm"
+                                    :class="recorridoEstaCerrado(i) ? 'btn-success' : (recorridoSeleccionado === i ? 'btn-primary' : 'btn-outline-primary')"
+                                    :disabled="recorridoEstaCerrado(i)"
+                                    @click="seleccionarRecorrido(i)"
+                                >
+                                    <i :class="recorridoEstaCerrado(i) ? 'fas fa-check-circle' : 'fas fa-route'"></i>
+                                    <span class="fw-semibold">{{ i + 1 }}. {{ r.origin || '—' }} → {{ r.destination || '—' }}</span>
+                                    <span class="badge bg-dark bg-opacity-10 fs-10" :class="recorridoEstaCerrado(i) ? 'text-white' : 'text-dark'">
+                                        {{ recorridoEstaCerrado(i) ? 'Cerrado ✓' : 'Por cerrar' }}
+                                    </span>
+                                </button>
+                            </div>
+
+                            <div v-if="!todosRecorridosCerrados" class="card border-0 shadow-sm fade-in-up" :key="recorridoSeleccionado">
+                                <div class="card-header bg-light py-2 px-3 border-bottom">
+                                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="fad fa-flag-checkered text-primary"></i>
+                                            <h6 class="mb-0 fw-semibold text-dark">Cierre — Recorrido {{ recorridoSeleccionado + 1 }}</h6>
+                                        </div>
+                                        <span class="badge bg-primary bg-opacity-10 text-primary">
+                                            {{ recorridosPlanillaActiva[recorridoSeleccionado]?.origin || '—' }} → {{ recorridosPlanillaActiva[recorridoSeleccionado]?.destination || '—' }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="card-body p-3 p-md-4">
+                                    <div class="row g-3">
+                                        <div class="col-12 col-sm-6 col-md-3">
+                                            <label class="form-label required fw-medium text-700" style="font-size: 0.9rem;">
+                                                <i class="fad fa-clock text-primary me-1"></i> Hora de Finalización
+                                            </label>
+                                            <input v-model="cierresRecorridos[recorridoSeleccionado].end_time" type="time" step="60" class="form-control font-monospace" />
+                                        </div>
+
+                                        <div class="col-12 col-sm-6 col-md-3">
+                                            <label class="form-label required fw-medium text-700" style="font-size: 0.9rem;">
+                                                <i class="fad fa-tachometer-alt text-primary me-1"></i> Kilometraje Final
+                                            </label>
+                                            <div class="input-group">
+                                                <input
+                                                    v-model="cierresRecorridos[recorridoSeleccionado].ending_kilometer"
+                                                    type="number"
+                                                    placeholder="Ej. 125680"
+                                                    min="0"
+                                                    class="form-control font-monospace"
+                                                />
+                                                <span class="input-group-text bg-light text-muted fs-12">km</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 col-sm-6 col-md-3">
+                                            <label class="form-label fw-medium text-muted" style="font-size: 0.9rem;">
+                                                <i class="fad fa-road text-success me-1"></i> Recorrido Estimado
+                                            </label>
+                                            <div class="p-2 rounded bg-light border text-center h-75 d-flex align-items-center justify-content-center">
+                                                <span class="fw-bold fs-14 text-primary font-monospace">
+                                                    {{ Math.max(0, (Number(cierresRecorridos[recorridoSeleccionado].ending_kilometer || 0) - Number(formData.starting_kilometer || 0))) }} km
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 col-sm-6 col-md-3">
+                                            <label class="form-label fw-medium text-700" style="font-size: 0.9rem;">
+                                                <i class="fad fa-ticket-alt text-primary me-1"></i> N.° de Peajes
+                                            </label>
+                                            <input v-model="cierresRecorridos[recorridoSeleccionado].number_of_tolls" type="number" placeholder="0" min="0" max="50" class="form-control" />
+                                        </div>
+
+                                        <div class="col-12 col-sm-6 col-md-4">
+                                            <label class="form-label fw-medium text-700" style="font-size: 0.9rem;">
+                                                <i class="fad fa-dollar-sign text-success me-1"></i> Valor Total Peajes
+                                            </label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light text-muted">$</span>
+                                                <input v-model="cierresRecorridos[recorridoSeleccionado].total_toll_value" type="number" placeholder="0" min="0" class="form-control" />
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 col-md-8">
+                                            <label class="form-label fw-medium text-700" style="font-size: 0.9rem;">
+                                                <i class="fad fa-comment-alt-lines text-primary me-1"></i> Novedades al Cierre
+                                            </label>
+                                            <input v-model="cierresRecorridos[recorridoSeleccionado].end_novelty" type="text" class="form-control" placeholder="Sin novedad / reporte de entrega a satisfacción..." />
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3 pt-3 border-top">
+                                        <span class="fs-12 text-muted">
+                                            <i class="fad fa-info-circle me-1"></i>
+                                            Al guardar se certificará <strong>solo este recorrido</strong>. Los pendientes pueden cerrarse después; la planilla se legaliza cuando todos estén cerrados.
+                                        </span>
+                                        <button class="btn btn-success rounded-pill px-4 fw-bold shadow-sm d-inline-flex align-items-center gap-2" :disabled="submitting" @click="goStep5">
+                                            <i class="fas fa-file-signature"></i>
+                                            <span>Firmar y Cerrar Recorrido {{ recorridoSeleccionado + 1 }}</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-else class="card border-0 shadow-sm mb-3 fade-in-up">
                             <div class="card-header bg-light py-2 px-3 border-bottom">
                                 <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
                                     <div class="d-flex align-items-center gap-2">
@@ -727,7 +847,7 @@
                                         <div class="bg-light p-3 rounded-3 border text-center">
                                             <small class="text-700 d-block text-uppercase fs-10 fw-semibold">Odómetro Salida → Fin</small>
                                             <span class="fw-bold fs-13 font-monospace d-block text-truncate text-dark">
-                                                {{ formData.starting_kilometer }} → {{ formData.ending_kilometer }}
+                                                {{ formData.starting_kilometer }} → {{ rutasMulti ? (cierreDe(recorridosPlanillaActiva.length - 1).ending_kilometer || formData.ending_kilometer) : formData.ending_kilometer }}
                                             </span>
                                         </div>
                                     </div>
@@ -742,7 +862,50 @@
                         </div>
 
                         <!-- Firmas Digitales -->
-                        <div class="row g-3 mb-4">
+                        <div v-if="rutasMulti" class="row g-3 mb-4">
+                            <div v-if="todosRecorridosCerrados" class="col-12">
+                                <div class="alert alert-success bg-success bg-opacity-10 text-dark border-0 shadow-sm d-flex align-items-center gap-2 mb-3 rounded-3 py-2 px-3">
+                                    <i class="fad fa-check-circle text-success fs-5"></i>
+                                    <span class="fs-12">
+                                        Todos los recorridos del día quedaron cerrados y firmados individualmente. Solo resta <strong>certificar la planilla</strong> con el botón verde.
+                                    </span>
+                                </div>
+                            </div>
+                            <div v-else class="col-12">
+                                <div class="alert alert-warning bg-warning bg-opacity-10 text-dark border-0 shadow-sm d-flex align-items-center gap-2 mb-3 rounded-3 py-2 px-3">
+                                    <i class="fad fa-file-signature text-warning fs-5"></i>
+                                    <span class="fs-12">
+                                        Va a firmar el cierre del <strong>recorrido {{ recorridoSeleccionado + 1 }}</strong>
+                                        ({{ recorridosPlanillaActiva[recorridoSeleccionado]?.origin || '—' }} → {{ recorridosPlanillaActiva[recorridoSeleccionado]?.destination || '—' }}).
+                                        Estas firmas certifican únicamente ese recorrido; los pendientes se firmarán enseguida.
+                                    </span>
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-12 col-xl-6">
+                                        <FirmaPad
+                                            rol="funcionario"
+                                            titulo="Firma del Funcionario / Cliente"
+                                            placeholder-nombre="Nombre de quien recibe el servicio"
+                                            v-model:nombre="firmasRecorridos[recorridoSeleccionado].funcionarioNombre"
+                                            :ref="(el) => registrarPadRecorrido(recorridoSeleccionado, 'funcionario', el)"
+                                            accent="#2c7be5"
+                                        />
+                                    </div>
+                                    <div class="col-12 col-xl-6">
+                                        <FirmaPad
+                                            rol="conductor"
+                                            titulo="Firma del Conductor"
+                                            placeholder-nombre="Nombre completo del conductor"
+                                            v-model:nombre="firmasRecorridos[recorridoSeleccionado].conductorNombre"
+                                            :ref="(el) => registrarPadRecorrido(recorridoSeleccionado, 'conductor', el)"
+                                            accent="#00a651"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-else class="row g-3 mb-4">
                             <!-- Firma Funcionario -->
                             <div class="col-12 col-md-6">
                                 <div class="card border-0 shadow-sm h-100 signature-card">
@@ -821,10 +984,12 @@
                             <button class="btn btn-outline-secondary rounded-pill px-3 fw-semibold" @click="goStep(4)">
                                 <i class="fas fa-arrow-left me-1"></i> Volver a Métricas
                             </button>
-                            <button class="btn btn-success rounded-pill px-4 shadow-sm fw-bold d-inline-flex align-items-center gap-2" :disabled="submitting" @click="guardarPlanilla">
+                            <button class="btn btn-success rounded-pill px-4 shadow-sm fw-bold d-inline-flex align-items-center gap-2" :disabled="submitting" @click="rutasMulti ? (todosRecorridosCerrados ? guardarPlanilla : guardarCierreRecorrido) : guardarPlanilla">
                                 <i v-if="submitting" class="fas fa-spinner fa-spin"></i>
+                                <i v-else-if="rutasMulti" :class="todosRecorridosCerrados ? 'fas fa-check-circle' : 'fas fa-file-signature'"></i>
                                 <i v-else class="fas fa-check-circle"></i>
-                                <span>{{ esMultiDia ? `Guardar Planilla del Día (${planillaActiva ? formatFecha(planillaActiva.service_date) : ''})` : 'Guardar y Certificar Planilla' }}</span>
+                                <span v-if="rutasMulti && !todosRecorridosCerrados">Guardar Cierre del Recorrido {{ recorridoSeleccionado + 1 }}</span>
+                                <span v-else>{{ esMultiDia ? `Guardar Planilla del Día (${planillaActiva ? formatFecha(planillaActiva.service_date) : ''})` : 'Guardar y Certificar Planilla' }}</span>
                             </button>
                         </div>
                     </div>
@@ -950,6 +1115,7 @@ import serviceDeliveryControlSheetService from '../services/serviceDeliveryContr
 import vehicleInspectionsService from '../../vehicleInspections/services/vehicleInspections.service.js';
 import { usePermissionsStore, useUserStore } from '@store';
 import { useSelect2 } from '@/hooks/useSelect2.js';
+import FirmaPad from '../components/FirmaPad.vue';
 
 // --- STORES Y ROUTER ---
 const route = useRoute();
@@ -996,6 +1162,68 @@ const firma = reactive({
     funcionarioNombre: '',
     conductorNombre: '',
 });
+
+// Cierre y firmas por recorrido: solo se activan cuando la planilla tiene
+// más de un recorrido en el día; con un solo recorrido se mantiene el
+// flujo normal (diligenciamiento único, firmas únicas).
+const rutasMulti = computed(() => recorridosPlanillaActiva.value.length > 1);
+const cierresRecorridos = ref([]);
+const firmasRecorridos = ref([]);
+const firmaPadsRecorridos = ref({});
+
+const cierreDe = (i) => cierresRecorridos.value[i] || {};
+
+// Cierre parcial: cada recorrido se puede cerrar y firmar por separado.
+// Los recorridos ya cerrados se marcan con ✓ y la planilla queda en curso
+// hasta certificar el último, momento en el que se completa el cierre total.
+const cerradosRecorridos = ref([]);
+const recorridoSeleccionado = ref(0);
+
+const recorridoEstaCerrado = (i) => !!cerradosRecorridos.value[i];
+
+const pendientesRecorridos = computed(() => {
+    const rutas = recorridosPlanillaActiva.value;
+    return rutas.map((_, i) => i).filter(i => !recorridoEstaCerrado(i));
+});
+
+const todosRecorridosCerrados = computed(() => {
+    const rutas = recorridosPlanillaActiva.value;
+    return rutas.length > 0 && cerradosRecorridos.value.length === rutas.length && cerradosRecorridos.value.every(Boolean);
+});
+
+const seleccionarRecorrido = (i) => {
+    if (recorridoEstaCerrado(i)) return;
+    recorridoSeleccionado.value = i;
+};
+
+const inicializarCierresPorRecorrido = () => {
+    const rutas = recorridosPlanillaActiva.value;
+    const ahora = new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false });
+    cierresRecorridos.value = rutas.map(r => ({
+        end_time: r.end_time ? String(r.end_time).substring(0, 5) : '',
+        ending_kilometer: r.ending_kilometer ?? '',
+        number_of_tolls: r.number_of_tolls || 0,
+        total_toll_value: r.total_toll_value || 0,
+        end_novelty: r.end_novelty || '',
+    }));
+    cerradosRecorridos.value = rutas.map(r => !!r.end_time);
+    firmasRecorridos.value = rutas.map(() => ({
+        funcionarioNombre: servicioSeleccionado.value?.official_name_and_surname || userStore.user?.full_name || '',
+        conductorNombre: conductorSeleccionadoNombre.value,
+    }));
+    firmaPadsRecorridos.value = {};
+    const primerPendiente = cerradosRecorridos.value.findIndex(c => !c);
+    recorridoSeleccionado.value = primerPendiente === -1 ? (rutas.length - 1) : Math.max(primerPendiente, 0);
+    if (rutasMulti.value && rutas.length > 1) {
+        cierresRecorridos.value.forEach((c, i) => {
+            if (!c.end_time && !cerradosRecorridos.value[i]) c.end_time = ahora;
+        });
+    }
+};
+
+const registrarPadRecorrido = (i, rol, el) => {
+    if (el) firmaPadsRecorridos.value[`${i}-${rol}`] = el;
+};
 
 const modal = reactive({
     repuesto: false,
@@ -1063,28 +1291,32 @@ const planillaConductorUuid = computed(() =>
     || userStore.third_party_uuid
     || ''
 );
-const fechaPlanilla = computed(() => {
-    const f = planillaActiva.value?.service_date || servicioSeleccionado.value?.service_date || '';
-    return String(f).substring(0, 10);
-});
 
-// Inspección preoperacional: obligatoria una sola vez al día por vehículo.
+// Inspección preoperacional: obligatoria una sola vez al día (fecha real de operación).
+// Se valida contra la fecha de HOY, no contra la fecha del servicio, para no
+// volver a exigirla cuando el conductor ya la registró el mismo día calendario.
 const inspeccionDia = ref({ checked: false, exists: false, uuid: null, fecha: '', verificando: false });
+
+const obtenerFechaHoy = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+const hoyInspeccion = computed(obtenerFechaHoy);
 
 const verificarInspeccionDia = async (manual = false) => {
     const vUuid = planillaVehiculoUuid.value;
     if (!vUuid) {
-        inspeccionDia.value = { checked: true, exists: null, uuid: null, fecha: fechaPlanilla.value, verificando: false };
+        inspeccionDia.value = { checked: true, exists: null, uuid: null, fecha: hoyInspeccion.value, verificando: false };
         return true;
     }
     inspeccionDia.value.verificando = true;
     try {
-        const res = await vehicleInspectionsService.checkToday(vUuid, fechaPlanilla.value);
+        const res = await vehicleInspectionsService.checkToday(vUuid, hoyInspeccion.value, userStore.company_uuid);
         inspeccionDia.value = {
             checked: true,
             exists: !!res.exists,
             uuid: res.inspection?.uuid || null,
-            fecha: fechaPlanilla.value,
+            fecha: hoyInspeccion.value,
             verificando: false,
         };
         return !!res.exists;
@@ -1098,7 +1330,7 @@ const verificarInspeccionDia = async (manual = false) => {
 const inspeccionCrearLink = computed(() => {
     const q = new URLSearchParams({
         vehicle_uuid: planillaVehiculoUuid.value || '',
-        inspection_date: fechaPlanilla.value || '',
+        inspection_date: hoyInspeccion.value || '',
         driver_uuid: planillaConductorUuid.value || '',
         return_to: '/planilla-de-control-de-prestacion-servicios/control-de-servicios',
     });
@@ -1374,6 +1606,9 @@ const goBack = () => {
 };
 
 const goStep = (n) => {
+    if (n === 4 && rutasMulti.value && cierresRecorridos.value.length !== recorridosPlanillaActiva.value.length) {
+        inicializarCierresPorRecorrido();
+    }
     currentStep.value = n;
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (n === 5) {
@@ -1453,25 +1688,72 @@ const goStep4 = () => {
     if (enEditor && enEditor !== guardados) {
         return toast('Atención', 'Tiene recorridos sin guardar. Pulse «Guardar recorridos del día» antes de finalizar.', 'warning');
     }
-    if (!formData.end_time) {
+    if (!rutasMulti.value && !formData.end_time) {
         const now = new Date();
         formData.end_time = now.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false });
     }
+
+    if (rutasMulti.value) {
+        const pend = pendientesRecorridos.value;
+        if (pend.length === 0) {
+            // Todos los recorridos ya cerrados: se va directo a certificar la planilla.
+            goStep(5);
+            persistirProgreso();
+            return;
+        }
+        if (!pend.includes(recorridoSeleccionado.value)) {
+            recorridoSeleccionado.value = pend[0];
+        }
+    }
+
     goStep(4);
     persistirProgreso();
 };
 
-const goStep5 = () => {
-    if (!formData.end_time || !formData.ending_kilometer) {
-        return toast('Atención', 'La hora de fin y el kilometraje final son obligatorios.', 'warning');
-    }
-
+const calcularResumen = (endTime) => {
     const [h1, m1] = formData.start_time.split(':').map(Number);
-    const [h2, m2] = formData.end_time.split(':').map(Number);
+    const [h2, m2] = String(endTime).split(':').map(Number);
     let diffMin = (h2 * 60 + m2) - (h1 * 60 + m1);
     if (diffMin < 0) diffMin += 1440;
     resumen.duracion = `${Math.floor(diffMin / 60)}h ${diffMin % 60}m`;
     resumen.duracionFormatted = `${String(Math.floor(diffMin / 60)).padStart(2, '0')}:${String(diffMin % 60).padStart(2, '0')}:00`;
+};
+
+const goStep5 = () => {
+    if (rutasMulti.value) {
+        const i = recorridoSeleccionado.value;
+
+        if (todosRecorridosCerrados.value) {
+            // Solo queda certificar la planilla completa.
+            const ultimo = cierresRecorridos.value[cierresRecorridos.value.length - 1] || {};
+            calcularResumen(ultimo.end_time || formData.end_time);
+            resumen.kmTotal = Math.max(0, Number(ultimo.ending_kilometer) - Number(formData.starting_kilometer));
+            goStep(5);
+            persistirProgreso();
+            return;
+        }
+
+        const c = cierresRecorridos.value[i] || {};
+        if (!c.end_time || !c.ending_kilometer) {
+            return toast('Atención', `El recorrido ${i + 1} requiere hora de fin y kilometraje final.`, 'warning');
+        }
+
+        calcularResumen(c.end_time);
+        resumen.kmTotal = Math.max(0, Number(c.ending_kilometer) - Number(formData.starting_kilometer));
+
+        const fr = firmasRecorridos.value[i] || {};
+        if (!fr.funcionarioNombre) fr.funcionarioNombre = servicioSeleccionado.value?.official_name_and_surname || userStore.user?.full_name || '';
+        if (!fr.conductorNombre) fr.conductorNombre = conductorSeleccionadoNombre.value;
+
+        goStep(5);
+        persistirProgreso();
+        return;
+    }
+    if (!formData.end_time || !formData.ending_kilometer) {
+        return toast('Atención', 'La hora de fin y el kilometraje final son obligatorios.', 'warning');
+    }
+
+    calcularResumen(formData.end_time);
     resumen.kmTotal = Math.max(0, Number(formData.ending_kilometer) - Number(formData.starting_kilometer));
 
     if (!firma.funcionarioNombre) firma.funcionarioNombre = servicioSeleccionado.value?.official_name_and_surname || '';
@@ -1561,12 +1843,31 @@ const enviarRepuesto = () => {
 };
 
 const guardarPlanilla = async () => {
-    if (firmaFuncionarioVacia.value || firmaConductorVacia.value) {
-        return toast('Falta Firma', 'Ambas firmas digitales son requeridas para certificar la planilla.', 'warning');
-    }
-
     if (!planillaActivaUuid.value) {
         return toast('Atención', 'No hay una planilla activa seleccionada.', 'warning');
+    }
+
+    // Múltiples recorridos: cierre por recorrido. Cada recorrido se certifica
+    // por separado (persistido en BD vía /close-route) hasta completar todos;
+    // solo entonces se certifica la planilla en su totalidad.
+    if (rutasMulti.value) {
+        if (!todosRecorridosCerrados.value) {
+            return toast('Atención', `Primero cierre y firme el recorrido ${recorridoSeleccionado.value + 1}.`, 'warning');
+        }
+        try {
+            submitting.value = true;
+            await cerrarPlanillaGlobalMulti();
+        } catch (err) {
+            console.error(err);
+            toast('Error', 'No se pudo guardar la planilla.', 'error');
+        } finally {
+            submitting.value = false;
+        }
+        return;
+    }
+
+    if (firmaFuncionarioVacia.value || firmaConductorVacia.value) {
+        return toast('Falta Firma', 'Ambas firmas digitales son requeridas para certificar la planilla.', 'warning');
     }
 
     try {
@@ -1588,42 +1889,156 @@ const guardarPlanilla = async () => {
         await store.closeService(planillaActivaUuid.value, payload);
         marcarPlanillaCerrada(planillaActivaUuid.value);
 
-        const restantes = planillasPendientes.value;
-        if (esMultiDia.value && restantes.length > 0) {
-            toast('¡Éxito!', `Planilla diaria guardada. Quedan ${restantes.length} planilla(s) pendiente(s).`, 'success');
-
-            formData.start_time = '';
-            formData.starting_kilometer = formData.ending_kilometer || formData.starting_kilometer;
-            formData.end_time = '';
-            formData.ending_kilometer = '';
-            formData.number_of_tolls = 0;
-            formData.total_toll_value = 0;
-            formData.end_novelty = '';
-            formData.route_novelty = '';
-            planillaIndex.value = 0;
-
-            clearFirma('funcionario');
-            clearFirma('conductor');
-            firma.funcionarioNombre = '';
-            firma.conductorNombre = '';
-
-            goStep(2);
-            persistirProgreso();
-            nextTick(() => {
-                initCanvas('funcionario');
-                initCanvas('conductor');
-            });
-            return;
-        }
-
-        limpiarProgreso();
-        goStep(6);
+        continuarTrasGuardar();
     } catch (err) {
         console.error(err);
         toast('Error', 'No se pudo guardar la planilla.', 'error');
     } finally {
         submitting.value = false;
     }
+};
+
+const actualizarRutaLocal = (i, c) => {
+    const uuid = planillaActivaUuid.value;
+    const aplicar = (nodo) => {
+        if (!nodo || nodo.uuid !== uuid || !Array.isArray(nodo.routes)) return;
+        const r = nodo.routes[i];
+        if (!r) return;
+        r.end_time = c.end_time || r.end_time;
+        r.ending_kilometer = c.ending_kilometer !== '' && c.ending_kilometer !== null ? c.ending_kilometer : r.ending_kilometer;
+        r.number_of_tolls = c.number_of_tolls ?? r.number_of_tolls;
+        r.total_toll_value = c.total_toll_value ?? r.total_toll_value;
+        r.end_novelty = c.end_novelty || r.end_novelty;
+    };
+    serviciosCatalogo.value.forEach(s => {
+        aplicar(s);
+        (s.children || []).forEach(aplicar);
+    });
+};
+
+/**
+ * Guarda el cierre y las firmas de UN solo recorrido seleccionado.
+ * La planilla continúa en curso hasta cerrar el último recorrido, que entonces
+ * dispara la certificación global (closeService).
+ */
+const guardarCierreRecorrido = async () => {
+    const rutas = recorridosPlanillaActiva.value;
+    const i = recorridoSeleccionado.value;
+    if (i < 0 || i >= rutas.length) return;
+
+    const c = cierresRecorridos.value[i] || {};
+    if (!c.end_time || c.ending_kilometer === '' || c.ending_kilometer === null) {
+        return toast('Atención', `El recorrido ${i + 1} requiere hora de fin y kilometraje final.`, 'warning');
+    }
+
+    const pf = firmaPadsRecorridos.value[`${i}-funcionario`];
+    const pc = firmaPadsRecorridos.value[`${i}-conductor`];
+    if (!pf || pf.estaVacio() || !pc || pc.estaVacio()) {
+        return toast('Falta Firma', `El recorrido ${i + 1} requiere ambas firmas digitales para certificar.`, 'warning');
+    }
+
+    try {
+        submitting.value = true;
+        const ruta = rutas[i];
+        const fr = firmasRecorridos.value[i] || {};
+        await store.closeRoute(planillaActivaUuid.value, {
+            route_uuid: ruta.uuid || '',
+            route_index: i,
+            end_time: c.end_time,
+            ending_kilometer: c.ending_kilometer,
+            number_of_tolls: c.number_of_tolls || 0,
+            total_toll_value: c.total_toll_value || 0,
+            end_novelty: c.end_novelty || '',
+            funcionario_name: fr.funcionarioNombre || '',
+            conductor_name: fr.conductorNombre || '',
+            funcionario_signature: pf.getDataUrl(),
+            conductor_signature: pc.getDataUrl(),
+        });
+
+        cerradosRecorridos.value[i] = true;
+        actualizarRutaLocal(i, c);
+
+        const pend = pendientesRecorridos.value;
+        if (pend.length === 0) {
+            // Todos los recorridos quedaron cerrados: completar y certificar la planilla.
+            await cerrarPlanillaGlobalMulti();
+            return;
+        }
+
+        recorridoSeleccionado.value = pend[0];
+        toast('¡Éxito!', `Recorrido ${i + 1} cerrado. Quedan ${pend.length} recorrido(s) por cerrar.`, 'success');
+        goStep(3);
+        persistirProgreso();
+    } catch (err) {
+        console.error(err);
+        toast('Error', 'No se pudo guardar el cierre del recorrido.', 'error');
+    } finally {
+        submitting.value = false;
+    }
+};
+
+/**
+ * Cierra la planilla completa cuando todos los recorridos quedaron cerrados y
+ * firmados individualmente. El payload global NO reenvía firmas por ruta (ya
+ * fueron persistidas en cada /close-route) para no duplicar registros.
+ */
+const cerrarPlanillaGlobalMulti = async () => {
+    const ultimo = cierresRecorridos.value[cierresRecorridos.value.length - 1] || {};
+    const payload = {
+        ...formData,
+        servicioId: planillaActivaUuid.value,
+        end_time: ultimo.end_time || formData.end_time,
+        ending_kilometer: ultimo.ending_kilometer || formData.ending_kilometer,
+        number_of_tolls: cierresRecorridos.value.reduce((acc, c) => acc + (Number(c.number_of_tolls) || 0), 0),
+        total_toll_value: cierresRecorridos.value.reduce((acc, c) => acc + (Number(c.total_toll_value) || 0), 0),
+        total_hours: resumen.duracionFormatted,
+        status: 'COMPLETED',
+    };
+    await store.closeService(planillaActivaUuid.value, payload);
+    marcarPlanillaCerrada(planillaActivaUuid.value);
+    continuarTrasGuardar();
+};
+
+const continuarTrasGuardar = () => {
+    const restantes = planillasPendientes.value;
+    if (esMultiDia.value && restantes.length > 0) {
+        toast('¡Éxito!', `Planilla diaria guardada. Quedan ${restantes.length} planilla(s) pendiente(s).`, 'success');
+
+        formData.start_time = '';
+        formData.starting_kilometer = formData.ending_kilometer || formData.starting_kilometer;
+        formData.end_time = '';
+        formData.ending_kilometer = '';
+        formData.number_of_tolls = 0;
+        formData.total_toll_value = 0;
+        formData.end_novelty = '';
+        formData.route_novelty = '';
+        planillaIndex.value = 0;
+
+        clearFirma('funcionario');
+        clearFirma('conductor');
+        firma.funcionarioNombre = '';
+        firma.conductorNombre = '';
+
+        cierresRecorridos.value = [];
+        firmasRecorridos.value = [];
+        firmaPadsRecorridos.value = {};
+
+        goStep(2);
+        persistirProgreso();
+        nextTick(() => {
+            initCanvas('funcionario');
+            initCanvas('conductor');
+        });
+        return;
+    }
+
+    limpiarProgreso();
+    cierresRecorridos.value = [];
+    cerradosRecorridos.value = [];
+    recorridoSeleccionado.value = 0;
+    firmasRecorridos.value = [];
+    firmaPadsRecorridos.value = {};
+    goStep(6);
 };
 
 const reiniciar = () => {
@@ -1645,6 +2060,11 @@ const reiniciar = () => {
         funcionarioNombre: '',
         conductorNombre: '',
     });
+    cierresRecorridos.value = [];
+    cerradosRecorridos.value = [];
+    recorridoSeleccionado.value = 0;
+    firmasRecorridos.value = [];
+    firmaPadsRecorridos.value = {};
     planillaIndex.value = 0;
     currentStep.value = 1;
     if (timerInterval) clearInterval(timerInterval);
@@ -1736,6 +2156,9 @@ watch(proyectoFiltro, (nuevo) => {
 });
 
 watch(planillaActivaUuid, (uuid) => {
+    cierresRecorridos.value = [];
+    cerradosRecorridos.value = [];
+    recorridoSeleccionado.value = 0;
     if (!uuid) {
         recorridosDia.value = [];
         return;
