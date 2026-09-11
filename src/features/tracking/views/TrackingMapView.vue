@@ -1,15 +1,16 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
+import BasePageHeader from '@/components/BasePageHeader.vue';
 import DriverMap from '../components/DriverMap.vue';
 import DriverMarker from '../components/DriverMarker.vue';
 import { useTrackingStore } from '../store/tracking.store';
-import { usePermissions } from '@/store/modules/permissions';
+import { usePermissionsStore } from '@/store/modules/permissions';
 import { useToast } from 'vue-toastification';
 
 const router = useRouter();
 const store = useTrackingStore();
-const permissions = usePermissions();
+const permissions = usePermissionsStore();
 const toast = useToast();
 
 const canViewHistory = ref(false);
@@ -66,8 +67,8 @@ function markAllRead() {
 }
 
 onMounted(async () => {
-    canViewHistory.value = permissions.hasPermission('locations.history');
-    canViewGeofences.value = permissions.hasPermission('locations.geofences');
+    canViewHistory.value = permissions.can('locations.history');
+    canViewGeofences.value = permissions.can('locations.geofences');
 
     refreshDrivers();
     store.fetchAlerts({ only_unread: true, per_page: 20 });
@@ -84,97 +85,210 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div class="p-4">
-        <div class="flex justify-between items-center mb-4">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-800">Rastreo de Conductores</h1>
-                <p class="text-sm text-gray-500">Monitoreo en tiempo real de la flota</p>
-            </div>
-
-            <div class="flex gap-2">
-                <button v-if="canViewGeofences"
-                    class="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 text-sm font-medium flex items-center gap-2"
-                    @click="goToGeofences">
-                    <i class="pi pi-map-marker"></i> Geocercas
+    <div>
+        <BasePageHeader title="Rastreo de Conductores" description="Monitoreo en tiempo real de la flota"
+            icon="fad fa-satellite-dish text-primary" :show-bg="true" :compact="true"
+            :breadcrumbs="[{ label: 'Geolocalización' }, { label: 'Rastreo de Conductores' }]">
+            <template #actions>
+                <button v-if="canViewGeofences" class="btn btn-falcon-default btn-sm px-2 px-sm-3" type="button"
+                    title="Geocercas" @click="goToGeofences">
+                    <i class="fad fa-draw-polygon"></i>
+                    <span class="d-none d-sm-inline ms-1">Geocercas</span>
                 </button>
-                <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium flex items-center gap-2"
+                <button class="btn btn-falcon-default btn-sm px-2 px-sm-3" type="button" title="Actualizar"
                     @click="refreshDrivers">
-                    <i class="pi pi-refresh" :class="{ 'animate-spin': loadingDrivers }"></i> Actualizar
+                    <i class="fad fa-sync" :class="{ 'fa-spin': loadingDrivers }"></i>
+                    <span class="d-none d-sm-inline ms-1">Actualizar</span>
                 </button>
-            </div>
-        </div>
+            </template>
+        </BasePageHeader>
 
-        <div class="grid grid-cols-4 gap-3 mb-4">
-            <div class="bg-white rounded-xl shadow p-4">
-                <div class="text-3xl font-bold text-gray-800">{{ stats.total }}</div>
-                <div class="text-xs text-gray-500 mt-1">Conductores en línea</div>
-            </div>
-            <div class="bg-white rounded-xl shadow p-4">
-                <div class="text-3xl font-bold text-green-600">{{ stats.active }}</div>
-                <div class="text-xs text-gray-500 mt-1">En movimiento</div>
-            </div>
-            <div class="bg-white rounded-xl shadow p-4">
-                <div class="text-3xl font-bold text-amber-500">{{ stats.stopped }}</div>
-                <div class="text-xs text-gray-500 mt-1">Detenidos</div>
-            </div>
-            <div class="bg-white rounded-xl shadow p-4">
-                <div class="text-3xl font-bold text-red-500">{{ stats.alerts }}</div>
-                <div class="text-xs text-gray-500 mt-1">Alertas sin leer</div>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-12 gap-4">
-            <div class="col-span-12 lg:col-span-3 bg-white rounded-xl shadow overflow-hidden">
-                <div class="p-3 border-b border-gray-200">
-                    <input v-model="searchTerm" type="text" placeholder="Buscar conductor, placa, documento..."
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                </div>
-                <div class="max-h-[600px] overflow-y-auto">
-                    <DriverMarker v-for="driver in filteredDrivers" :key="driver.third_party_uuid" :driver="driver"
-                        @open-history="openHistory" @show-location="showLocation" />
-
-                    <div v-if="!filteredDrivers.length && !loadingDrivers"
-                        class="p-6 text-center text-gray-400 text-sm">
-                        <i class="pi pi-inbox text-3xl block mb-2"></i>
-                        No hay conductores reportando ubicación
-                    </div>
-
-                    <div v-if="loadingDrivers" class="p-6 text-center text-gray-400">
-                        <i class="pi pi-spin pi-spinner text-2xl"></i>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-span-12 lg:col-span-9 bg-white rounded-xl shadow p-3">
-                <DriverMap @driver-selected="showLocation" />
-
-                <div v-if="store.alerts.length" class="mt-3 border-t border-gray-100 pt-3">
-                    <div class="flex justify-between items-center mb-2">
-                        <h3 class="font-semibold text-sm text-gray-700">Últimas alertas</h3>
-                        <button class="text-xs text-blue-600 hover:underline" @click="markAllRead">Marcar todas como leídas</button>
-                    </div>
-                    <div class="space-y-1 max-h-32 overflow-y-auto">
-                        <div v-for="alert in store.alerts.slice(0, 5)" :key="alert.uuid"
-                            class="flex items-center justify-between text-xs p-2 rounded bg-slate-50">
-                            <div class="flex items-center gap-2">
-                                <span class="px-2 py-0.5 rounded text-white text-[10px] font-semibold"
-                                    :class="{
-                                        'bg-red-500': alert.alert_type.includes('speed') || alert.alert_type.includes('exit'),
-                                        'bg-green-500': alert.alert_type === 'geofence_enter',
-                                        'bg-amber-500': alert.alert_type === 'idle',
-                                    }">
-                                    {{ alert.alert_type }}
-                                </span>
-                                <span>{{ alert.message }}</span>
-                            </div>
-                            <button class="text-gray-400 hover:text-gray-600"
-                                @click="store.markAlertRead(alert.uuid)">
-                                <i class="pi pi-check"></i>
-                            </button>
+        <div class="row g-2 g-md-3 mb-3 fade-in-up" style="animation-delay: 0.1s;">
+            <div class="col-6 col-xl-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body py-3 d-flex align-items-center gap-3">
+                        <span class="avatar avatar-sm bg-primary bg-opacity-10 text-primary rounded-3">
+                            <i class="fad fa-satellite-dish fs-7"></i>
+                        </span>
+                        <div>
+                            <div class="fs-3 fw-bold text-dark">{{ stats.total }}</div>
+                            <div class="text-muted fs--2">Conductores en línea</div>
                         </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-xl-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body py-3 d-flex align-items-center gap-3">
+                        <span class="avatar avatar-sm bg-success bg-opacity-10 text-success rounded-3">
+                            <i class="fad fa-tachometer-fast fs-7"></i>
+                        </span>
+                        <div>
+                            <div class="fs-3 fw-bold text-success">{{ stats.active }}</div>
+                            <div class="text-muted fs--2">En movimiento</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-xl-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body py-3 d-flex align-items-center gap-3">
+                        <span class="avatar avatar-sm bg-warning bg-opacity-10 text-warning rounded-3">
+                            <i class="fad fa-pause-circle fs-7"></i>
+                        </span>
+                        <div>
+                            <div class="fs-3 fw-bold text-warning">{{ stats.stopped }}</div>
+                            <div class="text-muted fs--2">Detenidos</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-xl-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body py-3 d-flex align-items-center gap-3">
+                        <span class="avatar avatar-sm bg-danger bg-opacity-10 text-danger rounded-3">
+                            <i class="fad fa-bell-exclamation fs-7"></i>
+                        </span>
+                        <div>
+                            <div class="fs-3 fw-bold text-primary">{{ stats.alerts }}</div>
+                            <div class="text-muted fs--2">Alertas sin leer</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row gx-3 fade-in-up" style="animation-delay: 0.2s;">
+            <div class="col-12 col-lg-4 col-xl-3 mb-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-light py-2 px-3 border-bottom">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fad fa-users text-primary"></i>
+                            <h6 class="mb-0 fw-medium fs--1">Conductores Activos</h6>
+                            <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary ms-auto">
+                                {{ filteredDrivers.length }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body p-2">
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text bg-light border-end-0">
+                                <i class="fad fa-search text-muted" />
+                            </span>
+                            <input v-model="searchTerm" class="form-control border-start-0 shadow-none"
+                                type="search" placeholder="Buscar conductor, placa, documento..." />
+                        </div>
+                        <div class="scrollbar" style="max-height: 620px; overflow-y: auto;">
+                            <DriverMarker v-for="driver in filteredDrivers" :key="driver.third_party_uuid"
+                                :driver="driver" @open-history="openHistory" @show-location="showLocation" />
+
+                            <div v-if="!filteredDrivers.length && !loadingDrivers"
+                                class="text-center py-5 text-muted">
+                                <i class="fad fa-satellite-dish fs-2 d-block mb-2 opacity-50"></i>
+                                <small>No hay conductores reportando ubicación</small>
+                            </div>
+
+                            <div v-if="loadingDrivers" class="text-center py-5 text-muted">
+                                <div class="spinner-border spinner-border-sm text-primary mb-2" role="status"></div>
+                                <small class="d-block">Actualizando conductores...</small>
+                            </div>
+                        </div>
+
+                        <div v-if="store.alerts.length" class="border-top pt-2 mt-2">
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <small class="fw-semibold text-muted fs--2">
+                                    <i class="fad fa-bell-exclamation me-1 text-danger"></i> Últimas alertas
+                                </small>
+                                <button class="btn btn-link btn-sm p-0 text-primary fs--2" @click="markAllRead">
+                                    marcar todas
+                                </button>
+                            </div>
+                            <div class="scrollbar" style="max-height: 160px; overflow-y: auto;">
+                                <div v-for="alert in store.alerts.slice(0, 5)" :key="alert.uuid"
+                                    class="d-flex align-items-center justify-content-between gap-2 py-1">
+                                    <span class="badge rounded-pill badge-subtle fs--2"
+                                        :class="{
+                                            'badge-subtle-danger': alert.alert_type.includes('speed') || alert.alert_type.includes('exit'),
+                                            'badge-subtle-success': alert.alert_type === 'geofence_enter',
+                                            'badge-subtle-warning': alert.alert_type === 'idle',
+                                        }">
+                                        {{ alert.alert_type }}
+                                    </span>
+                                    <small class="text-muted flex-grow-1 text-truncate">{{ alert.message }}</small>
+                                    <button class="btn btn-sm btn-falcon-default p-0 px-1" title="Marcar leída"
+                                        @click="store.markAlertRead(alert.uuid)">
+                                        <i class="fad fa-check text-primary" style="font-size:11px;" />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-8 col-xl-9 mb-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="bg-holder d-none d-lg-block bg-card"
+                        style="background-image:url(/assets/img/icons/spot-illustrations/corner-4.png);" />
+                    <div class="card-body p-0 position-relative" style="min-height: 560px;">
+                        <DriverMap @driver-selected="showLocation" />
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </template>
+
+<style scoped>
+.fade-in-up {
+    animation: fadeInUp 0.4s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fs-7 {
+    font-size: 1.1rem !important;
+}
+
+.fs--2 {
+    font-size: 0.8rem !important;
+}
+
+.fs--1 {
+    font-size: 0.85rem !important;
+}
+
+.badge-subtle-success {
+    background: rgba(25, 135, 84, .1);
+    color: #198754;
+    border: 1px solid rgba(25, 135, 84, .2);
+}
+
+.badge-subtle-danger {
+    background: rgba(220, 53, 69, .1);
+    color: #dc3545;
+    border: 1px solid rgba(220, 53, 69, .2);
+}
+
+.badge-subtle-warning {
+    background: rgba(255, 193, 7, .1);
+    color: #c07f00;
+    border: 1px solid rgba(255, 193, 7, .3);
+}
+
+:deep(.btn-falcon-default) {
+    background: #f8f9fa;
+    border-color: #e9ecef;
+    color: #212529;
+}
+</style>

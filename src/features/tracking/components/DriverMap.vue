@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, onBeforeUnmount } from 'vue';
+import { onMounted, onBeforeUnmount, watch } from 'vue';
 import { useTrackingStore } from '../store/tracking.store';
 import { useGeolocation } from '@/hooks/useGeolocation';
 
@@ -41,9 +41,43 @@ function setupMap(L) {
         drawHistory(L, store.selectedDriver.history);
     }
 
-    store.geofences.forEach((gf) => drawGeofence(L, gf));
-    store.geofences = [...store.geofences];
+    if (props.showGeofences) {
+        drawAllGeofences();
+    }
 }
+
+function clearGeofences() {
+    if (!map) return;
+    geofenceLayers.forEach((layer) => map.removeLayer(layer));
+    geofenceLayers = [];
+}
+
+function drawAllGeofences() {
+    if (!map || !window.L) return;
+    clearGeofences();
+    store.geofences
+        .filter((gf) => gf.is_active !== false)
+        .forEach((gf) => drawGeofence(window.L, gf));
+}
+
+watch(
+    () => props.showGeofences,
+    (show) => {
+        if (!map) return;
+        if (show) {
+            drawAllGeofences();
+        } else {
+            clearGeofences();
+        }
+    }
+);
+
+watch(
+    () => store.activeDrivers,
+    () => {
+        updateMap();
+    }
+);
 
 function drawDriver(L, driver) {
     if (!driver?.latitude && !driver?.last_location?.latitude) {
@@ -140,6 +174,22 @@ function drawHistory(L, history) {
     map.fitBounds(L.latLngBounds(points).pad(0.1));
 }
 
+let hasFittedDrivers = false;
+
+function fitDrivers() {
+    if (!map || !window.L) return;
+    const points = store.activeDrivers
+        .map((d) => [d.latitude ?? d.last_location?.latitude, d.longitude ?? d.last_location?.longitude])
+        .filter(([lat, lng]) => lat != null && lng != null);
+    if (!points.length) return;
+    if (points.length === 1) {
+        map.setView(points[0], 15);
+    } else {
+        map.fitBounds(window.L.latLngBounds(points).pad(0.15));
+    }
+    hasFittedDrivers = true;
+}
+
 function updateMap() {
     if (!map) return;
     const L = window.L;
@@ -147,6 +197,10 @@ function updateMap() {
 
     // Actualizar conductores
     store.activeDrivers.forEach((driver) => drawDriver(L, driver));
+
+    if (store.activeDrivers.length && !hasFittedDrivers) {
+        fitDrivers();
+    }
 
     // Actualizar selección/historial
     if (store.selectedDriver?.history) {
@@ -160,6 +214,7 @@ onMounted(async () => {
     try {
         const L = await loadLeaflet();
         setupMap(L);
+        updateMap();
 
         intervalId = setInterval(updateMap, 10000);
 

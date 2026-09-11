@@ -1,9 +1,11 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useTrackingStore } from '../store/tracking.store';
 import { useToast } from 'vue-toastification';
+import BasePageHeader from '@/components/BasePageHeader.vue';
+import BaseFormActions from '@/components/BaseFormActions.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -20,6 +22,7 @@ const saving = ref(false);
 let map = null;
 let drawnLayer = null;
 let circleLayer = null;
+let markerLayer = null;
 
 const form = ref({
     name: '',
@@ -57,6 +60,7 @@ async function setupMap() {
             form.value.center_lat = e.latlng.lat;
             form.value.center_lng = e.latlng.lng;
             redrawCircle();
+            validationErrors.value.center = null;
         }
     });
 
@@ -71,20 +75,30 @@ async function setupMap() {
 function redrawCircle() {
     if (!map || !window.L) return;
     if (circleLayer) map.removeLayer(circleLayer);
-    if (drawnLayer) map.removeLayer(drawnLayer);
+    if (markerLayer) map.removeLayer(markerLayer);
 
-    if (form.value.center_lat && form.value.center_lng && form.value.radius_meters) {
-        circleLayer = window.L.circle([form.value.center_lat, form.value.center_lng], {
-            radius: form.value.radius_meters,
-            color: '#ef4444',
-            fillColor: '#ef4444',
-            fillOpacity: 0.15,
+    if (form.value.center_lat && form.value.center_lng) {
+        markerLayer = window.L.circleMarker([form.value.center_lat, form.value.center_lng], {
+            radius: 8,
+            color: '#0d6efd',
+            fillColor: '#0d6efd',
+            fillOpacity: 1,
         }).addTo(map);
+
+        if (form.value.radius_meters) {
+            circleLayer = window.L.circle([form.value.center_lat, form.value.center_lng], {
+                radius: form.value.radius_meters,
+                color: '#ef4444',
+                fillColor: '#ef4444',
+                fillOpacity: 0.15,
+            }).addTo(map);
+        }
     }
 }
 
 function addPolygonPoint(lat, lng) {
     form.value.polygon_points.push({ lat, lng });
+    validationErrors.value.polygon_points = null;
     redrawPolygon();
 }
 
@@ -111,8 +125,17 @@ function removePolygonPoint(index) {
 function resetDrawing() {
     if (drawnLayer && map) map.removeLayer(drawnLayer);
     if (circleLayer && map) map.removeLayer(circleLayer);
+    if (markerLayer && map) map.removeLayer(markerLayer);
     form.value.polygon_points = [];
-    redrawCircle();
+    form.value.center_lat = null;
+    form.value.center_lng = null;
+    redrawPolygon();
+}
+
+function selectType(type) {
+    if (form.value.type === type) return;
+    resetDrawing();
+    form.value.type = type;
 }
 
 async function loadGeofence() {
@@ -121,7 +144,6 @@ async function loadGeofence() {
     editing.value = true;
     loading.value = true;
     try {
-        const response = await store.fetchGeofence ? null : null;
         const { getGeofence } = await import('../services/tracking.service');
         const { data } = await getGeofence(geofenceUuid);
         const geofence = data?.data || data;
@@ -219,7 +241,7 @@ async function save() {
     }
 }
 
-function cancel() {
+function goBack() {
     router.push({ name: 'tracking.geofences.list' });
 }
 
@@ -231,135 +253,251 @@ onMounted(async () => {
         console.error('Error inicializando formulario:', err);
     }
 });
+
+onBeforeUnmount(() => {
+    if (map) {
+        map.remove();
+        map = null;
+    }
+});
 </script>
 
 <template>
-    <div class="p-4">
-        <div class="flex justify-between items-center mb-4">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-800">
-                    {{ isEdit ? 'Editar Geocerca' : 'Nueva Geocerca' }}
-                </h1>
-                <p class="text-sm text-gray-500">Define zonas geográficas para monitoreo</p>
-            </div>
+    <div>
+        <BasePageHeader :title="isEdit ? 'Editar Geocerca' : 'Nueva Geocerca'"
+            description="Define zonas geográficas para monitoreo de conductores"
+            icon="fad fa-draw-polygon text-primary" :show-back="true" :show-bg="true" :compact="true"
+            :breadcrumbs="[{ label: 'Geolocalización' }, { label: 'Geocercas', to: { name: 'tracking.geofences.list' } }, { label: isEdit ? 'Editar' : 'Crear' }]"
+            @back="goBack" />
 
-            <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm font-medium"
-                @click="cancel">
-                <i class="pi pi-arrow-left mr-1"></i> Volver
-            </button>
-        </div>
+        <div class="row gx-3 fade-in-up" style="animation-delay: 0.1s;">
+            <div class="col-12 col-xxl-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="bg-holder d-none d-lg-block bg-card"
+                        style="background-image:url(/assets/img/icons/spot-illustrations/corner-4.png);" />
 
-        <div class="grid grid-cols-12 gap-4">
-            <div class="col-span-12 lg:col-span-4 bg-white rounded-xl shadow p-5">
-                <form @submit.prevent="save" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
-                        <input v-model="form.name" type="text"
-                            class="w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            :class="validationErrors.name ? 'border-red-400' : 'border-gray-300'"
-                            placeholder="Ej: Terminal de transportes" />
-                        <p v-if="validationErrors.name" class="text-xs text-red-500 mt-1">{{ validationErrors.name }}</p>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
-                        <textarea v-model="form.description" rows="2"
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de zona</label>
-                        <div class="flex gap-3">
-                            <button type="button"
-                                class="flex-1 px-3 py-2 text-sm rounded-lg border transition"
-                                :class="form.type === 'circle' ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 text-gray-600 hover:bg-gray-50'"
-                                @click="redrawCircle(); form.center_lat = null; form.center_lng = null; form.polygon_points = []; form.type = 'circle'">
-                                <i class="pi pi-circle mr-1"></i> Círculo
-                            </button>
-                            <button type="button"
-                                class="flex-1 px-3 py-2 text-sm rounded-lg border transition"
-                                :class="form.type === 'polygon' ? 'bg-purple-600 text-white border-purple-600' : 'border-gray-300 text-gray-600 hover:bg-gray-50'"
-                                @click="resetDrawing(); form.type = 'polygon'">
-                                <i class="pi pi-ellipsis-h mr-1"></i> Polígono
-                            </button>
+                    <div class="card-header bg-light py-2 px-3 border-bottom">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fad fa-draw-polygon text-primary"></i>
+                            <h6 class="mb-0 fw-medium">Información de la Zona</h6>
+                            <span class="badge bg-primary bg-opacity-10 text-primary ms-2">
+                                <i class="fad fa-asterisk me-1" style="font-size: 0.5rem;"></i>Campos obligatorios
+                            </span>
                         </div>
                     </div>
 
-                    <div v-if="form.type === 'circle'">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Radio (metros) *</label>
-                        <input v-model.number="form.radius_meters" type="number" min="10" max="50000"
-                            class="w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            :class="validationErrors.radius_meters ? 'border-red-400' : 'border-gray-300'" />
-                        <p v-if="validationErrors.radius_meters" class="text-xs text-red-500 mt-1">{{ validationErrors.radius_meters }}</p>
-                        <div class="mt-2 px-3 py-2 bg-gray-50 rounded text-xs text-gray-500">
-                            Haz clic en el mapa para ubicar el centro de la zona.
+                    <div class="card-body p-3 p-md-4">
+                        <div v-if="loading"
+                            class="position-absolute top-0 start-0 end-0 bottom-0 bg-white bg-opacity-70 d-flex flex-column align-items-center justify-content-center z-3 rounded-bottom">
+                            <div class="spinner-border text-primary mb-2" role="status"></div>
+                            <span class="text-muted small">Cargando geocerca...</span>
                         </div>
-                    </div>
 
-                    <div v-if="form.type === 'polygon'">
-                        <div class="px-3 py-2 bg-gray-50 rounded text-xs text-gray-500">
-                            Haz clic en el mapa para agregar puntos del polígono.
-                            <div v-if="form.polygon_points.length" class="mt-2">
-                                <div v-for="(point, index) in form.polygon_points" :key="index"
-                                    class="flex items-center justify-between py-1">
-                                    <span>{{ point.lat.toFixed(6) }}, {{ point.lng.toFixed(6) }}</span>
-                                    <button type="button" class="text-red-500 hover:text-red-700" @click="removePolygonPoint(index)">
-                                        <i class="pi pi-times"></i>
-                                    </button>
+                        <form @submit.prevent="save" class="row g-3" novalidate>
+                            <div class="col-12 col-lg-5 col-xl-4">
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <label class="form-label required fw-medium" style="font-size: 0.9rem;">Nombre *</label>
+                                        <input type="text" autocomplete="off" class="form-control" v-model="form.name"
+                                            :class="{
+                                                'is-invalid': validationErrors.name,
+                                                'is-valid': form.name && !validationErrors.name
+                                            }"
+                                            @input="validationErrors.name = null" placeholder="Ej: Terminal de transportes" />
+                                        <div v-if="validationErrors.name" class="invalid-feedback d-block">
+                                            {{ validationErrors.name }}
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label class="form-label fw-medium" style="font-size: 0.9rem;">Descripción</label>
+                                        <textarea class="form-control" v-model="form.description" rows="3"
+                                            placeholder="Detalle de la zona (opcional)"></textarea>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label class="form-label fw-medium" style="font-size: 0.9rem;">Tipo de zona</label>
+                                        <div class="btn-group w-100" role="group">
+                                            <button type="button" class="btn btn-sm"
+                                                :class="form.type === 'circle' ? 'btn-primary' : 'btn-outline-primary'"
+                                                @click="selectType('circle')">
+                                                <i class="fad fa-circle me-1"></i> Círculo
+                                            </button>
+                                            <button type="button" class="btn btn-sm"
+                                                :class="form.type === 'polygon' ? 'btn-primary' : 'btn-outline-primary'"
+                                                @click="selectType('polygon')">
+                                                <i class="fad fa-draw-polygon me-1"></i> Polígono
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <template v-if="form.type === 'circle'">
+                                        <div class="col-12">
+                                            <label class="form-label required fw-medium" style="font-size: 0.9rem;">Radio (metros) *</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light"><i class="fad fa-ruler-horizontal text-muted"></i></span>
+                                                <input v-model.number="form.radius_meters" type="number" min="10" max="50000"
+                                                    class="form-control"
+                                                    :class="{ 'is-invalid': validationErrors.radius_meters }" />
+                                            </div>
+                                            <div v-if="validationErrors.radius_meters" class="invalid-feedback d-block">
+                                                {{ validationErrors.radius_meters }}
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <template v-if="form.type === 'polygon'">
+                                        <div class="col-12">
+                                            <label class="form-label fw-medium" style="font-size: 0.9rem;">
+                                                Puntos del polígono
+                                                <span class="badge rounded-pill badge-subtle badge-subtle-primary ms-1">
+                                                    {{ form.polygon_points.length }}
+                                                </span>
+                                            </label>
+                                            <div v-if="form.polygon_points.length" class="border rounded-3 p-2"
+                                                style="max-height: 160px; overflow-y: auto;">
+                                                <div v-for="(point, index) in form.polygon_points" :key="index"
+                                                    class="d-flex align-items-center justify-content-between py-1 border-bottom border-light small">
+                                                    <span class="text-muted font-monospace">
+                                                        {{ point.lat.toFixed(6) }}, {{ point.lng.toFixed(6) }}
+                                                    </span>
+                                                    <button type="button" class="btn btn-sm btn-falcon-default text-danger"
+                                                        @click="removePolygonPoint(index)">
+                                                        <i class="fad fa-times"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div v-else class="px-3 py-2 bg-light rounded-3 text-muted small">
+                                                <i class="fad fa-draw-polygon me-1"></i> Haz clic en el mapa para agregar puntos.
+                                            </div>
+                                            <div v-if="validationErrors.polygon_points" class="invalid-feedback d-block">
+                                                {{ validationErrors.polygon_points }}
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <div class="col-12">
+                                        <div class="card bg-soft-primary border border-primary border-opacity-10 rounded-3">
+                                            <div class="card-body py-2 px-3">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="badge bg-primary bg-opacity-10 text-primary">
+                                                        <i class="fad fa-mouse-pointer me-1" style="font-size: 10px;"></i>
+                                                    </span>
+                                                    <small class="text-muted">
+                                                        {{ form.type === 'circle'
+                                                            ? 'Haz clic en el mapa para ubicar el centro de la zona.'
+                                                            : 'Haz clic en el mapa para agregar los puntos del polígono.' }}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div v-if="validationErrors.center" class="invalid-feedback d-block">
+                                            {{ validationErrors.center }}
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <h6 class="text-muted fw-medium mb-3 pb-2 border-bottom" style="font-size: 0.9rem;">
+                                            <i class="fad fa-bell-exclamation me-2"></i>Alertas de la zona
+                                        </h6>
+
+                                        <div class="form-check form-switch mt-2">
+                                            <input class="form-check-input" type="checkbox" id="alert_enter"
+                                                v-model="form.alert_on_enter" />
+                                            <label class="form-check-label small" for="alert_enter">
+                                                <i class="fad fa-sign-in-alt text-success me-1"></i> Alertar al ingresar a la zona
+                                            </label>
+                                        </div>
+                                        <div class="form-check form-switch mt-2">
+                                            <input class="form-check-input" type="checkbox" id="alert_exit"
+                                                v-model="form.alert_on_exit" />
+                                            <label class="form-check-label small" for="alert_exit">
+                                                <i class="fad fa-sign-out-alt text-danger me-1"></i> Alertar al salir de la zona
+                                            </label>
+                                        </div>
+
+                                        <label class="form-label fw-medium mt-3" style="font-size: 0.9rem;">Límite de velocidad</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light"><i class="fad fa-gauge-high text-muted"></i></span>
+                                            <input v-model.number="form.max_speed_kmh" type="number" min="1" max="200"
+                                                class="form-control" placeholder="Opcional" />
+                                            <span class="input-group-text bg-light text-muted">km/h</span>
+                                        </div>
+
+                                        <div class="form-check form-switch mt-3">
+                                            <input class="form-check-input" type="checkbox" id="is_active" v-model="form.is_active" />
+                                            <label class="form-check-label small" for="is_active">
+                                                <i class="fad fa-toggle-on text-success me-1"></i> Zona activa
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <BaseFormActions :submitting="saving" :is-edit-mode="isEdit" @cancel="goBack" />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <p v-if="validationErrors.polygon_points" class="text-xs text-red-500 mt-1">
-                            {{ validationErrors.polygon_points }}
-                        </p>
-                    </div>
 
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Velocidad máx (km/h)</label>
-                            <input v-model.number="form.max_speed_kmh" type="number" min="1" max="200"
-                                class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                        </div>
-                    </div>
+                            <div class="col-12 col-lg-7 col-xl-8">
+                                <div class="position-relative rounded-3 border border-light overflow-hidden" style="min-height: 520px;">
+                                    <div id="geofenceMap" class="w-100" style="height: 520px;"></div>
 
-                    <div class="space-y-2">
-                        <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                            <input v-model="form.alert_on_enter" type="checkbox" class="w-4 h-4 text-blue-600 rounded" />
-                            Alertar al ingresar a la zona
-                        </label>
-                        <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                            <input v-model="form.alert_on_exit" type="checkbox" class="w-4 h-4 text-red-600 rounded" />
-                            Alertar al salir de la zona
-                        </label>
-                        <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                            <input v-model="form.is_active" type="checkbox" class="w-4 h-4 text-green-600 rounded" />
-                            Zona activa
-                        </label>
+                                    <div class="position-absolute top-0 start-0 p-2 z-2">
+                                        <span class="badge bg-white bg-opacity-90 text-dark shadow-sm px-2 py-1">
+                                            <i class="fad fa-map-marked-alt text-primary me-1"></i>
+                                            {{ form.type === 'circle' ? 'Centro del círculo' : 'Dibujo de polígono' }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
                     </div>
-
-                    <div class="flex gap-3 pt-2 border-t border-gray-100">
-                        <button type="submit" :disabled="saving"
-                            class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium disabled:opacity-50"
-                            :class="{ 'animate-pulse': saving }">
-                            <i class="pi pi-save mr-1"></i>
-                            {{ saving ? 'Guardando...' : 'Guardar' }}
-                        </button>
-                        <button type="button"
-                            class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm font-medium"
-                            @click="cancel">
-                            Cancelar
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-            <div class="col-span-12 lg:col-span-8 bg-white rounded-xl shadow p-3 relative">
-                <div v-if="loading"
-                    class="absolute inset-0 bg-white/70 flex items-center justify-center z-[1000]">
-                    <i class="pi pi-spin pi-spinner text-3xl text-blue-600"></i>
                 </div>
-                <div id="geofenceMap" class="w-full h-[600px] rounded-lg"></div>
             </div>
         </div>
     </div>
 </template>
+
+<style scoped>
+.fade-in-up {
+    animation: fadeInUp 0.4s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.required::after {
+    content: " *";
+    color: #dc3545;
+    font-weight: 700;
+}
+
+.badge-subtle-primary {
+    background: rgba(13, 110, 253, .1);
+    color: #0d6efd;
+    border: 1px solid rgba(13, 110, 253, .2);
+}
+
+:deep(.btn-falcon-default) {
+    background: #f8f9fa;
+    border-color: #e9ecef;
+    color: #212529;
+}
+
+:deep(.btn-falcon-default:hover) {
+    background: #e9ecef;
+}
+
+:deep(.leaflet-container) {
+    border-radius: 0.5rem;
+}
+</style>

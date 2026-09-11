@@ -434,6 +434,41 @@
                         </router-link>
                     </li>
 
+                    <!-- GEOLOCALIZACIÓN -->
+                    <li class="nav-item"
+                        v-if="can('locations.view') || can('locations.geofences') || can('locations.history') || can('locations.alerts')">
+                        <div class="row navbar-vertical-label-wrapper mt-3 mb-2">
+                            <div class="col-auto navbar-vertical-label">Geolocalización</div>
+                            <div class="col ps-0">
+                                <hr class="mb-0 navbar-vertical-divider" />
+                            </div>
+                        </div>
+
+                        <router-link class="nav-link" :class="{ 'active': isActiveLink('/rastreo/mapa-en-vivo') }"
+                            to="/rastreo/mapa-en-vivo" role="button" v-if="can('locations.view')">
+                            <div class="d-flex align-items-center">
+                                <span class="nav-link-icon"><span class="fas fa-map-marked-alt"></span></span><span
+                                    class="nav-link-text ps-1">Mapa en Vivo</span>
+                            </div>
+                        </router-link>
+
+                        <router-link class="nav-link" :class="{ 'active': isActiveLink('/rastreo') }" to="/rastreo"
+                            role="button" v-if="can('locations.view')">
+                            <div class="d-flex align-items-center">
+                                <span class="nav-link-icon"><span class="fas fa-satellite-dish"></span></span><span
+                                    class="nav-link-text ps-1">Rastreo de Conductores</span>
+                            </div>
+                        </router-link>
+
+                        <router-link class="nav-link" :class="{ 'active': isActiveLink('/rastreo/geocercas') }"
+                            to="/rastreo/geocercas" role="button" v-if="can('locations.geofences')">
+                            <div class="d-flex align-items-center">
+                                <span class="nav-link-icon"><span class="fas fa-draw-polygon"></span></span><span
+                                    class="nav-link-text ps-1">Geocercas</span>
+                            </div>
+                        </router-link>
+                    </li>
+
                     <!-- OPERACIONES Y FINANZAS -->
                     <li class="nav-item"
                         v-if="can('fuec.index') || can('affiliate_admin_charges.index') || can('service_delivery_control_sheets.index')">

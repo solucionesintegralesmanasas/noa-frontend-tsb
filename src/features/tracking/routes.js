@@ -1,5 +1,11 @@
 export const trackingRoutes = [
     {
+        path: '/rastreo/mapa-en-vivo',
+        name: 'tracking.live-map',
+        component: () => import('./views/LiveMapView.vue'),
+        meta: { title: 'Mapa en Vivo', auth: true, layout: 'dashboard', permissions: ['locations.view'] },
+    },
+    {
         path: '/rastreo',
         name: 'tracking.map',
         component: () => import('./views/TrackingMapView.vue'),

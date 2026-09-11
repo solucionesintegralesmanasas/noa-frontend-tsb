@@ -111,8 +111,6 @@
             </div>
         </div>
 
-
-
         <!-- ═══════════════════════════════════════════════════════════
              3. ACCESOS DIRECTOS PRINCIPALES (TARJETAS GRANDES)
              Inspecciones, Planillas de Control, FUEC, Hojas de Control
@@ -404,7 +402,7 @@
         <!-- ═══════════════════════════════════════════════════════════
              5. HISTORIAL DE ACTIVIDAD RECIENTE DEL CONDUCTOR
         ═══════════════════════════════════════════════════════════ -->
-        <div class="row g-3">
+        <div class="row g-3 g-lg-4">
             <!-- Últimas Inspecciones -->
             <div class="col-12 col-lg-6">
                 <div class="card h-100 border-0 shadow-sm">
@@ -513,6 +511,22 @@
                 </div>
             </div>
         </div>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             6. RASTREO GPS AUTOMÁTICO DEL CONDUCTOR (SOLO MAPA)
+        ═══════════════════════════════════════════════════════════ -->
+        <div class="mb-4 mt-4">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <div class="section-icon-badge bg-success text-white">
+                    <i class="fas fa-satellite-dish"></i>
+                </div>
+                <div>
+                    <h5 class="mb-0 fw-bold text-1000">Mi Ubicación en Tiempo Real</h5>
+                    <p class="text-500 fs-11 mb-0">El rastreo GPS inicia automáticamente al iniciar sesión. La central visualiza tu ruta en vivo.</p>
+                </div>
+            </div>
+            <DriverSelfMap :vehicles="vehiclesList" :preferred-vehicle-uuid="preferredVehicleUuid" />
+        </div>
     </div>
 </template>
 
@@ -520,6 +534,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { useAuthStore, usePermissionsStore, useUserStore } from '@store';
 import { useDashboardStore } from '../store/dashboard.store';
+import DriverSelfMap from '@/features/tracking/components/DriverSelfMap.vue';
 
 const authStore = useAuthStore();
 const userStore = useUserStore();
@@ -564,6 +579,13 @@ const vehiclesList = computed(() => conductorData.value.vehicles || []);
 const recentInspections = computed(() => conductorData.value.recent_inspections || []);
 const recentFuecs = computed(() => conductorData.value.recent_fuecs || []);
 const activeService = computed(() => conductorData.value.active_service || null);
+
+const preferredVehicleUuid = computed(() => {
+    const serviceVehicle = conductorData.value.active_service?.vehicle_uuid;
+    if (serviceVehicle) return serviceVehicle;
+    const firstVehicle = vehiclesList.value[0];
+    return firstVehicle?.uuid || null;
+});
 
 // Iniciales del avatar
 const driverInitials = computed(() => {

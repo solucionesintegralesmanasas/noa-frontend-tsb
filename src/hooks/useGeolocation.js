@@ -5,7 +5,23 @@ import { Geolocation } from '@capacitor/geolocation';
 
 let leafletPromise = null;
 
-export function useGeolocation() {
+export function useGeolocation(options = {}) {
+    const {
+        sendToServer = false,
+        intervalMs = 10000,
+        sessionUuid = null,
+        vehicleUuid = null,
+        projectUuid = null,
+        onAfterSend = null,
+    } = options;
+
+    // Contexto de envío reactivo: permite asignar el UUID de la sesión
+    // una vez que esta se crea (después de montar el componente).
+    const sendToServerRef = ref(sendToServer);
+    const sessionUuidRef = ref(sessionUuid);
+    const vehicleUuidRef = ref(vehicleUuid);
+    const projectUuidRef = ref(projectUuid);
+
     const coords = ref({ latitude: null, longitude: null });
     const speed = ref(0);
     const isMoving = ref(false);
@@ -15,6 +31,7 @@ export function useGeolocation() {
     const errorMsg = ref('');
 
     let watchId = null;
+    let lastSendAt = 0;
 
     // Función para cargar dinámicamente Leaflet en demanda
     function loadLeaflet() {
@@ -136,6 +153,88 @@ export function useGeolocation() {
         if (onUpdateCallback) {
             onUpdateCallback({ lat, lng, speed: speed.value, isMoving: isMoving.value });
         }
+
+        sendLocationToServer({ lat, lng, speed: speed.value, isMoving: isMoving.value, accuracy: position.coords.accuracy ?? null });
+    }
+
+    // Envía la ubicación al backend respetando el intervalo configurado
+    async function sendLocationToServer(data) {
+        if (!sendToServerRef.value) return;
+
+        const now = Date.now();
+        if (now - lastSendAt < intervalMs) return;
+        lastSendAt = now;
+
+        try {
+            const { default: trackingService } = await import('@features/tracking/services/tracking.service');
+            const payload = {
+                location: {
+                    latitude: data.lat,
+                    longitude: data.lng,
+                    speed: data.speed !== null && data.speed !== undefined ? data.speed : 0,
+                    is_moving: data.isMoving ?? false,
+                    accuracy: data.accuracy ?? null,
+                    recorded_at: new Date().toISOString(),
+                },
+            };
+            if (sessionUuidRef.value) payload.session_uuid = sessionUuidRef.value;
+            if (vehicleUuidRef.value) payload.location.vehicle_uuid = vehicleUuidRef.value;
+            if (projectUuidRef.value) payload.location.project_uuid = projectUuidRef.value;
+
+            const response = await trackingService.sendLocation(payload);
+
+            if (onAfterSend && typeof onAfterSend === 'function') {
+                onAfterSend(response.data, data);
+            }
+        } catch (err) {
+            // No bloquear el tracking por un error de red
+        }
+    }
+
+    // Obtiene la primera posición GPS de forma puntual
+    // (se usa para registrar el punto exacto donde el conductor inició sesión).
+    async function getCurrentPosition() {
+        const isNative = Capacitor.isNativePlatform();
+
+        if (isNative) {
+            const permResult = await Geolocation.requestPermissions();
+            if (permResult.location === 'denied') {
+                throw new Error('Permiso de ubicación denegado por el usuario.');
+            }
+            return await Geolocation.getCurrentPosition({
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0,
+            });
+        }
+
+        if (!navigator.geolocation) {
+            throw new Error('Geolocalización no soportada por este navegador.');
+        }
+
+        return new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0,
+            });
+        });
+    }
+
+    // Envía una ubicación de inmediato, sin esperar el intervalo configurado.
+    function sendImmediate(data) {
+        if (!sendToServerRef.value) return Promise.resolve();
+        lastSendAt = 0;
+        return sendLocationToServer(data);
+    }
+
+    // Actualiza dinámicamente el contexto de envío al servidor
+    // (por ejemplo, cuando la sesión de tracking recién se crea).
+    function setTrackingContext(context = {}) {
+        if (typeof context.sendToServer === 'boolean') sendToServerRef.value = context.sendToServer;
+        if (context.sessionUuid) sessionUuidRef.value = context.sessionUuid;
+        if (context.vehicleUuid) vehicleUuidRef.value = context.vehicleUuid;
+        if (context.projectUuid) projectUuidRef.value = context.projectUuid;
     }
 
     async function stopTracking() {
@@ -168,6 +267,9 @@ export function useGeolocation() {
         errorMsg,
         loadLeaflet,
         startTracking,
-        stopTracking
+        stopTracking,
+        setTrackingContext,
+        getCurrentPosition,
+        sendImmediate,
     };
 }

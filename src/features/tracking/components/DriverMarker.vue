@@ -26,6 +26,13 @@ const speed = computed(() => Math.round(props.driver.speed ?? props.driver.last_
 
 const isMoving = computed(() => props.driver.is_moving ?? props.driver.last_location?.is_moving ?? false);
 
+const initials = computed(() => {
+    const name = driverName.value.trim();
+    const parts = name.split(/\s+/);
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return name.charAt(0).toUpperCase();
+});
+
 const lastSeen = computed(() => {
     const date = props.driver.recorded_at || props.driver.last_location?.recorded_at;
     if (!date) return 'Desconocido';
@@ -38,28 +45,87 @@ const lastSeen = computed(() => {
 </script>
 
 <template>
-    <div class="flex items-center justify-between p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+    <div class="d-flex align-items-center justify-content-between gap-2 px-2 py-2 border-bottom border-light cursor-pointer item-hover"
         @click="emit('show-location', driver)">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-lg">
-                {{ driverName.charAt(0).toUpperCase() }}
-            </div>
-            <div>
-                <div class="font-semibold text-gray-800">{{ driverName }}</div>
-                <div class="text-xs text-gray-500">{{ plate }} · {{ documentNumber }}</div>
+        <div class="d-flex align-items-center gap-2 min-w-0">
+            <span class="avatar avatar-sm rounded-circle bg-primary bg-opacity-10 text-primary fw-bold"
+                style="width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center;">
+                {{ initials }}
+            </span>
+            <div class="min-w-0">
+                <div class="fw-semibold text-dark text-truncate" style="font-size: 0.85rem;">{{ driverName }}</div>
+                <div class="text-muted text-truncate" style="font-size: 0.72rem;">
+                    {{ plate }} <span class="mx-1">·</span> {{ documentNumber }}
+                </div>
             </div>
         </div>
 
-        <div class="flex items-center gap-2">
-            <span class="text-sm font-semibold text-gray-700">{{ speed }} km/h</span>
-            <span class="text-xs text-gray-400">{{ lastSeen }}</span>
-            <span class="inline-block w-2.5 h-2.5 rounded-full"
-                :class="isMoving ? 'bg-green-500' : 'bg-amber-500'"></span>
+        <div class="d-flex align-items-center gap-2 flex-shrink-0">
+            <span class="badge rounded-pill badge-subtle fw-semibold" style="font-size: 0.72rem;"
+                :class="isMoving ? 'badge-subtle-success' : 'badge-subtle-warning'">
+                {{ speed }} km/h
+            </span>
+            <span class="text-muted d-none d-xl-inline" style="font-size: 0.7rem;">{{ lastSeen }}</span>
+            <span class="status-dot" :class="isMoving ? 'status-dot-moving' : 'status-dot-stopped'"></span>
 
-            <button class="ml-1 p-1.5 rounded hover:bg-gray-200 text-gray-500" title="Ver historial"
+            <button class="btn btn-sm btn-falcon-default p-0 px-1" title="Ver historial"
                 @click.stop="emit('open-history', driver)">
-                <i class="pi pi-history text-sm"></i>
+                <i class="fad fa-route text-primary" style="font-size: 12px;"></i>
             </button>
         </div>
     </div>
 </template>
+
+<style scoped>
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.item-hover {
+    transition: background-color 0.15s ease-in-out;
+}
+
+.item-hover:hover {
+    background-color: #f8f9fa;
+}
+
+.min-w-0 {
+    min-width: 0;
+}
+
+.badge-subtle-success {
+    background: rgba(25, 135, 84, .1);
+    color: #198754;
+    border: 1px solid rgba(25, 135, 84, .2);
+}
+
+.badge-subtle-warning {
+    background: rgba(255, 193, 7, .1);
+    color: #c07f00;
+    border: 1px solid rgba(255, 193, 7, .3);
+}
+
+.status-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.status-dot-moving {
+    background: #22c55e;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, .2);
+}
+
+.status-dot-stopped {
+    background: #f59e0b;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, .2);
+}
+
+:deep(.btn-falcon-default) {
+    background: #f8f9fa;
+    border-color: #e9ecef;
+    color: #212529;
+}
+</style>

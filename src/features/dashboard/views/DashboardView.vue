@@ -181,29 +181,38 @@
 
     <!-- ROW 3: Map & Activity -->
     <div class="row g-3">
-        <!-- LIVE GPS (Location By Session equivalent) -->
+        <!-- LIVE GPS (Mapa de conductores en tiempo real) -->
         <div class="col-xxl-8 col-lg-7">
             <div class="card h-100 border-0 shadow-sm overflow-hidden">
                 <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
-                    <h6 class="mb-0">Monitoreo de Flota en Vivo</h6>
-                    <div class="d-flex align-items-center">
-                        <span class="fas fa-circle text-danger fs--2 me-1 pulse-anim"></span>
-                        <span class="fw-bold text-danger fs--1">LIVE</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <h6 class="mb-0 fw-bold text-900">Monitoreo de Flota en Vivo</h6>
+                        <span class="badge rounded-pill bg-danger text-white">
+                            <span class="pulse-indicator-dot bg-white me-1"></span>
+                            LIVE
+                        </span>
+                    </div>
+                    <span class="fs--2 text-500">
+                        <i class="fas fa-user-shield me-1 text-success"></i>
+                        {{ trackingStore.activeDrivers.length }} conductor{{ trackingStore.activeDrivers.length !== 1 ? 'es' : '' }} activo{{ trackingStore.activeDrivers.length !== 1 ? 's' : '' }}
+                    </span>
+                </div>
+                <div class="card-body p-0 position-relative" style="min-height: 350px;">
+                    <DriverMap :show-geofences="true" :interactive="true" @driver-selected="onDriverSelected" />
+                </div>
+                <div v-if="trackingStore.activeDrivers.length === 0 && !trackingStore.error" class="position-absolute top-50 start-50 translate-middle text-center z-1 w-100" style="pointer-events: none;">
+                    <div class="d-inline-flex flex-column align-items-center bg-white rounded-3 shadow-sm px-4 py-3">
+                        <i class="fas fa-satellite-dish fs-2 text-400 mb-2"></i>
+                        <p class="mb-0 fw-bold text-700 fs--1">Sin conductores activos</p>
+                        <p class="mb-0 text-500 fs--2">Ningún conductor tiene sesión de rastreo abierta</p>
                     </div>
                 </div>
-                <div class="card-body p-0 position-relative">
-                    <div v-if="mapLoading"
-                        class="position-absolute top-50 start-50 translate-middle text-primary z-index-1">
-                        <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span>
-                        </div>
+                <div v-if="trackingStore.error" class="position-absolute top-50 start-50 translate-middle text-center z-1 w-100" style="pointer-events: none;">
+                    <div class="d-inline-flex flex-column align-items-center bg-white rounded-3 shadow-sm px-4 py-3 border border-danger-subtle">
+                        <i class="fas fa-exclamation-triangle fs-2 text-danger mb-2"></i>
+                        <p class="mb-0 fw-bold text-700 fs--1">Error al cargar conductores</p>
+                        <p class="mb-0 text-500 fs--2">{{ trackingStore.error }}</p>
                     </div>
-                    <div v-else-if="mapError"
-                        class="position-absolute top-50 start-50 translate-middle text-danger text-center z-index-1">
-                        <i class="fas fa-satellite-slash fs-3 mb-2"></i>
-                        <p class="mb-0 fw-semi-bold">{{ mapErrorMsg }}</p>
-                    </div>
-                    <div v-show="!mapLoading && !mapError" id="leaflet-map"
-                        style="min-height: 350px; width: 100%; z-index: 0;"></div>
                 </div>
             </div>
         </div>
@@ -294,11 +303,12 @@
  * @resource DashboardView
  */
 
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useAuthStore, useUserStore, usePermissionsStore } from '@store';
 import { useDashboardStore } from '../store/dashboard.store';
-import { useGeolocation } from '@/hooks/useGeolocation';
+import { useTrackingStore } from '@/features/tracking/store/tracking.store';
+import DriverMap from '@/features/tracking/components/DriverMap.vue';
 import ConductorDashboardView from './ConductorDashboardView.vue';
 
 const route = useRoute();
@@ -306,6 +316,7 @@ const authStore = useAuthStore();
 const userStore = useUserStore();
 const permissionsStore = usePermissionsStore();
 const dashboardStore = useDashboardStore();
+const trackingStore = useTrackingStore();
 
 // ── CONTROL DE ROL Y MODO CONDUCTOR ─────────────────────────
 const isConductorRole = computed(() => {
@@ -350,82 +361,26 @@ const alerts = computed(() => dashboardStore.alerts);
 const contracts = computed(() => dashboardStore.recentContracts);
 const activities = computed(() => dashboardStore.activities);
 
-// ── GPS LOGIC (Datos funcionales de geolocalización) ────────
-const {
-    routeHistory,
-    loading: mapLoading, error: mapError, errorMsg: mapErrorMsg,
-    loadLeaflet, startTracking,
-} = useGeolocation();
+// ── GPS LOGIC (Monitoreo de conductores en tiempo real) ─────
+let refreshInterval = null;
 
-let mapInstance = null;
-let markerInstance = null;
-let polylineInstance = null;
-let gpsTimer = null;
+function startDriverTracking() {
+    trackingStore.fetchActiveDrivers();
+    trackingStore.fetchGeofences();
+    refreshInterval = setInterval(() => {
+        trackingStore.fetchActiveDrivers();
+    }, 10000);
+}
 
-async function geolocalizacion() {
-    try {
-        const L = await loadLeaflet();
-        startTracking(
-            ({ lat, lng }) => {
-                if (gpsTimer) clearTimeout(gpsTimer);
-                gpsTimer = setTimeout(() => {
-                    gpsTimer = null;
-                    const mapEl = document.getElementById('leaflet-map');
-                    if (!mapEl) return;
-
-                    if (!mapInstance) {
-                        mapInstance = L.map('leaflet-map', { zoomControl: false, attributionControl: false }).setView([lat, lng], 15);
-                        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 20 }).addTo(mapInstance);
-
-                        const customIcon = L.divIcon({
-                            className: 'falcon-map-marker',
-                            html: `<div class="marker-dot"></div>`,
-                            iconSize: [16, 16], iconAnchor: [8, 8],
-                        });
-                        markerInstance = L.marker([lat, lng], { icon: customIcon }).addTo(mapInstance);
-                        polylineInstance = L.polyline(routeHistory.value, { color: '#2c7be5', weight: 4, opacity: 0.6 }).addTo(mapInstance);
-                    } else {
-                        if (markerInstance) markerInstance.setLatLng([lat, lng]);
-                        mapInstance.panTo([lat, lng]);
-                        if (polylineInstance) {
-                            polylineInstance.setLatLngs(routeHistory.value);
-                        } else {
-                            polylineInstance = L.polyline(routeHistory.value, { color: '#2c7be5', weight: 4, opacity: 0.6 }).addTo(mapInstance);
-                        }
-                    }
-                }, 100);
-            },
-            async (err) => {
-                console.warn('GPS Denied or Failed. Using default location (Bogotá):', err);
-                const defaultLat = 4.6097;
-                const defaultLng = -74.0817;
-
-                // Limpiar el estado de error para renderizar el mapa
-                mapError.value = false;
-
-                if (gpsTimer) clearTimeout(gpsTimer);
-                gpsTimer = setTimeout(() => {
-                    gpsTimer = null;
-                    const mapEl = document.getElementById('leaflet-map');
-                    if (!mapEl) return;
-
-                    if (!mapInstance) {
-                        mapInstance = L.map('leaflet-map', { zoomControl: false, attributionControl: false }).setView([defaultLat, defaultLng], 12);
-                        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 20 }).addTo(mapInstance);
-
-                        const customIcon = L.divIcon({
-                            className: 'falcon-map-marker',
-                            html: `<div class="marker-dot" style="background-color: #f5803e;"></div>`,
-                            iconSize: [16, 16], iconAnchor: [8, 8],
-                        });
-                        markerInstance = L.marker([defaultLat, defaultLng], { icon: customIcon }).addTo(mapInstance);
-                    }
-                }, 100);
-            }
-        );
-    } catch (err) {
-        console.error('GPS Fail:', err);
+function stopDriverTracking() {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+        refreshInterval = null;
     }
+}
+
+function onDriverSelected(driver) {
+    trackingStore.selectDriver(driver);
 }
 
 // ── EVENTOS Y CICLO DE VIDA ─────────────────────────────────
@@ -440,16 +395,20 @@ watch(selectedPeriod, () => {
 onMounted(() => {
     currentTenantName.value = authStore.currentTenant?.name || 'Falcon Transportes S.A.S.';
     if (!isConductorMode.value) {
-        geolocalizacion();
+        startDriverTracking();
         refreshData();
     }
 });
 
 watch(() => isConductorMode.value, (isConductor) => {
     if (!isConductor && stats.value.length === 0) {
-        geolocalizacion();
+        startDriverTracking();
         refreshData();
     }
+});
+
+onBeforeUnmount(() => {
+    stopDriverTracking();
 });
 </script>
 
@@ -514,6 +473,21 @@ watch(() => isConductorMode.value, (isConductor) => {
 
 .bg-white {
     background-color: #ffffff !important;
+}
+
+/* Punto pulsante del badge LIVE */
+.pulse-indicator-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    display: inline-block;
+    animation: pulse-ring-live 1.4s ease-out infinite;
+}
+
+@keyframes pulse-ring-live {
+    0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
+    70% { box-shadow: 0 0 0 5px rgba(255, 255, 255, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
 }
 
 .fw-bold {

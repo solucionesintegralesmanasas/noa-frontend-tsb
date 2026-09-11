@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import dayjs from 'dayjs';
+import BasePageHeader from '@/components/BasePageHeader.vue';
 import { useTrackingStore } from '../store/tracking.store';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useToast } from 'vue-toastification';
@@ -136,78 +137,143 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div class="p-4">
-        <div class="flex justify-between items-center mb-4">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-800">Historial de Ruta</h1>
-                <p class="text-sm text-gray-500" v-if="store.stats?.active_session">
+    <div>
+        <BasePageHeader title="Historial de Ruta" description="Recorrido y estadísticas del conductor"
+            icon="fad fa-route text-primary" :show-back="true" :show-bg="true" :compact="true"
+            :breadcrumbs="[{ label: 'Geolocalización' }, { label: 'Rastreo de Conductores', to: { name: 'tracking.map' } }, { label: 'Historial' }]"
+            @back="goBack">
+            <template #subtitle>
+                <small v-if="store.stats?.active_session" class="text-muted" style="font-size: 0.85rem;">
                     Sesión activa iniciada: {{ dayjs(store.stats.active_session.started_at).format('DD/MM/YYYY HH:mm') }}
-                </p>
-            </div>
+                </small>
+                <small v-else class="text-muted" style="font-size: 0.85rem;">
+                    {{ totalPoints }} puntos GPS registrados en el rango seleccionado
+                </small>
+            </template>
+        </BasePageHeader>
 
-            <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm font-medium"
-                @click="goBack">
-                <i class="pi pi-arrow-left mr-1"></i> Volver al mapa
-            </button>
+        <div class="card border-0 shadow-sm mb-3 fade-in-up" style="animation-delay: 0.1s;">
+            <div class="bg-holder d-none d-lg-block bg-card"
+                style="background-image:url(/assets/img/icons/spot-illustrations/corner-4.png);" />
+            <div class="card-body position-relative py-2">
+                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-3">
+                    <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-2">
+                        <span class="fw-medium fs--1">Periodo:</span>
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <div class="input-group input-group-sm" style="max-width: 220px;">
+                                <span class="input-group-text bg-light border-end-0"><i class="fad fa-calendar-alt text-muted" /></span>
+                                <input type="date" v-model="startDate" class="form-control border-start-0 shadow-none" />
+                            </div>
+                            <span class="text-muted fs--2">a</span>
+                            <div class="input-group input-group-sm" style="max-width: 220px;">
+                                <span class="input-group-text bg-light border-end-0"><i class="fad fa-calendar-check text-muted" /></span>
+                                <input type="date" v-model="endDate" class="form-control border-start-0 shadow-none" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                        <div class="text-center">
+                            <div class="fs-3 fw-bold text-dark">{{ totalDistance }}</div>
+                            <div class="text-muted fs--2">km recorridos</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="fs-3 fw-bold text-dark">{{ duration }}</div>
+                            <div class="text-muted fs--2">duración</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="fs-3 fw-bold text-primary">{{ avgSpeed }}</div>
+                            <div class="text-muted fs--2">km/h promedio</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="fs-3 fw-bold text-warning">{{ maxSpeed }}</div>
+                            <div class="text-muted fs--2">km/h máx</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="fs-3 fw-bold text-success">{{ totalPoints }}</div>
+                            <div class="text-muted fs--2">puntos GPS</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow p-4 mb-4">
-            <div class="flex items-center gap-4 flex-wrap">
-                <div>
-                    <label class="block text-xs text-gray-500 mb-1">Desde</label>
-                    <input type="date" v-model="startDate"
-                        class="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-500 mb-1">Hasta</label>
-                    <input type="date" v-model="endDate"
-                        class="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                </div>
+        <div class="row gx-3 fade-in-up" style="animation-delay: 0.2s;">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="bg-holder d-none d-lg-block bg-card"
+                        style="background-image:url(/assets/img/icons/spot-illustrations/corner-4.png);" />
+                    <div class="card-body p-0 position-relative" style="min-height: 560px;">
+                        <div id="historyMap" class="w-100" style="height: 600px; border-radius: 0 0 0.75rem 0.75rem;"></div>
 
-                <div class="ml-auto flex items-center gap-6 text-center">
-                    <div>
-                        <div class="text-2xl font-bold text-gray-800">{{ totalDistance }}</div>
-                        <div class="text-xs text-gray-500">km recorridos</div>
-                    </div>
-                    <div>
-                        <div class="text-2xl font-bold text-gray-800">{{ duration }}</div>
-                        <div class="text-xs text-gray-500">duración</div>
-                    </div>
-                    <div>
-                        <div class="text-2xl font-bold text-gray-800">{{ avgSpeed }}</div>
-                        <div class="text-xs text-gray-500">km/h promedio</div>
-                    </div>
-                    <div>
-                        <div class="text-2xl font-bold text-gray-800">{{ maxSpeed }}</div>
-                        <div class="text-xs text-gray-500">km/h máx</div>
-                    </div>
-                    <div>
-                        <div class="text-2xl font-bold text-gray-800">{{ totalPoints }}</div>
-                        <div class="text-xs text-gray-500">puntos GPS</div>
-                    </div>
-                </div>
-            </div>
-        </div>
+                        <div v-if="loading" class="position-absolute top-0 start-0 end-0 bottom-0 bg-white bg-opacity-80 d-flex flex-column align-items-center justify-content-center z-3 rounded-bottom">
+                            <div class="spinner-border text-primary mb-2" role="status"></div>
+                            <span class="text-muted small">Cargando historial...</span>
+                        </div>
 
-        <div class="bg-white rounded-xl shadow p-3">
-            <div class="w-full h-[600px] rounded-lg relative">
-                <div id="historyMap" class="w-full h-full absolute inset-0"></div>
+                        <div v-if="!loading && !store.driverHistory.length"
+                            class="position-absolute top-0 start-0 end-0 bottom-0 bg-white bg-opacity-80 d-flex flex-column align-items-center justify-content-center z-3 rounded-bottom">
+                            <i class="fad fa-map-marker-alt-slash fs-1 text-muted opacity-50 mb-3"></i>
+                            <span class="text-muted fw-medium">Sin puntos de ubicación en el rango seleccionado</span>
+                        </div>
 
-                <div v-if="loading" class="absolute inset-0 bg-white/70 flex items-center justify-center z-[1000]">
-                    <div class="text-center">
-                        <i class="pi pi-spin pi-spinner text-3xl text-blue-600 block mx-auto"></i>
-                        <span class="text-sm text-gray-600 mt-2 inline-block">Cargando historial...</span>
-                    </div>
-                </div>
-
-                <div v-if="!loading && !store.driverHistory.length"
-                    class="absolute inset-0 bg-white/70 flex items-center justify-center z-[1000]">
-                    <div class="text-center text-gray-400">
-                        <i class="pi pi-map text-3xl block mb-2"></i>
-                        Sin puntos de ubicación en el rango seleccionado
+                        <div class="position-absolute top-0 start-0 p-2 z-2 d-flex align-items-center gap-2">
+                            <span class="badge bg-white bg-opacity-90 text-dark shadow-sm px-2 py-1 rounded-pill">
+                                <span class="dot-green me-1"></span><small>Inicio</small>
+                            </span>
+                            <span class="badge bg-white bg-opacity-90 text-dark shadow-sm px-2 py-1 rounded-pill">
+                                <span class="dot-red me-1"></span><small>Fin</small>
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </template>
+
+<style scoped>
+.fade-in-up {
+    animation: fadeInUp 0.4s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fs-3 {
+    font-size: 1.4rem !important;
+}
+
+.fs--1 {
+    font-size: 0.9rem !important;
+}
+
+.fs--2 {
+    font-size: 0.8rem !important;
+}
+
+.dot-green {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #22c55e;
+    display: inline-block;
+}
+
+.dot-red {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef4444;
+    display: inline-block;
+}
+</style>
