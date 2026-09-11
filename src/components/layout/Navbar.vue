@@ -20,11 +20,11 @@
         <ul class="navbar-nav navbar-nav-icons ms-auto flex-row align-items-center">
             <!-- Campana de Notificaciones (SSE) -->
             <li class="nav-item dropdown">
-                <a class="nav-link px-0 fa-icon-wait"
+                <a class="nav-link px-0"
                     :class="{ 'notification-indicator notification-indicator-primary': store.unreadCount > 0 }"
                     id="navbarDropdownNotification" role="button" data-bs-toggle="dropdown" aria-haspopup="true"
                     aria-expanded="false">
-                    <span class="fas fa-bell" data-fa-transform="shrink-6" style="font-size: 33px;"></span>
+                    <span class="fas fa-bell" style="font-size: 33px;"></span>
                 </a>
                 <div class="dropdown-menu dropdown-caret dropdown-menu-end dropdown-menu-card dropdown-menu-notification dropdown-caret-bg"
                     aria-labelledby="navbarDropdownNotification">

@@ -313,7 +313,7 @@
 
                     <!-- FLOTA -->
                     <li class="nav-item"
-                        v-if="can('vehicles.index') || can('business_collaboration_agreements.index') || can('vehicle_inspections.index') || can('maintenance.index') || can('maintenance.forecast') || can('control_sheets.index') || can('vehicle_documents.index') || can('operation_cards.index')">
+                        v-if="can('vehicles.index') || can('business_collaboration_agreements.index') || can('vehicle_inspections.index') || can('maintenance.index') || can('maintenance.forecast') || can('control_sheets.index')">
                         <div class="row navbar-vertical-label-wrapper mt-3 mb-2">
                             <div class="col-auto navbar-vertical-label">Flota</div>
                             <div class="col ps-0">
@@ -372,64 +372,6 @@
                                 <span class="nav-link-icon">
                                     <span class="fas fa-clipboard-list"></span>
                                 </span><span class="nav-link-text ps-1">Planillas de Control</span>
-                            </div>
-                        </router-link>
-
-                        <!-- Doc. vehículo -->
-                        <div class="row navbar-vertical-label-wrapper mt-3 mb-2"
-                            v-if="can('vehicle_documents.index') || can('operation_cards.index')">
-                            <div class="col-auto navbar-vertical-label">Documentos</div>
-                            <div class="col ps-0">
-                                <hr class="mb-0 navbar-vertical-divider" />
-                            </div>
-                        </div>
-
-                        <router-link class="nav-link" :class="{ 'active': isActiveLink('/vehiculos-documentos/soat') }"
-                            to="/vehiculos-documentos/soat" role="button" v-if="can('vehicle_documents.index')">
-                            <div class="d-flex align-items-center">
-                                <span class="nav-link-icon">
-                                    <span class="fas fa-handshake"></span>
-                                </span><span class="nav-link-text ps-1">SOAT</span>
-                            </div>
-                        </router-link>
-
-                        <router-link class="nav-link"
-                            :class="{ 'active': isActiveLink('/vehiculos-documentos/poliza') }"
-                            to="/vehiculos-documentos/poliza" role="button" v-if="can('vehicle_documents.index')">
-                            <div class="d-flex align-items-center">
-                                <span class="nav-link-icon">
-                                    <span class="fas fa-shield-alt"></span>
-                                </span><span class="nav-link-text ps-1">Pólizas RCC/RCE</span>
-                            </div>
-                        </router-link>
-
-                        <router-link class="nav-link"
-                            :class="{ 'active': isActiveLink('/vehiculos-documentos/tecnomecanica') }"
-                            to="/vehiculos-documentos/tecnomecanica" role="button"
-                            v-if="can('vehicle_documents.index')">
-                            <div class="d-flex align-items-center">
-                                <span class="nav-link-icon">
-                                    <span class="fas fa-wrench"></span>
-                                </span><span class="nav-link-text ps-1">Tecnomecánica</span>
-                            </div>
-                        </router-link>
-
-                        <router-link class="nav-link"
-                            :class="{ 'active': isActiveLink('/vehiculos-documentos', true) }"
-                            to="/vehiculos-documentos" role="button" v-if="can('vehicle_documents.index')">
-                            <div class="d-flex align-items-center">
-                                <span class="nav-link-icon">
-                                    <span class="fas fa-folder-open"></span>
-                                </span><span class="nav-link-text ps-1">Todos</span>
-                            </div>
-                        </router-link>
-
-                        <router-link class="nav-link" :class="{ 'active': isActiveLink('/tarjetas-de-operacion') }"
-                            to="/tarjetas-de-operacion" role="button" v-if="can('operation_cards.index')">
-                            <div class="d-flex align-items-center">
-                                <span class="nav-link-icon">
-                                    <span class="fas fa-id-card"></span>
-                                </span><span class="nav-link-text ps-1">Tarj. de operación</span>
                             </div>
                         </router-link>
                     </li>
