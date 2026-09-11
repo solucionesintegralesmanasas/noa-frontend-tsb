@@ -10,8 +10,7 @@
 
         <router-link class="navbar-brand me-1 me-sm-3" :class="{ 'd-xl-none': !showBrand }" to="/dashboard">
             <div class="d-flex align-items-center">
-                <img src="/noa.png" alt="NOA Transportes" width="40" class="me-2" style="height: auto; max-height: 45px;" />
-                <NoaBadge size="22px" />
+                <img src="/logo.png" alt="NOA Transportes" class="navbar-brand-logo" />
                 <span v-if="showBrand" class="badge bg-primary bg-opacity-10 text-primary fw-bold ms-2 py-1 px-2 fs-11 d-none d-sm-inline-flex align-items-center gap-1">
                     <i class="fas fa-steering-wheel"></i> Portal Conductor
                 </span>
@@ -144,7 +143,6 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useUserStore, useAuthStore, usePermissionsStore } from '@store'
 import { getMediaUrl } from '@/utils/media.js'
-import NoaBadge from '@/components/NoaBadge.vue'
 import { useNotificationsStore } from '@/features/notifications/store/notifications.store.js'
 import { useConfigStore } from '@store/modules/config.js'
 
@@ -341,5 +339,20 @@ async function handleLogout() {
     line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+}
+
+.navbar-brand-logo {
+    height: 30px;
+    width: auto;
+    max-height: 30px;
+    object-fit: contain;
+    display: block;
+}
+
+@media (max-width: 576px) {
+    .navbar-brand-logo {
+        height: 25px;
+        max-height: 25px;
+    }
 }
 </style>
