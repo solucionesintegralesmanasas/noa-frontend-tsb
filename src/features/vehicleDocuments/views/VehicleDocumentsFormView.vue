@@ -403,7 +403,7 @@
 
                         <!-- BOTONES DE ACCIÓN -->
                         <div class="col-12 mt-4 pt-3 border-top">
-                            <BaseFormActions :submitting="submitting" :is-edit-mode="isEditMode" @cancel="goBack" />
+                            <BaseFormActions :submitting="submitting" :is-edit-mode="isEditMode || esActualizacion" @cancel="goBack" />
                         </div>
                     </form>
                 </div>
@@ -465,13 +465,22 @@ const isSuperAdmin = computed(() => permissionsStore.roles?.includes('SUPERADMIN
 const isEditMode = computed(() => route.params.id !== undefined);
 
 /** Modo asistente: creación encadenada tras registrar el vehículo (?wizard=<uuid>) */
-const wizardUuid = computed(() => (!isEditMode.value && route.query.wizard) ? String(route.query.wizard) : null);
-const { nextStepRoute, prevStepRoute, exitRoute, fetchExistingDocs, getSessionDone, markStepDone, clearSessionDone } = useDocumentWizard();
+const wizardUuid = computed(() => (route.query.wizard ? String(route.query.wizard) : null));
+/** Origen al que volver al guardar/cancelar desde el menú de documentos (?retorno=<ruta>) */
+const returnTo = computed(() => (route.query.retorno ? String(route.query.retorno) : null));
+/** Registrar versión nueva aunque ya exista un documento (?nuevo=1) */
+const isNuevo = computed(() => route.query.nuevo === '1');
+const { nextStepRoute, prevStepRoute, exitRoute, fetchExistingDocs, getSessionDone, markStepDone, clearSessionDone, toDateInput } = useDocumentWizard();
 const wizardDoneKeys = ref([]);
+// UUID del documento precargado en el asistente (SOAT/RTM) para actualizar en vez de duplicar
+const editingDocUuid = ref(null);
+// El asistente actualiza un registro existente (precargado y sin flag de nuevo)
+const esActualizacion = computed(() => !isEditMode.value && !!wizardUuid.value && !isNuevo.value &&
+    (!!editingDocUuid.value || !!editingPolicyUuids.rce || !!editingPolicyUuids.rcc));
 
 const goExit = () => {
     clearSessionDone(wizardUuid.value);
-    router.push(exitRoute(wizardUuid.value));
+    router.push(returnTo.value || exitRoute(wizardUuid.value));
 };
 const goNextStep = () => router.push(nextStepRoute(route.params.documentType, wizardUuid.value, permissionsStore));
 
@@ -492,7 +501,9 @@ const getDocumentTypeTitle = (documentType) => {
 };
 
 const pageTitle = computed(() => {
-    return getDocumentTypeTitle(route.params.documentType);
+    const base = getDocumentTypeTitle(route.params.documentType);
+    if (isEditMode.value || esActualizacion.value) return `Actualizar ${base.charAt(0).toLowerCase()}${base.slice(1)}`;
+    return base;
 });
 
 const touchedFields = reactive({});
@@ -554,6 +565,7 @@ const resetCreateState = () => {
     Object.assign(formData, pristineCreateState);
     Object.keys(validationErrors).forEach((key) => delete validationErrors[key]);
     Object.keys(touchedFields).forEach((key) => delete touchedFields[key]);
+    editingDocUuid.value = null;
     editingPolicyUuids.rce = null;
     editingPolicyUuids.rcc = null;
     wizardDoneKeys.value = [];
@@ -566,30 +578,88 @@ const documentTypeFor = (type) => {
     return type;
 };
 
+/** Recalcula los checks del stepper combinando sesión y backend; devuelve lo encontrado */
+const refreshWizardDone = async () => {
+    if (!wizardUuid.value) return null;
+    wizardDoneKeys.value = getSessionDone(wizardUuid.value);
+    try {
+        const found = await fetchExistingDocs(wizardUuid.value);
+        const done = new Set(['vehiculo', ...getSessionDone(wizardUuid.value)]);
+        if (found.soat) done.add('soat');
+        if (found.rce && found.rcc) done.add('poliza');
+        if (found.rtm) done.add('tecnomecanica');
+        if (found.tarjeta) done.add('tarjeta');
+        wizardDoneKeys.value = [...done];
+        return found;
+    } catch {
+        wizardDoneKeys.value = getSessionDone(wizardUuid.value);
+        return null;
+    }
+};
+
 /** Inicializa un paso de creación (montaje o cambio de tipo en el asistente) */
 const initCreateStep = async () => {
     formData.document_type = documentTypeFor(route.params.documentType);
     if (!isSuperAdmin.value) formData.company_uuid = userStore.company_uuid;
     if (wizardUuid.value) {
         formData.vehicle_uuid = wizardUuid.value;
-        // Progreso inmediato de sesión (checks secuenciales sin esperar al backend)
-        wizardDoneKeys.value = getSessionDone(wizardUuid.value);
-        try {
-            const found = await fetchExistingDocs(wizardUuid.value);
-            const done = new Set(['vehiculo', ...getSessionDone(wizardUuid.value)]);
-            if (found.soat) done.add('soat');
-            if (found.rce && found.rcc) done.add('poliza');
-            if (found.rtm) done.add('tecnomecanica');
-            if (found.tarjeta) done.add('tarjeta');
-            wizardDoneKeys.value = [...done];
-        } catch {
-            wizardDoneKeys.value = getSessionDone(wizardUuid.value);
-        }
+        const found = await refreshWizardDone();
+        // Precarga el documento ya registrado (salvo registro de versión nueva)
+        if (found && !isNuevo.value) preloadStepDoc(found);
     }
     await nextTick();
     initSelect2(selectConfigs.value);
     setSelect2Values(selectConfigs.value);
     scrubAutocomplete();
+};
+
+/**
+ * Rellena el formulario con el documento existente del paso actual.
+ * Al guardar se actualizará en vez de crear un duplicado.
+ * @param {Object} found resultado de fetchExistingDocs
+ */
+const preloadStepDoc = (found) => {
+    const step = route.params.documentType;
+    if (step === 'soat' && found.soat) {
+        const d = found.soat;
+        editingDocUuid.value = d.uuid ?? null;
+        Object.assign(formData, {
+            policy_number: d.policy_number ?? '',
+            issuing_entity: d.issuing_entity ?? '',
+            issue_date: toDateInput(d.issue_date),
+            effective_date: toDateInput(d.effective_date),
+            expiry_date: toDateInput(d.expiry_date),
+            status: d.status ?? 'VIGENTE',
+            tariff_code: d.tariff_code ?? '',
+            company_uuid: d.company_uuid || formData.company_uuid,
+        });
+    } else if (step === 'tecnomecanica' && found.rtm) {
+        const d = found.rtm;
+        editingDocUuid.value = d.uuid ?? null;
+        Object.assign(formData, {
+            policy_number: d.policy_number ?? '',
+            issuing_entity: d.issuing_entity ?? '',
+            issue_date: toDateInput(d.issue_date),
+            expiry_date: toDateInput(d.expiry_date),
+            status: d.status ?? 'SI',
+            company_uuid: d.company_uuid || formData.company_uuid,
+        });
+    } else if (step === 'poliza' && (found.rce || found.rcc)) {
+        const rce = found.rce, rcc = found.rcc, ref = rce ?? rcc;
+        editingPolicyUuids.rce = rce?.uuid ?? null;
+        editingPolicyUuids.rcc = rcc?.uuid ?? null;
+        Object.assign(formData, {
+            policy_number_rce: rce?.policy_number ?? '',
+            policy_number_rcc: rcc?.policy_number ?? '',
+            taker: ref?.taker ?? '',
+            issuing_entity: ref?.issuing_entity ?? '',
+            issue_date: toDateInput(ref?.issue_date),
+            effective_date: toDateInput(ref?.effective_date),
+            expiry_date: toDateInput(ref?.expiry_date),
+            status: ref?.status ?? 'VIGENTE',
+            company_uuid: ref?.company_uuid || formData.company_uuid,
+        });
+    }
 };
 
 // Al cambiar de tipo de documento dentro del asistente se reutiliza la vista:
@@ -647,6 +717,8 @@ const validateForm = () => {
 };
 
 const getBackRoute = () => {
+    // Desde el menú de documentos: volver al origen (perfil) en vez del listado
+    if (returnTo.value) return returnTo.value;
     if (wizardUuid.value) return prevStepRoute(route.params.documentType, wizardUuid.value, permissionsStore);
     const type = route.params.documentType;
     if (type) return `/vehiculos-documentos/${type}`;
@@ -695,10 +767,17 @@ const handleSubmit = async () => {
             }
         } else {
             if (route.params.documentType === 'poliza') {
-                const rceData = { ...formData, document_type: 'RCE', policy_number: formData.policy_number_rce, status: formData.status || 'VIGENTE' };
-                await store.createItem(rceData);
-                const rccData = { ...formData, document_type: 'RCC', policy_number: formData.policy_number_rcc, status: formData.status || 'VIGENTE' };
-                await store.createItem(rccData);
+                // Actualiza las existentes y crea solo la faltante (póliza parcial)
+                const ops = [];
+                const rcePayload = { ...formData, document_type: 'RCE', policy_number: formData.policy_number_rce };
+                const rccPayload = { ...formData, document_type: 'RCC', policy_number: formData.policy_number_rcc };
+                if (editingPolicyUuids.rce) ops.push(store.updateItem(editingPolicyUuids.rce, rcePayload));
+                else if (formData.policy_number_rce) ops.push(store.createItem({ ...rcePayload, status: formData.status || 'VIGENTE' }));
+                if (editingPolicyUuids.rcc) ops.push(store.updateItem(editingPolicyUuids.rcc, rccPayload));
+                else if (formData.policy_number_rcc) ops.push(store.createItem({ ...rccPayload, status: formData.status || 'VIGENTE' }));
+                await Promise.all(ops);
+            } else if (editingDocUuid.value) {
+                await store.updateItem(editingDocUuid.value, formData);
             } else if (route.params.documentType === 'soat') {
                 formData.document_type = 'SOAT';
                 await store.createItem(formData);
@@ -712,7 +791,9 @@ const handleSubmit = async () => {
 
         if (wizardUuid.value) {
             markStepDone(wizardUuid.value, route.params.documentType);
-            goNextStep();
+            // Desde el menú de documentos: salir del asistente y volver al origen con datos frescos
+            if (returnTo.value) router.push(returnTo.value);
+            else goNextStep();
         } else {
             goBack();
         }
@@ -790,6 +871,8 @@ onMounted(async () => {
         } else {
             await initCreateStep();
         }
+        // En edición con asistente (desde el menú) también se pinta el progreso
+        if (isEditMode.value) await refreshWizardDone();
     } finally {
         setTimeout(async () => {
             isViewLoading.value = false;

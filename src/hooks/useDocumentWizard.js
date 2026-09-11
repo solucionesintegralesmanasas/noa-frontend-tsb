@@ -7,6 +7,7 @@
  */
 import vehicleDocumentsService from '@/features/vehicleDocuments/services/vehicleDocuments.service.js';
 import operationCardsService from '@/features/operationCards/services/operationCards.service.js';
+import vehiclesService from '@/features/vehicles/services/vehicles.service.js';
 
 export const WIZARD_STEPS = [
     { key: 'vehiculo', label: 'Vehículo', icon: 'fad fa-car', permission: 'vehicles.create', hint: 'Registra los datos del vehículo y el afiliado; luego seguirás con sus documentos' },
@@ -145,8 +146,7 @@ export function useDocumentWizard() {
      * Consulta qué documentos ya existen para el vehículo.
      * @param {string} vehicleUuid
      * @returns {Promise<{soat:Object|null, rce:Object|null, rcc:Object|null, rtm:Object|null, tarjeta:Object|null}>}
-     */
-    const fetchExistingDocs = async (vehicleUuid) => {
+     */    const fetchExistingDocs = async (vehicleUuid) => {
         const found = { soat: null, rce: null, rcc: null, rtm: null, tarjeta: null };
         if (!vehicleUuid) return found;
 
@@ -168,8 +168,34 @@ export function useDocumentWizard() {
             // Sin tarjeta aún
         }
 
+        if (!found.tarjeta) {
+            // Fallback: el perfil del vehículo trae operation_cards embebidas
+            // (el listado paginado puede no incluir la tarjeta del vehículo)
+            try {
+                const resp = await vehiclesService.getProfile(vehicleUuid);
+                const profile = resp?.data?.data ?? resp?.data ?? resp ?? {};
+                const cards = Array.isArray(profile.operation_cards) ? profile.operation_cards : [];
+                if (cards.length) {
+                    const now = new Date();
+                    const vigentes = cards.filter((c) => c.expiration_date && new Date(c.expiration_date) > now);
+                    const pool = vigentes.length ? vigentes : cards;
+                    pool.sort((a, b) => new Date(b.expiration_date ?? 0) - new Date(a.expiration_date ?? 0));
+                    found.tarjeta = pool[0] ?? null;
+                }
+            } catch {
+                // Sin tarjeta aún
+            }
+        }
+
         return found;
     };
 
-    return { WIZARD_STEPS, stepRoute, exitRoute, canRunStep, availableSteps, firstStep, nextStepRoute, prevStepRoute, fetchExistingDocs, getSessionDone, markStepDone, clearSessionDone };
+    /**
+     * Normaliza una fecha a YYYY-MM-DD para inputs type="date".
+     * @param {*} value
+     * @returns {string}
+     */
+    const toDateInput = (value) => (value ? String(value).slice(0, 10) : '');
+
+    return { WIZARD_STEPS, stepRoute, exitRoute, canRunStep, availableSteps, firstStep, nextStepRoute, prevStepRoute, fetchExistingDocs, getSessionDone, markStepDone, clearSessionDone, toDateInput };
 }

@@ -18,9 +18,9 @@
 
         <template #actions>
             <button v-if="!isViewLoading" class="btn btn-falcon-default btn-sm px-3" @click="goCompleteDocuments"
-                :disabled="checkingDocs" :aria-busy="checkingDocs" title="Completar documentos del vehículo" data-bs-toggle="tooltip">
+                :disabled="checkingDocs" :aria-busy="checkingDocs" title="Revisar documentos del vehículo" data-bs-toggle="tooltip">
                 <i class="fas fa-file-circle-plus me-1" style="font-size: 12px;"></i>
-                <span class="d-none d-sm-inline" style="font-size: 0.8rem;">Documentos</span>
+                <span class="d-none d-sm-inline" style="font-size: 0.8rem;">Revisar documentos</span>
             </button>
             <button v-if="can('update', 'Vehicle') && !isViewLoading" class="btn btn-primary btn-sm px-3" @click="editVehicle"
                 title="Editar vehículo" data-bs-toggle="tooltip">
@@ -34,6 +34,12 @@
             </button>
         </template>
     </BasePageHeader>
+
+    <VehicleDocumentsMenu
+        v-model="showDocsMenu"
+        :vehicle-uuid="vehicle.uuid || route.params.id"
+        :vehicle-label="vehicle.vehicle_license_plate || ''"
+    />
 
     <!-- SKELETON LOADING -->
     <div v-if="isViewLoading" class="row g-3 mb-3 fade-in-up" style="animation-delay: 0.1s;">
@@ -597,14 +603,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useVehiclesStore } from '../store/vehicles.store.js';
 import { usePermissionsStore } from '@store';
 import VehiclesService from '../services/vehicles.service.js';
 import { useToast } from 'vue-toastification';
 import BasePageHeader from '@/components/BasePageHeader.vue';
-import { useDocumentWizard } from '@/hooks/useDocumentWizard.js';
+import VehicleDocumentsMenu from '../components/VehicleDocumentsMenu.vue';
 import apiClient from '@/services/api/client.js';
 
 // ===== DEPENDENCIAS =====
@@ -761,32 +767,12 @@ const editVehicle = () => {
     }
 };
 
-/** Lleva al primer documento pendiente dentro del asistente */
+/** Abre el menú de gestión documental (faltantes, edición y registro nuevo) */
+const showDocsMenu = ref(false);
 const checkingDocs = ref(false);
-const goCompleteDocuments = async () => {
-    const uuid = vehicle.value.uuid || route.params.id;
-    if (!uuid) return;
-    checkingDocs.value = true;
-    try {
-        const { stepRoute, fetchExistingDocs } = useDocumentWizard();
-        const found = await fetchExistingDocs(uuid);
-        const order = [
-            { key: 'soat', done: !!found.soat, perm: 'vehicle_documents.create' },
-            { key: 'poliza', done: !!(found.rce && found.rcc), perm: 'vehicle_documents.create' },
-            { key: 'tecnomecanica', done: !!found.rtm, perm: 'vehicle_documents.create' },
-            { key: 'tarjeta', done: !!found.tarjeta, perm: 'operation_cards.create' },
-        ];
-        const next = order.find((s) => !s.done && can(s.perm));
-        if (next) {
-            router.push(stepRoute(next.key, uuid));
-        } else {
-            toast.success('El vehículo tiene sus documentos al día');
-        }
-    } catch {
-        toast.error('No se pudieron verificar los documentos');
-    } finally {
-        checkingDocs.value = false;
-    }
+const goCompleteDocuments = () => {
+    if (!vehicle.value.uuid && !route.params.id) return;
+    showDocsMenu.value = true;
 };
 
 const viewOwner = () => {
@@ -906,7 +892,21 @@ const initTooltips = () => {
 };
 
 // ===== CICLO DE VIDA =====
-onMounted(() => loadVehicle());
+onMounted(async () => {
+    await loadVehicle();
+    // Al volver del asistente se reabre el menú con la información ya actualizada
+    if (route.query.panel === 'documentos') {
+        showDocsMenu.value = true;
+        router.replace({ path: route.path, query: {} });
+    }
+});
+watch(() => route.query.panel, (panel) => {
+    if (panel === 'documentos') {
+        loadVehicle();
+        showDocsMenu.value = true;
+        router.replace({ path: route.path, query: {} });
+    }
+});
 onUnmounted(() => {
     if (typeof window.bootstrap?.Tooltip !== 'undefined') {
         document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {

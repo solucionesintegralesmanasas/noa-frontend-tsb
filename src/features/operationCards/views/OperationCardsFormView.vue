@@ -157,7 +157,7 @@
                         </div>
 
                         <div class="col-12 mt-4 pt-3 border-top">
-                            <BaseFormActions :submitting="submitting" :is-edit-mode="isEditMode" @cancel="goBack" />
+                            <BaseFormActions :submitting="submitting" :is-edit-mode="isEditMode || esActualizacion" @cancel="goBack" />
                         </div>
                     </form>
                 </div>
@@ -219,18 +219,26 @@ const isSuperAdmin = computed(() => permissionsStore.roles?.includes('SUPERADMIN
 const isEditMode = computed(() => route.params.id !== undefined);
 
 /** Modo asistente: creación encadenada tras registrar el vehículo (?wizard=<uuid>) */
-const wizardUuid = computed(() => (!isEditMode.value && route.query.wizard) ? String(route.query.wizard) : null);
-const { nextStepRoute, prevStepRoute, exitRoute, fetchExistingDocs, getSessionDone, markStepDone, clearSessionDone } = useDocumentWizard();
+const wizardUuid = computed(() => (route.query.wizard ? String(route.query.wizard) : null));
+/** Origen al que volver al guardar/cancelar desde el menú de documentos (?retorno=<ruta>) */
+const returnTo = computed(() => (route.query.retorno ? String(route.query.retorno) : null));
+/** Registrar versión nueva aunque ya exista una tarjeta (?nuevo=1) */
+const isNuevo = computed(() => route.query.nuevo === '1');
+const { nextStepRoute, prevStepRoute, exitRoute, fetchExistingDocs, getSessionDone, markStepDone, clearSessionDone, toDateInput } = useDocumentWizard();
 const wizardDoneKeys = ref([]);
+// UUID de la tarjeta precargada en el asistente para actualizar en vez de duplicar
+const editingCardUuid = ref(null);
+// El asistente actualiza la tarjeta existente (precargada y sin flag de nuevo)
+const esActualizacion = computed(() => !isEditMode.value && !!wizardUuid.value && !isNuevo.value && !!editingCardUuid.value);
 
 const goExit = () => {
     clearSessionDone(wizardUuid.value);
-    router.push(exitRoute(wizardUuid.value));
+    router.push(returnTo.value || exitRoute(wizardUuid.value));
 };
 const goNextStep = () => router.push(nextStepRoute('tarjeta', wizardUuid.value, permissionsStore));
 
 /** Computed para BasePageHeader (evita expresiones complejas en el template) */
-const pageTitle = computed(() => isEditMode.value ? 'Actualizar Tarjeta de Operación' : 'Registrar Tarjeta de Operación');
+const pageTitle = computed(() => (isEditMode.value || esActualizacion.value) ? 'Actualizar Tarjeta de Operación' : 'Registrar Tarjeta de Operación');
 const pageSubtitle = computed(() => isEditMode.value ? 'Modifica los datos del registro en el sistema' : 'Completa los datos para crear un nuevo registro');
 const breadcrumbs = computed(() => [{ label: 'Tarjetas de Operación', to: '/tarjetas-de-operacion', }, { label: isEditMode.value ? 'Editar' : 'Nuevo' },]);
 const isViewLoading = ref(true);
@@ -324,7 +332,10 @@ const validateForm = () => {
 };
 
 const goBack = () => {
-    if (wizardUuid.value) {
+    // Desde el menú de documentos: volver al origen (perfil) en vez del listado
+    if (returnTo.value) {
+        router.push(returnTo.value);
+    } else if (wizardUuid.value) {
         router.push(prevStepRoute('tarjeta', wizardUuid.value, permissionsStore));
     } else {
         router.push('/tarjetas-de-operacion');
@@ -349,6 +360,8 @@ const handleSubmit = async () => {
 
         if (isEditMode.value) {
             await store.updateItem(uuid, formData);
+        } else if (editingCardUuid.value) {
+            await store.updateItem(editingCardUuid.value, formData);
         } else {
             const newItem = await store.createItem(formData);
             uuid = newItem?.uuid || newItem?.id;
@@ -356,12 +369,28 @@ const handleSubmit = async () => {
 
         if (wizardUuid.value) {
             markStepDone(wizardUuid.value, 'tarjeta');
-            goNextStep();
+            // Desde el menú de documentos: salir del asistente y volver al origen con datos frescos
+            if (returnTo.value) router.push(returnTo.value);
+            else goNextStep();
         } else {
             goBack();
         }
     } catch (error) {
         toast('Error', 'No se pudo procesar la solicitud', 'error');
+        // En edición con asistente (desde el menú) también se pinta el progreso
+        if (isEditMode.value && wizardUuid.value) {
+            try {
+                const found = await fetchExistingDocs(wizardUuid.value);
+                const done = new Set(['vehiculo', ...getSessionDone(wizardUuid.value)]);
+                if (found.soat) done.add('soat');
+                if (found.rce && found.rcc) done.add('poliza');
+                if (found.rtm) done.add('tecnomecanica');
+                if (found.tarjeta) done.add('tarjeta');
+                wizardDoneKeys.value = [...done];
+            } catch {
+                wizardDoneKeys.value = getSessionDone(wizardUuid.value);
+            }
+        }
     } finally {
         submitting.value = false;
     }
@@ -399,6 +428,24 @@ onMounted(async () => {
                 if (found.rtm) done.add('tecnomecanica');
                 if (found.tarjeta) done.add('tarjeta');
                 wizardDoneKeys.value = [...done];
+                // Precarga la tarjeta ya registrada (salvo registro de versión nueva)
+                if (found.tarjeta && !isNuevo.value) {
+                    const t = found.tarjeta;
+                    editingCardUuid.value = t.uuid ?? null;
+                    Object.assign(formData, {
+                        company_uuid: t.company_uuid || formData.company_uuid,
+                        affiliated_company: t.affiliated_company ?? formData.affiliated_company,
+                        area_of_coverage: t.area_of_coverage ?? formData.area_of_coverage,
+                        service_type: t.service_type ?? formData.service_type,
+                        transport_mode: t.transport_mode ?? formData.transport_mode,
+                        issue_date: toDateInput(t.issue_date),
+                        expiration_date: toDateInput(t.expiration_date),
+                        operating_card_number: t.operating_card_number ?? '',
+                    });
+                    if (t.status !== undefined && t.status !== null) {
+                        formData.status = (t.status == 1 || t.status === true || t.status === '1') ? '1' : '0';
+                    }
+                }
             } catch {
                 wizardDoneKeys.value = getSessionDone(wizardUuid.value);
             }
