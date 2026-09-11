@@ -62,10 +62,10 @@ class VehicleInspectionService extends BaseService {
      * @param {string} date - Fecha Y-m-d a verificar.
      * @returns {Promise<{exists:boolean, inspection:Object|null}>}
      */
-    async checkToday(vehicleUuid, date) {
+    async checkToday(vehicleUuid, date, companyUuid = '') {
         try {
             const res = await this._getInstance().get(
-                `fleet-management/vehicle-inspections/check-today?vehicle_uuid=${vehicleUuid}&date=${date}`
+                `fleet-management/vehicle-inspections/check-today?vehicle_uuid=${vehicleUuid}&date=${date}${companyUuid ? `&company_uuid=${companyUuid}` : ''}`
             );
             return res.data?.data ?? res.data ?? { exists: false, inspection: null };
         } catch (err) {
