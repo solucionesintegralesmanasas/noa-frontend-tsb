@@ -72,11 +72,15 @@
         ═══════════════════════════════════════════════════════════ -->
         <div v-if="activeService" class="row mb-3">
             <div class="col-12">
-                <div class="card border-0 shadow-sm overflow-hidden" style="border-left: 5px solid #00d27a !important;">
+                <div class="card border-0 shadow-sm overflow-hidden" :style="esDisponibilidadActiva ? 'border-left: 5px solid #f5803e !important;' : 'border-left: 5px solid #00d27a !important;'">
                     <div class="card-body p-3 p-md-4">
                         <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center gap-3">
                             <div class="d-flex align-items-center gap-2 flex-shrink-0">
-                                <span class="badge bg-success d-flex align-items-center gap-2 px-3 py-2 fw-bold rounded-pill text-uppercase">
+                                <span v-if="esDisponibilidadActiva" class="badge bg-warning text-dark d-flex align-items-center gap-2 px-3 py-2 fw-bold rounded-pill text-uppercase">
+                                    <span class="pulse-indicator bg-dark"></span>
+                                    En servicio · Disponibilidad
+                                </span>
+                                <span v-else class="badge bg-success d-flex align-items-center gap-2 px-3 py-2 fw-bold rounded-pill text-uppercase">
                                     <span class="pulse-indicator bg-white"></span>
                                     Servicio activo · En ruta
                                 </span>
@@ -87,6 +91,9 @@
                                     <span v-if="activeService.vehicle_plate" class="badge bg-subtle-secondary text-dark fw-bold ms-1">
                                         {{ activeService.vehicle_plate }}
                                     </span>
+                                    <span v-if="activeService.tracking_active" class="badge bg-subtle-success text-success fw-bold ms-1" title="GPS transmitiendo">
+                                        <i class="fas fa-satellite-dish me-1"></i>GPS
+                                    </span>
                                 </h5>
                                 <p class="text-600 fs-11 mb-0">
                                     <span v-if="activeService.start_time">
@@ -95,15 +102,23 @@
                                     <span v-if="activeService.routes_count" class="ms-2">
                                         <i class="fas fa-route me-1"></i>{{ activeService.routes_count }} recorrido{{ activeService.routes_count !== 1 ? 's' : '' }}
                                     </span>
+                                    <span v-else class="ms-2 text-warning fw-semibold">
+                                        <i class="fas fa-clock me-1"></i>Sin recorridos asignados
+                                    </span>
                                     <span v-if="activeService.routes_text" class="d-block text-truncate mt-1" :title="activeService.routes_text">
                                         {{ activeService.routes_text }}
                                     </span>
                                 </p>
                             </div>
-                            <router-link :to="`/planilla-de-control-de-prestacion-servicios/control-de-servicios?service_uuid=${activeService.service_uuid}`"
+                            <router-link v-if="activeService.service_uuid" :to="`/planilla-de-control-de-prestacion-servicios/control-de-servicios?service_uuid=${activeService.service_uuid}`"
                                 class="btn btn-success btn-sm px-4 py-2 shadow-xs d-inline-flex align-items-center justify-content-center gap-2 w-100 w-md-auto flex-shrink-0">
                                 <i class="fas fa-play-circle"></i>
                                 <span>Continuar servicio</span>
+                            </router-link>
+                            <router-link v-else to="/planilla-de-control-de-prestacion-servicios/control-de-servicios"
+                                class="btn btn-warning btn-sm px-4 py-2 shadow-xs d-inline-flex align-items-center justify-content-center gap-2 w-100 w-md-auto flex-shrink-0">
+                                <i class="fas fa-plus-circle"></i>
+                                <span>Abrir servicio</span>
                             </router-link>
                         </div>
                     </div>
@@ -579,6 +594,11 @@ const vehiclesList = computed(() => conductorData.value.vehicles || []);
 const recentInspections = computed(() => conductorData.value.recent_inspections || []);
 const recentFuecs = computed(() => conductorData.value.recent_fuecs || []);
 const activeService = computed(() => conductorData.value.active_service || null);
+const esDisponibilidadActiva = computed(() => {
+    if (!activeService.value) return false;
+    if (activeService.value.service_mode && activeService.value.service_mode !== 'CON_RECORRIDOS') return true;
+    return !activeService.value.routes_count;
+});
 
 const preferredVehicleUuid = computed(() => {
     const serviceVehicle = conductorData.value.active_service?.vehicle_uuid;
