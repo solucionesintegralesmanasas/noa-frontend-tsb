@@ -43,7 +43,7 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: 'dist',
       emptyOutDir: true,
-      chunkSizeWarningLimit: 1000,
+      chunkSizeWarningLimit: 600,
       rollupOptions: {
         output: {
           manualChunks(id) {
@@ -59,8 +59,20 @@ export default defineConfig(({ mode }) => {
             if (id.includes('node_modules/axios') || id.includes('node_modules/crypto-js')) {
               return 'vendor-http';
             }
+            // Capacitor nativo (no crítico en web)
+            if (id.includes('node_modules/@capacitor')) {
+              return 'vendor-capacitor';
+            }
+            // Utilidades de fecha e i18n
+            if (id.includes('node_modules/dayjs') || id.includes('node_modules/vue-i18n')) {
+              return 'vendor-utils';
+            }
+            // Alertas, firmas y legacy UI (cargan bajo demanda)
+            if (id.includes('node_modules/sweetalert2') || id.includes('node_modules/signature_pad') || id.includes('node_modules/vue-toastification')) {
+              return 'vendor-feedback';
+            }
             // UI utilities
-            if (id.includes('node_modules/sweetalert2') || id.includes('node_modules/select2') || id.includes('node_modules/jquery')) {
+            if (id.includes('node_modules/select2') || id.includes('node_modules/jquery')) {
               return 'vendor-ui';
             }
           }
