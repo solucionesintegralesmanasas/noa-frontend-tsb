@@ -73,7 +73,14 @@ export async function registerPlugins(app) {
 
         // 5. Manejo de Errores y Monitoreo
         medirPlugin("Manejadores Globales", () => {
-            app.config.errorHandler = (err) => handleGlobalError(err, "vue");
+            app.config.errorHandler = (err, instance, info) => handleGlobalError(err, "vue", {
+                meta: {
+                    component: instance?.$options?.name || instance?.$?.type?.name || instance?.$?.type?.__name || null,
+                    info: info || null,
+                    route: window?.location?.hash || window?.location?.pathname || null,
+                    stack: err?.stack ? String(err.stack).split('\n').slice(0, 6).join('\n') : null,
+                },
+            });
             setupGlobalErrorHandlers();
         });
 

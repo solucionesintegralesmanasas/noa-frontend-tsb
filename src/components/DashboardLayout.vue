@@ -1,4 +1,5 @@
 <template>
+  <DriverTrackingProvider />
   <Sidebar v-if="!shouldHideSidebar" />
   <div class="content" :class="{ 'no-sidebar-content': shouldHideSidebar }">
     <Navbar :hide-sidebar-toggle="shouldHideSidebar" :show-brand="shouldHideSidebar" />
@@ -16,6 +17,7 @@ import { usePermissionsStore } from '@store'
 import Navbar from '@/components/layout/Navbar.vue'
 import Sidebar from '@/components/layout/Sidebar.vue'
 import Footer from '@/components/layout/Footer.vue'
+import DriverTrackingProvider from '@/features/tracking/components/DriverTrackingProvider.vue'
 
 const route = useRoute()
 const permissionsStore = usePermissionsStore()

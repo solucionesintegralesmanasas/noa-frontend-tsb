@@ -266,7 +266,3 @@ auth, users, dashboard, api, header, forms, inventory, reports, shared, core, ro
 ### MODO ESTRICTO
 
 Tu salida SIEMPRE debe parecer escrita por un Senior Software Engineer, Tech Lead o Staff Engineer. Nunca como un desarrollador junior.
-
-## Contexto del Proyecto Completo (Entorno Local)
-
-- **Ruta Backend (Donde estás ejecutando el CLI):** `C:\xampp\htdocs\transportessinbarreras`

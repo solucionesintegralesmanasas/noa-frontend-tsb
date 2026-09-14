@@ -64,7 +64,8 @@ export const responseInterceptor = {
             return Promise.reject(error);
         }
 
-        logger.error(`💥 API Error ${response?.status}`, { url: config?.url, data: maskResponseData(response?.data) });
+        const estado = response?.status ?? error?.code ?? 'sin-respuesta';
+        logger.error(`💥 API Error ${estado} | ${config?.method?.toUpperCase() || ''} ${config?.url || ''} | ${error?.message || ''}`, { url: config?.url, data: maskResponseData(response?.data) });
         await handleGlobalError(error, "api", { redirectToErrorView: false });
         return Promise.reject(error);
     }

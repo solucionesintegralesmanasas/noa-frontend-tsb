@@ -6,14 +6,14 @@
                 <div class="badge-icon">
                     <i class="fad fa-file-signature text-primary"></i>
                 </div>
-                <h2>Firma Digital de Inspección</h2>
+                <h2>{{ isControl ? 'Firma del Coordinador de Servicios' : 'Firma Digital de Inspección' }}</h2>
                 <p class="subtitle text-muted">Valide la información y registre su firma en el panel inferior.</p>
             </div>
 
             <!-- Loading State -->
             <div v-if="loadingDetails" class="loading-wrapper text-center">
                 <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
-                <p class="mt-2 text-muted">Cargando detalles de la inspección...</p>
+                <p class="mt-2 text-muted">{{ isControl ? 'Cargando detalles de la hoja de control...' : 'Cargando detalles de la inspección...' }}</p>
             </div>
 
             <!-- Error State -->
@@ -33,7 +33,25 @@
                 <!-- Inspection Details -->
                 <div class="details-section">
                     <h5 class="section-title">Detalles del Documento</h5>
-                    <div class="details-grid">
+                    <div v-if="isControl" class="details-grid">
+                        <div class="detail-item">
+                            <span class="label">Placa del Vehículo</span>
+                            <span class="value">{{ inspection.vehicle_license_plate }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Conductor</span>
+                            <span class="value">{{ inspection.driver_name }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Fecha Servicio</span>
+                            <span class="value">{{ formattedDate }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Ruta / Proyecto</span>
+                            <span class="value">{{ inspection.daily_route || inspection.project_name || 'N/A' }}</span>
+                        </div>
+                    </div>
+                    <div v-else class="details-grid">
                         <div class="detail-item">
                             <span class="label">Placa del Vehículo</span>
                             <span class="value">{{ inspection.vehicle_license_plate }}</span>
@@ -54,7 +72,18 @@
                 </div>
 
                 <!-- Status List -->
-                <div class="mt-4 p-3 bg-light rounded text-start shadow-sm border mb-4">
+                <div v-if="isControl" class="mt-4 p-3 bg-light rounded text-start shadow-sm border mb-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted font-weight-medium">Firma Coordinador de Servicios:</span>
+                        <span v-if="inspection.has_coordinator_signature" class="status-badge signed">
+                            <i class="fas fa-check-circle mr-1"></i> Firmado
+                        </span>
+                        <span v-else class="status-badge pending">
+                            <i class="fas fa-clock mr-1"></i> Pendiente
+                        </span>
+                    </div>
+                </div>
+                <div v-else class="mt-4 p-3 bg-light rounded text-start shadow-sm border mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <span class="text-muted font-weight-medium">Firma Inspector / Conductor:</span>
                         <span v-if="inspection.has_inspector_signature" class="status-badge signed">
@@ -76,19 +105,20 @@
                 </div>
 
                 <!-- Complete Success State -->
-                <div v-if="inspection.has_inspector_signature && inspection.has_coordinator_signature" class="success-all-wrapper text-center mt-4">
+                <div v-if="isControl ? inspection.has_coordinator_signature : (inspection.has_inspector_signature && inspection.has_coordinator_signature)" class="success-all-wrapper text-center mt-4">
                     <div class="success-icon animate-bounce">
                         <i class="fad fa-check-double text-success fa-3x"></i>
                     </div>
                     <h3 class="text-success mt-3 font-weight-bold">¡Firmas Completadas!</h3>
                     <p class="text-muted mt-2">
-                        Este documento de inspección ya cuenta con todas las firmas requeridas.
+                        {{ isControl ? 'Esta hoja de control ya cuenta con la firma del coordinador.' : 'Este documento de inspección ya cuenta con todas las firmas requeridas.' }}
                     </p>
                 </div>
 
                 <!-- Signature Pad Section -->
                 <div v-else class="signature-section mt-4">
-                    <!-- Segmented Selector -->
+                    <!-- Segmented Selector (solo inspecciones: las planillas son una sola firma) -->
+                    <template v-if="!isControl">
                     <label class="sig-label">Seleccione el firmante:</label>
                     <div class="role-selector mb-4">
                         <button 
@@ -116,11 +146,16 @@
                             </span>
                         </button>
                     </div>
+                    </template>
 
                     <!-- Alert Message -->
                     <div class="alert-info-custom mb-3">
                         <i class="fad fa-info-circle mr-2"></i>
-                        <span>
+                        <span v-if="isControl">
+                            Firmando como <b>Coordinador de Servicios</b>.
+                            La firma se plasmará en el campo RECIBO Y FIRMA del PDF.
+                        </span>
+                        <span v-else>
                             Firmando como <b>{{ activeRole === 'inspector' ? 'Inspector/Conductor' : 'Coordinador HSEQ/Operaciones' }}</b>. 
                             La firma se plasmará directamente en el reporte PDF.
                         </span>
@@ -193,6 +228,11 @@ const activeRole = ref('coordinator');
 const uuid = route.params.uuid;
 const signatureQuery = route.query.signature;
 const expiresQuery = route.query.expires;
+// Planillas de control usan el mismo componente con una sola firma (sin selector de rol)
+const isControl = route.query.tipo === 'control';
+const detailsEndpoint = isControl
+    ? `public/service-delivery-control-sheets/${uuid}`
+    : `public/vehicle-inspections/${uuid}`;
 
 // Canvas Drawing State
 const canvasRef = ref(null);
@@ -203,8 +243,9 @@ let lastX = 0;
 let lastY = 0;
 
 const formattedDate = computed(() => {
-    if (!inspection.value.inspection_date) return '';
-    const date = new Date(inspection.value.inspection_date);
+    const raw = inspection.value.inspection_date || inspection.value.service_date;
+    if (!raw) return '';
+    const date = new Date(raw);
     return date.toLocaleDateString('es-ES', {
         year: 'numeric',
         month: 'long',
@@ -214,14 +255,15 @@ const formattedDate = computed(() => {
 
 async function fetchDetails() {
     try {
-        const response = await publicApi.get(`public/vehicle-inspections/${uuid}`, {
+        const response = await publicApi.get(detailsEndpoint, {
             params: {
                 signature: signatureQuery,
                 expires: expiresQuery
             }
         });
         inspection.value = response.data.data;
-        
+
+        if (isControl) return;
         // Auto-select pending role only if the currently active role is already signed
         if (activeRole.value === 'inspector' && inspection.value.has_inspector_signature && !inspection.value.has_coordinator_signature) {
             activeRole.value = 'coordinator';
@@ -242,9 +284,12 @@ onMounted(async () => {
     loadingDetails.value = true;
     await fetchDetails();
     loadingDetails.value = false;
-    
+
+    const pending = isControl
+        ? !inspection.value.has_coordinator_signature
+        : (!inspection.value.has_inspector_signature || !inspection.value.has_coordinator_signature);
     // Wait for DOM update and initialize canvas if signatures are not complete
-    if (inspection.value.uuid && (!inspection.value.has_inspector_signature || !inspection.value.has_coordinator_signature)) {
+    if (inspection.value.uuid && pending) {
         setTimeout(initCanvas, 100);
     }
 });
@@ -346,12 +391,10 @@ async function saveSignature() {
     
     try {
         const base64 = canvasRef.value.toDataURL('image/png');
-        
-        await publicApi.post(`public/vehicle-inspections/${uuid}`, 
-            { 
-                signature: base64,
-                role: activeRole.value
-            },
+        const payload = isControl ? { signature: base64 } : { signature: base64, role: activeRole.value };
+
+        await publicApi.post(detailsEndpoint,
+            payload,
             {
                 params: {
                     signature: signatureQuery,
@@ -361,7 +404,9 @@ async function saveSignature() {
         );
 
         // Actualización optimista del estado para reflejar el cambio inmediato en la UI
-        if (activeRole.value === 'inspector') {
+        if (isControl) {
+            inspection.value.has_coordinator_signature = true;
+        } else if (activeRole.value === 'inspector') {
             inspection.value.has_inspector_signature = true;
         } else if (activeRole.value === 'coordinator') {
             inspection.value.has_coordinator_signature = true;
@@ -369,7 +414,9 @@ async function saveSignature() {
 
         Swal.fire({
             title: '¡Firma Guardada!',
-            text: `La firma de ${activeRole.value === 'inspector' ? 'Inspector/Conductor' : 'Coordinador HSEQ'} ha sido registrada correctamente.`,
+            text: isControl
+                ? 'La firma del Coordinador de Servicios ha sido registrada correctamente.'
+                : `La firma de ${activeRole.value === 'inspector' ? 'Inspector/Conductor' : 'Coordinador HSEQ'} ha sido registrada correctamente.`,
             icon: 'success',
             confirmButtonText: 'Entendido',
             confirmButtonColor: '#3b82f6'
@@ -378,8 +425,11 @@ async function saveSignature() {
         // Clear canvas and fetch details to update status
         clear();
         await fetchDetails();
-        
-        if (!inspection.value.has_inspector_signature || !inspection.value.has_coordinator_signature) {
+
+        const stillPending = isControl
+            ? !inspection.value.has_coordinator_signature
+            : (!inspection.value.has_inspector_signature || !inspection.value.has_coordinator_signature);
+        if (stillPending) {
             setTimeout(initCanvas, 100);
         }
     } catch (err) {

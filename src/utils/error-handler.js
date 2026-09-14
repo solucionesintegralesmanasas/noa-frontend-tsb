@@ -47,7 +47,14 @@ export async function handleGlobalError(error, source = "global", options = {}) 
     const normalizedError = error instanceof Error ? error : new Error(String(error));
     const classification = classifyError(normalizedError);
 
-    logger.error(`[${source}] ${normalizedError.message}`, normalizedError, { classification });
+    // Los objetos Error no tienen propiedades enumerables: se reportan como {}.
+    // Se envía un objeto plano con componente, contexto y stack para poder localizar el fallo.
+    const report = {
+        classification,
+        ...(options.meta || {}),
+        stack: normalizedError?.stack ? String(normalizedError.stack).split('\n').slice(0, 8).join('\n') : null,
+    };
+    logger.error(`[${source}] ${normalizedError.message}`, report, { classification });
 
     if (options.notifyUser !== false) {
         const backendMsg = error?.response?.data?.message || normalizedError.message || "Ha ocurrido un error inesperado";

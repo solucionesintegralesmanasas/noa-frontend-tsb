@@ -94,6 +94,13 @@ export const useAuthStore = defineStore("auth", {
             this._isLoggingOut = true;
 
             try {
+                // 0. Cierre ordenado del GPS: POST /tracking/session/stop con el
+                // token aún válido, luego clearWatch. Evita sesiones huérfanas.
+                try {
+                    const { useDriverTrackingStore } = await import("../../tracking/store/driverTracking.store.js");
+                    await useDriverTrackingStore().stopGpsSession();
+                } catch { /* no bloquear el logout por fallo GPS */ }
+
                 // 1. Redirigir al login de forma inmediata
                 if (redirect && _router) {
                     _router.push("/login");
