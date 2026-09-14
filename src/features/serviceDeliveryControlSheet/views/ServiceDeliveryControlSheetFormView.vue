@@ -252,6 +252,12 @@
                         <!-- BOTONES -->
                         <div class="col-12 form-actions">
                             <BaseFormActions :submitting="submitting" :is-edit-mode="isEditMode" @cancel="goBack" />
+                            <button v-if="isEditMode && canShareCoordinatorLink" type="button" class="btn btn-outline-primary mt-2"
+                                :disabled="sharingLink" @click="shareCoordinatorLink">
+                                <span v-if="sharingLink" class="spinner-border spinner-border-sm me-1"></span>
+                                <i v-else class="fad fa-share-alt me-1"></i>
+                                Compartir firma del coordinador (1 hora)
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -286,6 +292,7 @@
 
 <script setup>
 import { toast } from '@/utils/toast.js';
+import Swal from 'sweetalert2';
 /**
  * @author Darwin Montes
  * @version 1.0.0
@@ -310,6 +317,12 @@ const userStore = useUserStore();
 
 // --- ESTADOS ---
 const isSuperAdmin = computed(() => permissionsStore.roles?.includes('SUPERADMIN'));
+
+// Solo administradores (SUPERADMIN o ADMIN_EMPRESA) pueden compartir el enlace de firma
+const canShareCoordinatorLink = computed(() => (permissionsStore.roles || []).some((r) => {
+    const name = typeof r === 'string' ? r : (r?.name ?? '');
+    return name === 'SUPERADMIN' || name === 'ADMIN_EMPRESA';
+}));
 const isEditMode = computed(() => route.params.id !== undefined);
 const pageTitle = computed(() => isEditMode.value ? 'Actualizar Hoja de Control' : 'Registrar Hoja de Control');
 const pageSubtitle = computed(() => isEditMode.value ? 'Modifica los datos del registro' : 'Completa los datos para crear un nuevo registro');
@@ -320,6 +333,7 @@ const breadcrumbs = computed(() => [
 
 const isViewLoading = ref(true);
 const submitting = ref(false);
+const sharingLink = ref(false);
 const validationErrors = reactive({});
 
 // --- COMPUTADOS AUXILIARES ---
@@ -557,6 +571,69 @@ const validateForm = () => {
 };
 
 const goBack = () => router.push('/planilla-de-control-de-prestacion-servicios');
+
+const shareCoordinatorLink = async () => {
+    if (!isEditMode.value) return;
+    try {
+        sharingLink.value = true;
+        Swal.fire({
+            title: 'Generando enlace...',
+            text: 'Por favor espera mientras generamos el enlace de firma temporal.',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        const result = await store.generateCoordinatorSignUrl(route.params.id);
+        const publicUrl = result?.url ?? '';
+        if (!publicUrl) throw new Error('Sin enlace');
+
+        Swal.close();
+
+        Swal.fire({
+            title: '¡Enlace Generado!',
+            html: `
+                <p>Comparte este enlace con el coordinador de servicios. Tiene una vigencia de <b>1 hora</b> y su firma se plasmará en el campo RECIBO Y FIRMA:</p>
+                <div class="mt-2 p-2 bg-light border rounded text-break text-start font-monospace" style="font-size: 12px; max-height: 100px; overflow-y: auto; word-break: break-all;">
+                    ${publicUrl}
+                </div>
+            `,
+            icon: 'success',
+            showCancelButton: true,
+            confirmButtonText: '<i class="fad fa-copy"></i> Copiar Enlace',
+            cancelButtonText: 'Cerrar',
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#aaa'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                navigator.clipboard.writeText(publicUrl).then(() => {
+                    Swal.fire({
+                        title: '¡Copiado!',
+                        text: 'El enlace de firma ha sido copiado al portapapeles.',
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                }).catch(err => {
+                    console.error('Error al copiar:', err);
+                    toast('Error', 'No se pudo copiar automáticamente. Por favor selecciónalo y cópialo manualmente.', 'warning');
+                });
+            }
+        });
+    } catch (err) {
+        console.error('Error al generar enlace de firma:', err);
+        Swal.close();
+        Swal.fire({
+            title: 'Error',
+            text: err.response?.data?.message ?? 'No se pudo generar el enlace de firma del coordinador.',
+            icon: 'error',
+            confirmButtonText: 'Aceptar'
+        });
+    } finally {
+        sharingLink.value = false;
+    }
+};
 
 const buildPayload = () => {
     // Los recorridos los registra el conductor en la operación diaria, no en este formulario.

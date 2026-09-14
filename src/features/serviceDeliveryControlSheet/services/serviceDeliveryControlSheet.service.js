@@ -83,9 +83,10 @@ class ServiceDeliveryControlSheetService extends BaseService {
      * @returns {Promise<Object>} Objeto con los arreglos de opciones.
      */
     async getFormOptions(companyUuid) {
+        // Timeout acotado (15s): un catálogo colgado no debe bloquear la vista 30s.
         const fetchSafe = async (url) => {
             try {
-                const res = await this._getInstance().get(url);
+                const res = await this._getInstance().get(url, { timeout: 15000 });
                 return res.data?.data ?? res.data ?? [];
             } catch (err) {
                 console.warn(`Error cargando catálogo: ${url}`, err.message);
@@ -105,7 +106,7 @@ class ServiceDeliveryControlSheetService extends BaseService {
         let projects = [];
         if (companyUuid) {
             try {
-                const res = await this._getInstance().get(`projects/list?company_uuid=${companyUuid}`);
+                const res = await this._getInstance().get(`projects/list?company_uuid=${companyUuid}`, { timeout: 15000 });
                 projects = res.data?.data ?? res.data ?? [];
             } catch (err) {
                 console.warn('Error cargando proyectos', err.message);
@@ -131,7 +132,7 @@ class ServiceDeliveryControlSheetService extends BaseService {
     async listProjects(companyUuid) {
         try {
             const url = companyUuid ? `projects/list?company_uuid=${companyUuid}` : 'projects/list';
-            const res = await this._getInstance().get(url);
+            const res = await this._getInstance().get(url, { timeout: 15000 });
             return res.data?.data ?? res.data ?? [];
         } catch (err) {
             console.warn('Error cargando proyectos', err.message);
@@ -146,7 +147,7 @@ class ServiceDeliveryControlSheetService extends BaseService {
      */
     async getProjectDetail(uuid) {
         try {
-            const res = await this._getInstance().get(`projects/${uuid}`);
+            const res = await this._getInstance().get(`projects/${uuid}`, { timeout: 15000 });
             return res.data?.data ?? res.data ?? null;
         } catch (err) {
             console.warn('Error cargando detalle de proyecto', err.message);
@@ -182,6 +183,24 @@ class ServiceDeliveryControlSheetService extends BaseService {
      */
     closeRoute(uuid, data) {
         return this._request('POST', `/${uuid}/close-route`, { data });
+    }
+
+    /**
+     * Genera el enlace público temporal para la firma del coordinador (1 hora).
+     * @param {string} uuid - Identificador de la planilla.
+     * @returns {Promise<Object>} Respuesta con { url, expires_at }.
+     */
+    generateCoordinatorSignUrl(uuid) {
+        return this._request('POST', `/${uuid}/generate-sign-url`);
+    }
+
+    /**
+     * Busca funcionarios ya registrados por número de CC en la empresa.
+     * @param {string} cc - Número de CC (mínimo 3 caracteres).
+     * @returns {Promise<Object>} Respuesta con la lista de coincidencias.
+     */
+    searchFuncionario(cc) {
+        return this._request('GET', '/funcionarios/buscar', { params: { cc } });
     }
 
     /**

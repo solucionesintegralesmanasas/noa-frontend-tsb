@@ -10,7 +10,11 @@
         <div class="card-body p-3">
             <div class="mb-3">
                 <label class="form-label required fw-medium text-700" style="font-size: 0.9rem;">Nombre Completo</label>
-                <input v-model="nombreModel" type="text" class="form-control" :placeholder="placeholderNombre" />
+                <input v-if="!bloquearNombre" v-model="nombreModel" type="text" class="form-control" :placeholder="placeholderNombre" />
+                <div v-else class="p-2 rounded bg-light border">
+                    <span class="fw-semibold fs-13 text-dark d-block">{{ nombreModel || '—' }}</span>
+                    <small v-if="detalleNombre" class="text-muted fs-11">{{ detalleNombre }}</small>
+                </div>
             </div>
 
             <label class="form-label required fw-medium text-700" style="font-size: 0.9rem;">Trazo de Firma</label>
@@ -37,6 +41,8 @@ const props = defineProps({
     titulo: { type: String, required: true },
     placeholderNombre: { type: String, default: 'Nombre completo' },
     accent: { type: String, default: '#2c7be5' },
+    bloquearNombre: { type: Boolean, default: false }, // Nombre informativo, sin caja de texto
+    detalleNombre: { type: String, default: '' }, // Texto secundario bajo el nombre (ej: CC del funcionario)
 });
 
 const nombreModel = defineModel('nombre', { type: String, default: '' });

@@ -285,5 +285,17 @@ export const useServiceDeliveryControlSheetStore = defineStore('serviceDeliveryC
                 await toast('¡Éxito!', 'PDF mensual abierto correctamente', 'success');
             }, 'Error al descargar el PDF mensual');
         },
+
+        /**
+         * Genera el enlace público temporal para la firma del coordinador (1 hora).
+         * @param {string} uuid - UUID de la planilla.
+         * @returns {Promise<Object>} Datos con { url, expires_at }.
+         */
+        async generateCoordinatorSignUrl(uuid) {
+            return this._run(async () => {
+                const response = await serviceDeliveryControlSheetService.generateCoordinatorSignUrl(uuid);
+                return response?.data?.data ?? response?.data ?? response;
+            }, 'Error al generar el enlace de firma');
+        },
     },
 });

@@ -26,7 +26,7 @@
             </button>
 
             <!-- CREATE -->
-            <button v-if="permissionsStore.can('service_delivery_control_sheets.create')"
+            <button v-if="permissionsStore.can('service_delivery_control_sheets.create') && !permissionsStore.hasRole('CONDUCTOR')"
                 class="btn btn-primary btn-sm px-2 px-sm-3" type="button" title="Nuevo registro" @click="goToCreate">
                 <i class="fad fa-plus"></i>
                 <span class="d-none d-sm-inline ms-1">Nuevo</span>
@@ -134,27 +134,6 @@
                             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                             currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
                             emptyMessage="No se encontraron registros" @page="onPageChange">
-                            <Column field="service_date" header="Fecha de servicio" sortable>
-                                <template #body="{ data }">
-                                    <div v-if="data.end_date && data.end_date !== data.start_date"
-                                        class="d-flex flex-column">
-                                        <span class="text-dark fw-semibold">
-                                            {{ formatRango(data.start_date) }} - {{ formatRango(data.end_date) }}
-                                        </span>
-                                        <span class="badge rounded-pill badge-subtle-info mt-1"
-                                            style="font-size: 0.65rem; align-self: flex-start;">
-                                            Multi-día
-                                        </span>
-                                    </div>
-                                    <span v-else class="text-dark">{{ formatRango(data.service_date) || '-' }}</span>
-                                </template>
-                            </Column>
-
-                            <Column field="official_name_and_surname" header="Responsable de servicio" sortable>
-                                <template #body="{ data }">
-                                    <span class="text-dark">{{ data.official_name_and_surname || '-' }}</span>
-                                </template>
-                            </Column>
 
                             <Column header="Proyecto">
                                 <template #body="{ data }">
@@ -212,7 +191,7 @@
                                 </template>
                             </Column>
 
-                            <Column header="Acciones" class="text-center" style="min-width:170px; width: 170px;">
+                            <Column header="Acciones" class="text-center" style="min-width:205px; width: 205px;">
                                 <template #body="{ data }">
                                     <div class="btn-group btn-group-sm" role="group">
                                         <button v-if="permissions.view" class="btn btn-falcon-default" type="button"
@@ -227,11 +206,23 @@
                                                 style="width: 14px; height: 14px;"></span>
                                             <i v-else class="fad fa-file-pdf text-danger" style="font-size:14px;" />
                                         </button>
-                                        <button v-if="permissions.edit" class="btn btn-falcon-default" type="button"
+                                        <button v-if="canShareCoordinatorLink && !isServicioCerrado(data)" class="btn btn-falcon-default" type="button"
+                                            title="Compartir firma del coordinador (1 hora)" @click="shareCoordinatorLink(data.uuid)"
+                                            :disabled="sharingLink === data.uuid">
+                                            <span v-if="sharingLink === data.uuid"
+                                                class="spinner-border spinner-border-sm text-primary"
+                                                style="width: 14px; height: 14px;"></span>
+                                            <i v-else class="fad fa-share-alt text-primary" style="font-size:14px;" />
+                                        </button>
+                                        <button v-if="!isServicioCerrado(data)" class="btn btn-falcon-default" type="button"
+                                            title="Continuar servicio" @click="goToControl(data.uuid)">
+                                            <i class="fad fa-steering-wheel text-success" style="font-size:14px;" />
+                                        </button>
+                                        <button v-if="permissions.edit && !isServicioCerrado(data)" class="btn btn-falcon-default" type="button"
                                             title="Editar" @click="goToEdit(data.uuid)">
                                             <i class="fad fa-edit text-warning" style="font-size:14px;" />
                                         </button>
-                                        <button v-if="permissions.delete" class="btn btn-falcon-default" type="button"
+                                        <button v-if="permissions.delete && !isServicioCerrado(data)" class="btn btn-falcon-default" type="button"
                                             title="Eliminar" @click="handleDelete(data)">
                                             <i class="fad fa-trash text-danger" style="font-size:14px;" />
                                         </button>
@@ -337,6 +328,8 @@ import { ref, onMounted, onUnmounted, reactive, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useServiceDeliveryControlSheetStore } from '../store/serviceDeliveryControlSheet.store.js';
 import { usePermissionsStore, useUserStore } from '@store';
+import { toast } from '@/utils/toast.js';
+import Swal from 'sweetalert2';
 import { useTable } from '@/hooks/useTable.js';
 import { useTableActions } from '@/hooks/useTableActions.js';
 import BasePageHeader from '@/components/BasePageHeader.vue';
@@ -359,6 +352,13 @@ const showReportDialog = ref(false);
 const dialogMode = ref('monthly'); // 'monthly' o 'history'
 const downloadingDaily = ref(null);
 const downloadingMonthly = ref(false);
+const sharingLink = ref(null);
+
+// Solo administradores (SUPERADMIN o ADMIN_EMPRESA) pueden compartir el enlace de firma
+const canShareCoordinatorLink = computed(() => (permissionsStore.roles || []).some((r) => {
+    const name = typeof r === 'string' ? r : (r?.name ?? '');
+    return name === 'SUPERADMIN' || name === 'ADMIN_EMPRESA';
+}));
 
 const reportForm = reactive({
     vehicle_uuid: '',
@@ -427,6 +427,7 @@ const goToCreate = () => router.push('/planilla-de-control-de-prestacion-servici
 const goToEdit = (uuid) => router.push(`/planilla-de-control-de-prestacion-servicios/editar/${uuid}`);
 const goToDetail = (uuid) => router.push(`/planilla-de-control-de-prestacion-servicios/editar/${uuid}`);
 const goToInternalControl = () => router.push('/planilla-de-control-de-prestacion-servicios/control-de-servicios');
+const goToControl = (uuid) => router.push({ path: '/planilla-de-control-de-prestacion-servicios/control-de-servicios', query: { service_uuid: uuid } });
 
 const handleDelete = (item) => confirmDelete(item, {
     title: '¿Eliminar registro?',
@@ -471,6 +472,68 @@ const downloadMonthly = async () => {
     }
 };
 
+const shareCoordinatorLink = async (uuid) => {
+    try {
+        sharingLink.value = uuid;
+        Swal.fire({
+            title: 'Generando enlace...',
+            text: 'Por favor espera mientras generamos el enlace de firma temporal.',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        const result = await store.generateCoordinatorSignUrl(uuid);
+        const publicUrl = result?.url ?? '';
+        if (!publicUrl) throw new Error('Sin enlace');
+
+        Swal.close();
+
+        Swal.fire({
+            title: '¡Enlace Generado!',
+            html: `
+                <p>Comparte este enlace con el coordinador de servicios. Tiene una vigencia de <b>1 hora</b> y su firma se plasmará en el campo RECIBO Y FIRMA:</p>
+                <div class="mt-2 p-2 bg-light border rounded text-break text-start font-monospace" style="font-size: 12px; max-height: 100px; overflow-y: auto; word-break: break-all;">
+                    ${publicUrl}
+                </div>
+            `,
+            icon: 'success',
+            showCancelButton: true,
+            confirmButtonText: '<i class="fad fa-copy"></i> Copiar Enlace',
+            cancelButtonText: 'Cerrar',
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#aaa'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                navigator.clipboard.writeText(publicUrl).then(() => {
+                    Swal.fire({
+                        title: '¡Copiado!',
+                        text: 'El enlace de firma ha sido copiado al portapapeles.',
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                }).catch(err => {
+                    console.error('Error al copiar:', err);
+                    toast('Error', 'No se pudo copiar automáticamente. Por favor selecciónalo y cópialo manualmente.', 'warning');
+                });
+            }
+        });
+    } catch (err) {
+        console.error('Error al generar enlace de firma:', err);
+        Swal.close();
+        Swal.fire({
+            title: 'Error',
+            text: err.response?.data?.message ?? 'No se pudo generar el enlace de firma del coordinador.',
+            icon: 'error',
+            confirmButtonText: 'Aceptar'
+        });
+    } finally {
+        sharingLink.value = null;
+    }
+};
+
 const formatRango = (fecha) => {
     if (!fecha) return '';
     const parts = String(fecha).split('-');
@@ -478,6 +541,8 @@ const formatRango = (fecha) => {
     const [y, m, d] = parts.map(Number);
     return `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}/${y}`;
 };
+
+const isServicioCerrado = (data) => !(data?.is_active == 1 || data?.is_active === true);
 
 const estadoDe = (data) => data.control_status || (data.is_active ? 'ABIERTA' : 'CERRADA');
 
@@ -502,8 +567,8 @@ const estadoBadge = (data) => {
 onMounted(async () => {
     // Calcular permisos una sola vez
     permissions.view = permissionsStore.can('service_delivery_control_sheets.view');
-    permissions.edit = permissionsStore.can('service_delivery_control_sheets.edit');
-    permissions.delete = permissionsStore.can('service_delivery_control_sheets.delete');
+    permissions.edit = permissionsStore.can('service_delivery_control_sheets.edit') && !permissionsStore.hasRole('CONDUCTOR');
+    permissions.delete = permissionsStore.can('service_delivery_control_sheets.delete') && !permissionsStore.hasRole('CONDUCTOR');
 
     try {
         searchQuery.value = store.search;

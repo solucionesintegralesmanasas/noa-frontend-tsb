@@ -345,21 +345,49 @@
                             </div>
 
                             <div class="card-body p-3 p-md-4">
-                                <div v-for="(r, idx) in recorridosDia" :key="idx" class="d-flex align-items-center gap-2 mb-2 py-1">
-                                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-circle fs-11 flex-shrink-0" style="width: 28px; height: 28px; display: grid; place-items: center;">
-                                        {{ idx + 1 }}
-                                    </span>
-                                    <div class="row g-2 flex-fill">
-                                        <div class="col-6 col-md-6">
+                                <div v-if="!recorridosDia.length" class="alert alert-warning bg-warning bg-opacity-10 text-dark border-0 d-flex align-items-center gap-2 mb-3 rounded-3 py-2 px-3">
+                                    <i class="fad fa-exclamation-triangle text-warning fs-5"></i>
+                                    <span class="fs-12 flex-fill">Sin recorridos cargados. Puede <strong>agregar un tramo</strong> o <strong>iniciar en disponibilidad</strong> para quedar en servicio sin recorridos.</span>
+                                    <button class="btn btn-warning btn-sm rounded-pill px-3 fw-semibold flex-shrink-0" @click="agregarRecorridoDia">
+                                        <i class="fas fa-plus me-1"></i> Agregar tramo
+                                    </button>
+                                </div>
+                                <div v-for="(r, idx) in recorridosDia" :key="idx" class="border rounded-3 p-3 mb-2 bg-light bg-opacity-50">
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="badge bg-primary bg-opacity-10 text-primary rounded-circle fs-11 flex-shrink-0" style="width: 28px; height: 28px; display: grid; place-items: center;">
+                                                {{ idx + 1 }}
+                                            </span>
+                                            <span class="fw-semibold fs-12 text-dark">Tramo {{ idx + 1 }}</span>
+                                        </div>
+                                        <button class="btn btn-link text-danger p-1 flex-shrink-0" @click="quitarRecorridoDia(idx)" title="Quitar recorrido">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                    <div class="row g-2 align-items-end">
+                                        <div class="col-12 col-sm-6 col-xl-3">
+                                            <label class="form-label fw-medium text-muted small mb-1">Origen</label>
                                             <input v-model="r.origin" type="text" class="form-control form-control-sm" placeholder="Origen del tramo" />
                                         </div>
-                                        <div class="col-6 col-md-6">
+                                        <div class="col-12 col-sm-6 col-xl-3">
+                                            <label class="form-label fw-medium text-muted small mb-1">Destino</label>
                                             <input v-model="r.destination" type="text" class="form-control form-control-sm" placeholder="Destino del tramo" />
                                         </div>
+                                        <div class="col-12 col-sm-5 col-xl-2">
+                                            <label class="form-label required fw-medium text-muted small mb-1">N.° CC</label>
+                                            <input v-model="r.funcionario_cc" type="text" class="form-control form-control-sm" placeholder="CC *" inputmode="numeric" @blur="buscarFuncionarioSugerido(r, idx)" />
+                                        </div>
+                                        <div class="col-12 col-sm-7 col-xl-4">
+                                            <label class="form-label required fw-medium text-muted small mb-1">Funcionario (nombre y apellido)</label>
+                                            <input v-model="r.funcionario_nombre" type="text" class="form-control form-control-sm" placeholder="Nombre y apellido *" />
+                                        </div>
                                     </div>
-                                    <button class="btn btn-link text-danger p-1 flex-shrink-0" @click="quitarRecorridoDia(idx)" title="Quitar recorrido">
-                                        <i class="fas fa-times"></i>
-                                    </button>
+                                    <div v-if="sugerenciasFuncionario[idx]" class="alert alert-info bg-info bg-opacity-10 text-dark border-0 d-flex align-items-center gap-2 mt-2 mb-0 rounded-3 py-2 px-3">
+                                        <i class="fad fa-user-check text-info"></i>
+                                        <span class="fs-12 flex-fill">Registrado: <strong>{{ sugerenciasFuncionario[idx].funcionario_nombre }}</strong> (CC {{ sugerenciasFuncionario[idx].funcionario_cc }}). ¿Usar este funcionario?</span>
+                                        <button class="btn btn-info btn-sm rounded-pill px-3 fw-semibold" @click="usarFuncionarioSugerido(r, idx)">Usar</button>
+                                        <button class="btn btn-link text-muted btn-sm p-1" @click="descartarSugerencia(idx)" title="Descartar"><i class="fas fa-times"></i></button>
+                                    </div>
                                 </div>
 
                                 <div class="mt-3 text-end">
@@ -425,10 +453,10 @@
                             <button class="btn btn-outline-secondary rounded-pill px-3 fw-semibold" @click="goStep(1)">
                                 <i class="fas fa-arrow-left me-1"></i> Volver
                             </button>
-                            <button class="btn btn-success rounded-pill px-4 shadow-sm fw-bold d-inline-flex align-items-center gap-2" :disabled="submitting" @click="iniciarServicio">
+                            <button class="btn rounded-pill px-4 shadow-sm fw-bold d-inline-flex align-items-center gap-2" :class="!tieneRutaDefinida && !recorridosDia.length ? 'btn-warning' : 'btn-success'" :disabled="submitting" @click="iniciarServicio">
                                 <i v-if="submitting" class="fas fa-spinner fa-spin"></i>
                                 <i v-else class="fas fa-play-circle"></i>
-                                <span>Iniciar Servicio Ahora</span>
+                                <span>{{ !tieneRutaDefinida && !recorridosDia.length ? 'Iniciar en Disponibilidad' : 'Iniciar Servicio Ahora' }}</span>
                             </button>
                         </div>
                     </div>
@@ -459,6 +487,37 @@
                                             <div class="plate-code">{{ vehiculoSeleccionadoPlaca }}</div>
                                         </div>
                                     </div>
+                                </div>
+
+                                <!-- Estado GPS en vivo (usa el rastreo global: sigue activo fuera del Dashboard) -->
+                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 px-3 py-2 rounded-3 border mb-2"
+                                    :class="driverTracking.isTracking ? 'bg-success bg-opacity-10 border-success border-opacity-25' : 'bg-warning bg-opacity-10 border-warning border-opacity-25'">
+                                    <div class="d-flex align-items-center gap-2 fs-12 fw-semibold"
+                                        :class="driverTracking.isTracking ? 'text-success' : 'text-warning'">
+                                        <span class="pulse-indicator" :class="driverTracking.isTracking ? 'bg-success' : 'bg-warning'"></span>
+                                        <i class="fas fa-satellite"></i>
+                                        <span v-if="driverTracking.isTracking">
+                                            GPS activo · {{ driverTracking.speed }} km/h · {{ driverTracking.isMoving ? 'En ruta' : 'Detenido' }}
+                                        </span>
+                                        <span v-else>GPS iniciando… acepta el permiso para registrar la ruta</span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2 fs-11 text-muted">
+                                        <span v-if="driverTracking.coords.latitude !== null" class="font-monospace">
+                                            {{ Number(driverTracking.coords.latitude).toFixed(5) }}, {{ Number(driverTracking.coords.longitude).toFixed(5) }}
+                                        </span>
+                                        <span v-if="gpsUltimoEnvio !== '—'" title="Último punto guardado en el servidor">
+                                            <i class="fas fa-cloud-upload-alt me-1"></i>{{ gpsUltimoEnvio }}
+                                        </span>
+                                        <button v-if="!driverTracking.isTracking || driverTracking.permissionState === 'denied'"
+                                            class="btn btn-sm btn-primary rounded-pill px-3 py-0.5 fw-semibold"
+                                            type="button" @click="activarGpsOperativo">
+                                            <i class="fas fa-location-arrow me-1"></i>Activar ubicación
+                                        </button>
+                                    </div>
+                                </div>
+                                <div v-if="driverTracking.sendError" class="alert alert-warning py-1.5 px-3 fs-11 mb-2 d-flex align-items-center gap-2">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <span>{{ driverTracking.sendError }}. Se reintenta automáticamente cada 10 s…</span>
                                 </div>
 
                                 <!-- Display del Cronómetro Central -->
@@ -498,10 +557,10 @@
                             </div>
                         </div>
 
-                        <!-- Recorridos y Novedades -->
+                        <!-- Recorridos -->
                         <div class="row g-3 mb-4">
                             <!-- Recorridos del día -->
-                            <div class="col-12 col-lg-7">
+                            <div class="col-12">
                                 <div class="card border-0 shadow-sm h-100 fade-in-up">
                                     <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center justify-content-between">
                                         <div class="d-flex align-items-center gap-2">
@@ -518,19 +577,44 @@
                                             <span>Sin recorridos detallados. Agregue los tramos ejecutados hoy.</span>
                                         </div>
 
-                                        <div v-for="(r, idx) in recorridosDia" :key="idx" class="d-flex align-items-center gap-2 mb-2 py-1">
-                                            <span class="badge bg-primary bg-opacity-10 text-primary rounded-circle fs-11 flex-shrink-0" style="width: 28px; height: 28px; display: grid; place-items: center;">{{ idx + 1 }}</span>
-                                            <div class="row g-2 flex-fill">
-                                                <div class="col-6 col-sm-6">
-                                                    <input v-model="r.origin" type="text" class="form-control form-control-sm" placeholder="Origen del tramo" />
+                                        <div v-for="(r, idx) in recorridosDia" :key="idx" class="border rounded-3 p-3 mb-2 bg-light bg-opacity-50">
+                                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="badge rounded-circle fs-11 flex-shrink-0" :class="recorridoEstaCerrado(idx) ? 'bg-secondary text-white' : 'bg-primary bg-opacity-10 text-primary'" style="width: 28px; height: 28px; display: grid; place-items: center;">{{ idx + 1 }}</span>
+                                                    <span class="fw-semibold fs-12 text-dark">Tramo {{ idx + 1 }}</span>
+                                                    <span v-if="recorridoEstaCerrado(idx)" class="badge bg-success text-white fs-10">Certificado ✓</span>
                                                 </div>
-                                                <div class="col-6 col-sm-6">
-                                                    <input v-model="r.destination" type="text" class="form-control form-control-sm" placeholder="Destino del tramo" />
+                                                <button v-if="!recorridoEstaCerrado(idx)" class="btn btn-link text-danger p-1 flex-shrink-0" @click="quitarRecorridoDia(idx)" title="Eliminar">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                                <span v-else class="text-secondary fs-12 p-1 flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 28px;" title="Cerrado y bloqueado">
+                                                    <i class="fas fa-lock"></i>
+                                                </span>
+                                            </div>
+                                            <div class="row g-2 align-items-end">
+                                                <div class="col-12 col-sm-6 col-xl-3">
+                                                    <label class="form-label fw-medium text-muted small mb-1">Origen</label>
+                                                    <input v-model="r.origin" type="text" class="form-control form-control-sm" placeholder="Origen del tramo" :disabled="recorridoEstaCerrado(idx)" />
+                                                </div>
+                                                <div class="col-12 col-sm-6 col-xl-3">
+                                                    <label class="form-label fw-medium text-muted small mb-1">Destino</label>
+                                                    <input v-model="r.destination" type="text" class="form-control form-control-sm" placeholder="Destino del tramo" :disabled="recorridoEstaCerrado(idx)" />
+                                                </div>
+                                                <div class="col-12 col-sm-5 col-xl-2">
+                                                    <label class="form-label required fw-medium text-muted small mb-1">N.° CC</label>
+                                                    <input v-model="r.funcionario_cc" type="text" class="form-control form-control-sm" placeholder="CC *" inputmode="numeric" :disabled="recorridoEstaCerrado(idx) && !!(r.funcionario_nombre || '').trim() && !!(r.funcionario_cc || '').trim()" @blur="buscarFuncionarioSugerido(r, idx)" />
+                                                </div>
+                                                <div class="col-12 col-sm-7 col-xl-4">
+                                                    <label class="form-label required fw-medium text-muted small mb-1">Funcionario (nombre y apellido)</label>
+                                                    <input v-model="r.funcionario_nombre" type="text" class="form-control form-control-sm" placeholder="Nombre y apellido *" :disabled="recorridoEstaCerrado(idx) && !!(r.funcionario_nombre || '').trim() && !!(r.funcionario_cc || '').trim()" />
                                                 </div>
                                             </div>
-                                            <button class="btn btn-link text-danger p-1 flex-shrink-0" @click="quitarRecorridoDia(idx)" title="Eliminar">
-                                                <i class="fas fa-times"></i>
-                                            </button>
+                                            <div v-if="sugerenciasFuncionario[idx]" class="alert alert-info bg-info bg-opacity-10 text-dark border-0 d-flex align-items-center gap-2 mt-2 mb-0 rounded-3 py-2 px-3">
+                                                <i class="fad fa-user-check text-info"></i>
+                                                <span class="fs-12 flex-fill">Registrado: <strong>{{ sugerenciasFuncionario[idx].funcionario_nombre }}</strong> (CC {{ sugerenciasFuncionario[idx].funcionario_cc }}). ¿Usar este funcionario?</span>
+                                                <button class="btn btn-info btn-sm rounded-pill px-3 fw-semibold" @click="usarFuncionarioSugerido(r, idx)">Usar</button>
+                                                <button class="btn btn-link text-muted btn-sm p-1" @click="descartarSugerencia(idx)" title="Descartar"><i class="fas fa-times"></i></button>
+                                            </div>
                                         </div>
 
                                         <div class="text-end mt-2">
@@ -543,9 +627,9 @@
                                 </div>
                             </div>
 
-                            <!-- Novedades y Repuesto -->
-                            <div class="col-12 col-lg-5">
-                                <div class="card border-0 shadow-sm h-100 fade-in-up">
+                            <!-- Novedades y Soporte -->
+                            <div class="col-12">
+                                <div class="card border-0 shadow-sm fade-in-up">
                                     <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center justify-content-between">
                                         <div class="d-flex align-items-center gap-2">
                                             <i class="fad fa-clipboard-notes text-primary"></i>
@@ -555,20 +639,25 @@
                                             <i class="fad fa-sync-alt me-1"></i> Planilla Repuesto
                                         </button>
                                     </div>
-                                    <div class="card-body p-3 d-flex flex-column justify-content-between">
-                                        <div>
-                                            <label class="form-label fw-medium text-muted small mb-1">
-                                                Registrar Novedad en Ruta (opcional)
-                                            </label>
-                                            <textarea
-                                                v-model="formData.route_novelty"
-                                                rows="3"
-                                                class="form-control fs-13"
-                                                placeholder="Desvíos, congestión, demoras, incidentes en carretera..."
-                                            ></textarea>
-                                        </div>
-                                        <div class="mt-3 p-2.5 rounded-3 bg-primary bg-opacity-10 text-primary fs-11 border border-primary border-opacity-10">
-                                            <i class="fad fa-info-circle me-1"></i> Si experimentas daños físicos en la planilla de papel, puedes solicitar una planilla de repuesto oficial a despacho.
+                                    <div class="card-body p-3">
+                                        <div class="row g-3">
+                                            <div class="col-12 col-lg-8">
+                                                <label class="form-label fw-medium text-muted small mb-1">
+                                                    Registrar Novedad en Ruta (opcional)
+                                                </label>
+                                                <textarea
+                                                    v-model="formData.route_novelty"
+                                                    rows="3"
+                                                    class="form-control fs-13"
+                                                    placeholder="Desvíos, congestión, demoras, incidentes en carretera..."
+                                                ></textarea>
+                                            </div>
+                                            <div class="col-12 col-lg-4 d-flex align-items-stretch">
+                                                <div class="p-2.5 rounded-3 bg-primary bg-opacity-10 text-primary fs-11 border border-primary border-opacity-10 w-100 d-flex align-items-center gap-2">
+                                                    <i class="fad fa-info-circle me-1"></i>
+                                                    <span>Si experimentas daños físicos en la planilla de papel, puedes solicitar una planilla de repuesto oficial a despacho.</span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -608,11 +697,16 @@
                                 </span>
                             </div>
 
-                            <div v-if="todosRecorridosCerrados" class="alert alert-success bg-success bg-opacity-10 text-dark border-0 shadow-sm d-flex align-items-center gap-2 mb-3 rounded-3 py-2 px-3">
-                                <i class="fad fa-check-circle text-success fs-5"></i>
-                                <span class="fs-12">
-                                    Todos los recorridos del día están cerrados y firmados individualmente. Continúe a <strong>Firmas y Certificación</strong> para legalizar la planilla completa.
-                                </span>
+                            <div v-if="todosRecorridosCerrados" class="alert alert-success bg-success bg-opacity-10 text-dark border-0 shadow-sm d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 rounded-3 py-3 px-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fad fa-check-double text-success fs-4"></i>
+                                    <span class="fs-12">
+                                        <strong>¡Todos los recorridos certificados!</strong> Cada uno de los {{ recorridosPlanillaActiva.length }} recorridos ha sido cerrado y firmado con éxito.
+                                    </span>
+                                </div>
+                                <button type="button" class="btn btn-success btn-sm rounded-pill px-3 fw-bold" @click="goStep5">
+                                    Continuar a Certificación Final <i class="fas fa-arrow-right ms-1"></i>
+                                </button>
                             </div>
 
                             <div class="d-flex flex-wrap gap-2 mb-3">
@@ -621,37 +715,65 @@
                                     :key="i"
                                     type="button"
                                     class="btn rounded-pill px-3 d-inline-flex align-items-center gap-2 shadow-sm"
-                                    :class="recorridoEstaCerrado(i) ? 'btn-success' : (recorridoSeleccionado === i ? 'btn-primary' : 'btn-outline-primary')"
+                                    :class="recorridoSeleccionado === i
+                                        ? (recorridoEstaCerrado(i) ? 'btn-secondary text-white opacity-75' : 'btn-primary')
+                                        : (recorridoEstaCerrado(i) ? 'btn-outline-secondary opacity-75 text-decoration-line-through' : 'btn-outline-secondary')"
                                     :disabled="recorridoEstaCerrado(i)"
                                     @click="seleccionarRecorrido(i)"
                                 >
-                                    <i :class="recorridoEstaCerrado(i) ? 'fas fa-check-circle' : 'fas fa-route'"></i>
-                                    <span class="fw-semibold">{{ i + 1 }}. {{ r.origin || '—' }} → {{ r.destination || '—' }}</span>
-                                    <span class="badge bg-dark bg-opacity-10 fs-10" :class="recorridoEstaCerrado(i) ? 'text-white' : 'text-dark'">
-                                        {{ recorridoEstaCerrado(i) ? 'Cerrado ✓' : 'Por cerrar' }}
+                                    <i :class="recorridoEstaCerrado(i) ? 'fas fa-lock' : 'fas fa-route'"></i>
+                                    <span class="d-flex flex-column align-items-start lh-sm">
+                                        <span class="fw-semibold">{{ i + 1 }}. {{ r.origin || '—' }} → {{ r.destination || '—' }}</span>
+                                        <small v-if="r.funcionario_nombre || r.funcionario_cc" class="fs-10 opacity-75 fw-normal">
+                                            <i class="fad fa-user-tie me-1"></i>{{ r.funcionario_cc ? `CC ${r.funcionario_cc}` : 'CC —' }}{{ r.funcionario_nombre ? ` · ${r.funcionario_nombre}` : '' }}
+                                        </small>
+                                    </span>
+                                    <span class="badge fs-10" :class="recorridoEstaCerrado(i) ? 'bg-secondary text-white' : 'bg-dark bg-opacity-10 text-dark'">
+                                        {{ recorridoEstaCerrado(i) ? 'Bloqueado' : 'Por cerrar' }}
                                     </span>
                                 </button>
                             </div>
 
-                            <div v-if="!todosRecorridosCerrados" class="card border-0 shadow-sm fade-in-up" :key="recorridoSeleccionado">
+                            <div v-if="cierresRecorridos[recorridoSeleccionado]" class="card border-0 shadow-sm fade-in-up" :key="recorridoSeleccionado">
                                 <div class="card-header bg-light py-2 px-3 border-bottom">
                                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
                                         <div class="d-flex align-items-center gap-2">
                                             <i class="fad fa-flag-checkered text-primary"></i>
-                                            <h6 class="mb-0 fw-semibold text-dark">Cierre — Recorrido {{ recorridoSeleccionado + 1 }}</h6>
+                                            <h6 class="mb-0 fw-semibold text-dark">Recorrido {{ recorridoSeleccionado + 1 }}</h6>
                                         </div>
-                                        <span class="badge bg-primary bg-opacity-10 text-primary">
-                                            {{ recorridosPlanillaActiva[recorridoSeleccionado]?.origin || '—' }} → {{ recorridosPlanillaActiva[recorridoSeleccionado]?.destination || '—' }}
-                                        </span>
+                                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                                            <span class="badge bg-primary bg-opacity-10 text-primary">
+                                                {{ recorridosPlanillaActiva[recorridoSeleccionado]?.origin || '—' }} → {{ recorridosPlanillaActiva[recorridoSeleccionado]?.destination || '—' }}
+                                            </span>
+                                            <span v-if="recorridosPlanillaActiva[recorridoSeleccionado]?.funcionario_nombre || recorridosPlanillaActiva[recorridoSeleccionado]?.funcionario_cc" class="badge bg-info bg-opacity-10 text-info">
+                                                <i class="fad fa-user-tie me-1"></i>{{ recorridosPlanillaActiva[recorridoSeleccionado]?.funcionario_cc ? `CC ${recorridosPlanillaActiva[recorridoSeleccionado]?.funcionario_cc}` : 'CC —' }}{{ recorridosPlanillaActiva[recorridoSeleccionado]?.funcionario_nombre ? ` · ${recorridosPlanillaActiva[recorridoSeleccionado]?.funcionario_nombre}` : '' }}
+                                            </span>
+                                            <span v-if="recorridoEstaCerrado(recorridoSeleccionado)" class="badge bg-success text-white">
+                                                <i class="fas fa-check me-1"></i> Certificado
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="card-body p-3 p-md-4">
+                                    <div v-if="recorridoEstaCerrado(recorridoSeleccionado)" class="alert alert-success bg-success bg-opacity-10 text-dark border-0 shadow-sm d-flex align-items-center gap-2 mb-3 rounded-3 py-2 px-3">
+                                        <i class="fad fa-check-circle text-success fs-5"></i>
+                                        <span class="fs-12">
+                                            Este recorrido ya fue registrado y certificado con sus respectivas firmas digitales.
+                                        </span>
+                                    </div>
+
                                     <div class="row g-3">
                                         <div class="col-12 col-sm-6 col-md-3">
                                             <label class="form-label required fw-medium text-700" style="font-size: 0.9rem;">
                                                 <i class="fad fa-clock text-primary me-1"></i> Hora de Finalización
                                             </label>
-                                            <input v-model="cierresRecorridos[recorridoSeleccionado].end_time" type="time" step="60" class="form-control font-monospace" />
+                                            <input
+                                                v-model="cierresRecorridos[recorridoSeleccionado].end_time"
+                                                type="time"
+                                                step="60"
+                                                class="form-control font-monospace"
+                                                :disabled="recorridoEstaCerrado(recorridoSeleccionado)"
+                                            />
                                         </div>
 
                                         <div class="col-12 col-sm-6 col-md-3">
@@ -665,6 +787,7 @@
                                                     placeholder="Ej. 125680"
                                                     min="0"
                                                     class="form-control font-monospace"
+                                                    :disabled="recorridoEstaCerrado(recorridoSeleccionado)"
                                                 />
                                                 <span class="input-group-text bg-light text-muted fs-12">km</span>
                                             </div>
@@ -674,10 +797,11 @@
                                             <label class="form-label fw-medium text-muted" style="font-size: 0.9rem;">
                                                 <i class="fad fa-road text-success me-1"></i> Recorrido Estimado
                                             </label>
-                                            <div class="p-2 rounded bg-light border text-center h-75 d-flex align-items-center justify-content-center">
+                                            <div class="p-2 rounded bg-light border text-center h-75 d-flex flex-column align-items-center justify-content-center">
                                                 <span class="fw-bold fs-14 text-primary font-monospace">
-                                                    {{ Math.max(0, (Number(cierresRecorridos[recorridoSeleccionado].ending_kilometer || 0) - Number(formData.starting_kilometer || 0))) }} km
+                                                    {{ kmEstimadoRecorrido(recorridoSeleccionado) }} km
                                                 </span>
+                                                <small class="text-muted fs-10">Desde: {{ kmInicialRecorrido(recorridoSeleccionado) }} km</small>
                                             </div>
                                         </div>
 
@@ -685,7 +809,15 @@
                                             <label class="form-label fw-medium text-700" style="font-size: 0.9rem;">
                                                 <i class="fad fa-ticket-alt text-primary me-1"></i> N.° de Peajes
                                             </label>
-                                            <input v-model="cierresRecorridos[recorridoSeleccionado].number_of_tolls" type="number" placeholder="0" min="0" max="50" class="form-control" />
+                                            <input
+                                                v-model="cierresRecorridos[recorridoSeleccionado].number_of_tolls"
+                                                type="number"
+                                                placeholder="0"
+                                                min="0"
+                                                max="50"
+                                                class="form-control"
+                                                :disabled="recorridoEstaCerrado(recorridoSeleccionado)"
+                                            />
                                         </div>
 
                                         <div class="col-12 col-sm-6 col-md-4">
@@ -694,7 +826,14 @@
                                             </label>
                                             <div class="input-group">
                                                 <span class="input-group-text bg-light text-muted">$</span>
-                                                <input v-model="cierresRecorridos[recorridoSeleccionado].total_toll_value" type="number" placeholder="0" min="0" class="form-control" />
+                                                <input
+                                                    v-model="cierresRecorridos[recorridoSeleccionado].total_toll_value"
+                                                    type="number"
+                                                    placeholder="0"
+                                                    min="0"
+                                                    class="form-control"
+                                                    :disabled="recorridoEstaCerrado(recorridoSeleccionado)"
+                                                />
                                             </div>
                                         </div>
 
@@ -702,19 +841,129 @@
                                             <label class="form-label fw-medium text-700" style="font-size: 0.9rem;">
                                                 <i class="fad fa-comment-alt-lines text-primary me-1"></i> Novedades al Cierre
                                             </label>
-                                            <input v-model="cierresRecorridos[recorridoSeleccionado].end_novelty" type="text" class="form-control" placeholder="Sin novedad / reporte de entrega a satisfacción..." />
+                                            <input
+                                                v-model="cierresRecorridos[recorridoSeleccionado].end_novelty"
+                                                type="text"
+                                                class="form-control"
+                                                placeholder="Sin novedad / reporte de entrega a satisfacción..."
+                                                :disabled="recorridoEstaCerrado(recorridoSeleccionado)"
+                                            />
+                                        </div>
+
+                                        <div class="col-12 col-md-5">
+                                            <label class="form-label required fw-medium text-700" style="font-size: 0.9rem;">
+                                                <i class="fad fa-id-card text-primary me-1"></i> N.° CC funcionario
+                                            </label>
+                                            <input
+                                                v-model="cierresRecorridos[recorridoSeleccionado].funcionario_cc"
+                                                type="text"
+                                                class="form-control"
+                                                placeholder="CC del funcionario *"
+                                                inputmode="numeric"
+                                                :disabled="recorridoEstaCerrado(recorridoSeleccionado) && !!(cierresRecorridos[recorridoSeleccionado].funcionario_nombre || '').trim() && !!(cierresRecorridos[recorridoSeleccionado].funcionario_cc || '').trim()"
+                                                @blur="buscarFuncionarioCierre"
+                                            />
+                                        </div>
+
+                                        <div class="col-12 col-md-7">
+                                            <label class="form-label required fw-medium text-700" style="font-size: 0.9rem;">
+                                                <i class="fad fa-user-tie text-primary me-1"></i> Funcionario del recorrido
+                                            </label>
+                                            <input
+                                                v-model="cierresRecorridos[recorridoSeleccionado].funcionario_nombre"
+                                                type="text"
+                                                class="form-control"
+                                                placeholder="Nombre y apellido del funcionario *"
+                                                :disabled="recorridoEstaCerrado(recorridoSeleccionado) && !!(cierresRecorridos[recorridoSeleccionado].funcionario_nombre || '').trim() && !!(cierresRecorridos[recorridoSeleccionado].funcionario_cc || '').trim()"
+                                            />
+                                        </div>
+
+                                        <div v-if="sugerenciaCierre" class="col-12">
+                                            <div class="alert alert-info bg-info bg-opacity-10 text-dark border-0 d-flex align-items-center gap-2 mb-0 rounded-3 py-2 px-3">
+                                                <i class="fad fa-user-check text-info"></i>
+                                                <span class="fs-12 flex-fill">Registrado: <strong>{{ sugerenciaCierre.funcionario_nombre }}</strong> (CC {{ sugerenciaCierre.funcionario_cc }}). ¿Usar este funcionario?</span>
+                                                <button class="btn btn-info btn-sm rounded-pill px-3 fw-semibold" @click="usarFuncionarioCierre">Usar</button>
+                                                <button class="btn btn-link text-muted btn-sm p-1" @click="sugerenciaCierre = null" title="Descartar"><i class="fas fa-times"></i></button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Firmas Digitales del Recorrido -->
+                                        <div class="col-12 mt-3 pt-3 border-top">
+                                            <div class="d-flex align-items-center gap-2 mb-3">
+                                                <i class="fad fa-file-signature text-primary"></i>
+                                                <h6 class="mb-0 fw-semibold text-dark">Firmas de Entrega — Recorrido {{ recorridoSeleccionado + 1 }}</h6>
+                                            </div>
+                                            <div v-if="recorridoEstaCerrado(recorridoSeleccionado)" class="alert alert-light border d-flex align-items-center gap-2 py-3 px-3 text-success">
+                                                <i class="fad fa-check-circle fs-4"></i>
+                                                <span class="fs-12">Las firmas digitales para este recorrido ya fueron registradas y almacenadas.</span>
+                                            </div>
+                                            <div v-else-if="firmasRecorridos[recorridoSeleccionado]" class="row g-3">
+                                                <div class="col-12 col-xl-6">
+                                                    <FirmaPad
+                                                        :key="`step4-pad-${recorridoSeleccionado}-funcionario`"
+                                                        rol="funcionario"
+                                                        titulo="Firma del Funcionario / Cliente"
+                                                        v-model:nombre="cierresRecorridos[recorridoSeleccionado].funcionario_nombre"
+                                                        :detalle-nombre="detalleFuncionarioCc"
+                                                        bloquear-nombre
+                                                        :ref="(el) => registrarPadRecorrido(recorridoSeleccionado, 'funcionario', el)"
+                                                        accent="#2c7be5"
+                                                    />
+                                                </div>
+                                                <div class="col-12 col-xl-6">
+                                                    <FirmaPad
+                                                        :key="`step4-pad-${recorridoSeleccionado}-conductor`"
+                                                        rol="conductor"
+                                                        titulo="Firma del Conductor"
+                                                        v-model:nombre="firmasRecorridos[recorridoSeleccionado].conductorNombre"
+                                                        bloquear-nombre
+                                                        :ref="(el) => registrarPadRecorrido(recorridoSeleccionado, 'conductor', el)"
+                                                        accent="#00a651"
+                                                    />
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3 pt-3 border-top">
+                                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-4 pt-3 border-top">
                                         <span class="fs-12 text-muted">
                                             <i class="fad fa-info-circle me-1"></i>
-                                            Al guardar se certificará <strong>solo este recorrido</strong>. Los pendientes pueden cerrarse después; la planilla se legaliza cuando todos estén cerrados.
+                                            Al guardar se certificará <strong>solo este recorrido</strong> con sus firmas digitales.
                                         </span>
-                                        <button class="btn btn-success rounded-pill px-4 fw-bold shadow-sm d-inline-flex align-items-center gap-2" :disabled="submitting" @click="goStep5">
-                                            <i class="fas fa-file-signature"></i>
-                                            <span>Firmar y Cerrar Recorrido {{ recorridoSeleccionado + 1 }}</span>
+                                        <button
+                                            v-if="!recorridoEstaCerrado(recorridoSeleccionado)"
+                                            class="btn btn-success rounded-pill px-4 fw-bold shadow-sm d-inline-flex align-items-center gap-2"
+                                            :disabled="submitting"
+                                            @click="guardarCierreRecorrido"
+                                        >
+                                            <i v-if="submitting" class="fas fa-spinner fa-spin"></i>
+                                            <i v-else class="fas fa-check-circle"></i>
+                                            <span>Guardar y Cerrar Recorrido {{ recorridoSeleccionado + 1 }}</span>
                                         </button>
+                                        <div v-else class="d-flex flex-wrap align-items-center gap-2">
+                                            <span class="badge bg-success bg-opacity-10 text-success py-2 px-3 fs-12 fw-bold">
+                                                <i class="fas fa-check-circle me-1"></i> Recorrido {{ recorridoSeleccionado + 1 }} Certificado
+                                            </span>
+                                            <button
+                                                v-if="!(cierresRecorridos[recorridoSeleccionado]?.funcionario_nombre || '').trim() || !(cierresRecorridos[recorridoSeleccionado]?.funcionario_cc || '').trim()"
+                                                type="button"
+                                                class="btn btn-warning rounded-pill px-3 fw-bold shadow-sm d-inline-flex align-items-center gap-2 btn-sm"
+                                                :disabled="submitting"
+                                                @click="guardarFuncionarioRecorridoCerrado"
+                                            >
+                                                <i v-if="submitting" class="fas fa-spinner fa-spin"></i>
+                                                <i v-else class="fas fa-save"></i>
+                                                <span>Guardar Funcionario Recorrido {{ recorridoSeleccionado + 1 }}</span>
+                                            </button>
+                                            <button
+                                                v-if="!todosRecorridosCerrados && pendientesRecorridos.length > 0"
+                                                type="button"
+                                                class="btn btn-outline-primary btn-sm rounded-pill"
+                                                @click="seleccionarRecorrido(pendientesRecorridos[0])"
+                                            >
+                                                Siguiente Pendiente <i class="fas fa-arrow-right ms-1"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -806,10 +1055,26 @@
                             <button class="btn btn-outline-secondary rounded-pill px-3 fw-semibold" @click="goStep(3)">
                                 <i class="fas fa-arrow-left me-1"></i> Volver a En Ruta
                             </button>
-                            <button class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold d-inline-flex align-items-center gap-2" @click="goStep5">
+                            <button
+                                v-if="rutasMulti && todosRecorridosCerrados"
+                                class="btn btn-success rounded-pill px-4 shadow-sm fw-bold d-inline-flex align-items-center gap-2"
+                                @click="goStep5"
+                            >
+                                <span>Continuar a Certificación Final</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                            <button
+                                v-else-if="!rutasMulti"
+                                class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold d-inline-flex align-items-center gap-2"
+                                @click="goStep5"
+                            >
                                 <span>Continuar a Firmas y Certificación</span>
                                 <i class="fas fa-arrow-right"></i>
                             </button>
+                            <span v-else class="text-muted fs-12">
+                                <i class="fad fa-info-circle me-1"></i>
+                                Cierre y firme cada recorrido arriba para habilitar la certificación final de la planilla.
+                            </span>
                         </div>
                     </div>
 
@@ -861,53 +1126,77 @@
                             </div>
                         </div>
 
-                        <!-- Firmas Digitales -->
+                        <!-- Resumen de Recorridos para Rutas Múltiples -->
                         <div v-if="rutasMulti" class="row g-3 mb-4">
-                            <div v-if="todosRecorridosCerrados" class="col-12">
-                                <div class="alert alert-success bg-success bg-opacity-10 text-dark border-0 shadow-sm d-flex align-items-center gap-2 mb-3 rounded-3 py-2 px-3">
-                                    <i class="fad fa-check-circle text-success fs-5"></i>
-                                    <span class="fs-12">
-                                        Todos los recorridos del día quedaron cerrados y firmados individualmente. Solo resta <strong>certificar la planilla</strong> con el botón verde.
-                                    </span>
-                                </div>
-                            </div>
-                            <div v-else class="col-12">
-                                <div class="alert alert-warning bg-warning bg-opacity-10 text-dark border-0 shadow-sm d-flex align-items-center gap-2 mb-3 rounded-3 py-2 px-3">
-                                    <i class="fad fa-file-signature text-warning fs-5"></i>
-                                    <span class="fs-12">
-                                        Va a firmar el cierre del <strong>recorrido {{ recorridoSeleccionado + 1 }}</strong>
-                                        ({{ recorridosPlanillaActiva[recorridoSeleccionado]?.origin || '—' }} → {{ recorridosPlanillaActiva[recorridoSeleccionado]?.destination || '—' }}).
-                                        Estas firmas certifican únicamente ese recorrido; los pendientes se firmarán enseguida.
-                                    </span>
-                                </div>
-                                <div class="row g-3">
-                                    <div class="col-12 col-xl-6">
-                                        <FirmaPad
-                                            rol="funcionario"
-                                            titulo="Firma del Funcionario / Cliente"
-                                            placeholder-nombre="Nombre de quien recibe el servicio"
-                                            v-model:nombre="firmasRecorridos[recorridoSeleccionado].funcionarioNombre"
-                                            :ref="(el) => registrarPadRecorrido(recorridoSeleccionado, 'funcionario', el)"
-                                            accent="#2c7be5"
-                                        />
+                            <div class="col-12">
+                                <div v-if="todosRecorridosCerrados" class="card border-0 shadow-sm">
+                                    <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="fad fa-check-double text-success"></i>
+                                            <h6 class="mb-0 fw-semibold text-dark">Recorridos Certificados del Día ({{ recorridosPlanillaActiva.length }})</h6>
+                                        </div>
+                                        <span class="badge bg-success bg-opacity-10 text-success fw-bold px-2.5 py-1">
+                                            Todos Certificados ✓
+                                        </span>
                                     </div>
-                                    <div class="col-12 col-xl-6">
-                                        <FirmaPad
-                                            rol="conductor"
-                                            titulo="Firma del Conductor"
-                                            placeholder-nombre="Nombre completo del conductor"
-                                            v-model:nombre="firmasRecorridos[recorridoSeleccionado].conductorNombre"
-                                            :ref="(el) => registrarPadRecorrido(recorridoSeleccionado, 'conductor', el)"
-                                            accent="#00a651"
-                                        />
+                                    <div class="card-body p-0">
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-hover mb-0 fs-12 align-middle">
+                                                <thead class="bg-light text-700">
+                                                    <tr>
+                                                        <th class="ps-3 py-2">#</th>
+                                                        <th class="py-2">Origen → Destino</th>
+                                                        <th class="py-2">Funcionario</th>
+                                                        <th class="py-2">Hora Fin</th>
+                                                        <th class="py-2">Km Final</th>
+                                                        <th class="py-2">Peajes</th>
+                                                        <th class="py-2">Novedad</th>
+                                                        <th class="pe-3 py-2 text-center">Estado</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr v-for="(r, idx) in recorridosPlanillaActiva" :key="idx">
+                                                        <td class="ps-3 fw-bold">{{ idx + 1 }}</td>
+                                                        <td class="fw-semibold text-dark">{{ r.origin || '—' }} → {{ r.destination || '—' }}</td>
+                                                        <td>
+                                                            <span class="fw-medium text-dark d-block">CC {{ cierreDe(idx).funcionario_cc || r.funcionario_cc || '—' }}</span>
+                                                            <small class="text-muted">{{ cierreDe(idx).funcionario_nombre || r.funcionario_nombre || 'Sin nombre' }}</small>
+                                                        </td>
+                                                        <td class="font-monospace text-primary fw-semibold">{{ cierreDe(idx).end_time || r.end_time || '—' }}</td>
+                                                        <td class="font-monospace">{{ cierreDe(idx).ending_kilometer || r.ending_kilometer || '—' }} km</td>
+                                                        <td>{{ cierreDe(idx).number_of_tolls || r.number_of_tolls || 0 }} (${{ Number(cierreDe(idx).total_toll_value || r.total_toll_value || 0).toLocaleString('es-CO') }})</td>
+                                                        <td class="text-muted">{{ cierreDe(idx).end_novelty || r.end_novelty || 'Sin novedades' }}</td>
+                                                        <td class="pe-3 text-center"><span class="badge bg-success text-white">Certificado ✓</span></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
+                                </div>
+                                <div v-else class="alert alert-warning bg-warning bg-opacity-10 text-dark border-0 shadow-sm d-flex align-items-center justify-content-between gap-3 rounded-3 py-3 px-3">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="fad fa-exclamation-triangle text-warning fs-4"></i>
+                                        <span class="fs-12">
+                                            Hay <strong>{{ pendientesRecorridos.length }} recorrido(s)</strong> pendientes por cerrar. Debe diligenciar y firmar cada recorrido en el Paso 4 antes de legalizar la planilla completa.
+                                        </span>
+                                    </div>
+                                    <button class="btn btn-warning btn-sm rounded-pill fw-bold" @click="goStep(4)">
+                                        <i class="fas fa-arrow-left me-1"></i> Ir al Paso 4
+                                    </button>
                                 </div>
                             </div>
                         </div>
 
-                        <div v-else class="row g-3 mb-4">
-                            <!-- Firma Funcionario -->
-                            <div class="col-12 col-md-6">
+                        <div v-if="esDisponibilidad" class="alert alert-info bg-info bg-opacity-10 text-dark border-0 shadow-sm d-flex align-items-center gap-2 mb-3 rounded-3 py-2 px-3">
+                            <i class="fad fa-car-side text-info fs-5"></i>
+                            <span class="fs-12">
+                                <strong>Vehículo en disponibilidad.</strong> Esta planilla no tiene recorridos anexados: conductor y vehículo quedan en estado de disponibilidad. Solo firman el <strong>conductor</strong> y el <strong>COORDINADOR DE SERVICIOS</strong> (vía enlace). El PDF generará una sola fila.
+                            </span>
+                        </div>
+
+                        <div v-if="!rutasMulti" class="row g-3 mb-4">
+                            <!-- Firma Funcionario (se oculta en disponibilidad: solo conductor + coordinador) -->
+                            <div v-if="!esDisponibilidad" class="col-12 col-md-6">
                                 <div class="card border-0 shadow-sm h-100 signature-card">
                                     <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center justify-content-between">
                                         <div class="d-flex align-items-center gap-2">
@@ -939,7 +1228,7 @@
                             </div>
 
                             <!-- Firma Conductor -->
-                            <div class="col-12 col-md-6">
+                            <div class="col-12" :class="{ 'col-md-6': !esDisponibilidad }">
                                 <div class="card border-0 shadow-sm h-100 signature-card">
                                     <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center justify-content-between">
                                         <div class="d-flex align-items-center gap-2">
@@ -969,6 +1258,14 @@
                                     </div>
                                 </div>
                             </div>
+                            <div v-if="esDisponibilidad" class="col-12 col-md-6">
+                                <div class="alert alert-warning bg-warning bg-opacity-10 text-dark border-0 shadow-sm d-flex align-items-center gap-2 mb-0 rounded-3 py-3 px-3 h-100">
+                                    <i class="fad fa-user-hard-hat text-warning fs-4"></i>
+                                    <span class="fs-12">
+                                        La segunda firma corresponde al <strong>COORDINADOR DE SERVICIOS</strong> y se registra mediante el <strong>enlace público de firma</strong> (botón Compartir en el listado). No se requiere firma de funcionario en disponibilidad.
+                                    </span>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Indicador si es multi-día -->
@@ -982,14 +1279,16 @@
                         <!-- Acciones -->
                         <div class="d-flex align-items-center justify-content-between gap-2 mt-4">
                             <button class="btn btn-outline-secondary rounded-pill px-3 fw-semibold" @click="goStep(4)">
-                                <i class="fas fa-arrow-left me-1"></i> Volver a Métricas
+                                <i class="fas fa-arrow-left me-1"></i> Volver a Datos de Cierre
                             </button>
-                            <button class="btn btn-success rounded-pill px-4 shadow-sm fw-bold d-inline-flex align-items-center gap-2" :disabled="submitting" @click="rutasMulti ? (todosRecorridosCerrados ? guardarPlanilla : guardarCierreRecorrido) : guardarPlanilla">
+                            <button
+                                class="btn btn-success rounded-pill px-4 shadow-sm fw-bold d-inline-flex align-items-center gap-2"
+                                :disabled="submitting || (rutasMulti && !todosRecorridosCerrados)"
+                                @click="guardarPlanilla"
+                            >
                                 <i v-if="submitting" class="fas fa-spinner fa-spin"></i>
-                                <i v-else-if="rutasMulti" :class="todosRecorridosCerrados ? 'fas fa-check-circle' : 'fas fa-file-signature'"></i>
                                 <i v-else class="fas fa-check-circle"></i>
-                                <span v-if="rutasMulti && !todosRecorridosCerrados">Guardar Cierre del Recorrido {{ recorridoSeleccionado + 1 }}</span>
-                                <span v-else>{{ esMultiDia ? `Guardar Planilla del Día (${planillaActiva ? formatFecha(planillaActiva.service_date) : ''})` : 'Guardar y Certificar Planilla' }}</span>
+                                <span>{{ esMultiDia ? `Guardar Planilla del Día (${planillaActiva ? formatFecha(planillaActiva.service_date) : ''})` : 'Guardar y Certificar Planilla Completa' }}</span>
                             </button>
                         </div>
                     </div>
@@ -1115,6 +1414,7 @@ import serviceDeliveryControlSheetService from '../services/serviceDeliveryContr
 import vehicleInspectionsService from '../../vehicleInspections/services/vehicleInspections.service.js';
 import { usePermissionsStore, useUserStore } from '@store';
 import { useSelect2 } from '@/hooks/useSelect2.js';
+import { useDriverTrackingStore } from '../../tracking/store/driverTracking.store.js';
 import FirmaPad from '../components/FirmaPad.vue';
 
 // --- STORES Y ROUTER ---
@@ -1123,6 +1423,47 @@ const router = useRouter();
 const store = useServiceDeliveryControlSheetStore();
 const permissionsStore = usePermissionsStore();
 const userStore = useUserStore();
+const driverTracking = useDriverTrackingStore();
+
+// Etiqueta del último envío GPS al servidor (visible en Paso 3 En Ruta).
+const gpsUltimoEnvio = computed(() => {
+    const d = driverTracking.lastSentAt;
+    if (!d) return '—';
+    const dt = d instanceof Date ? d : new Date(d);
+    return dt.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+});
+
+// Vehículo/proyecto del servicio seleccionado para el contexto GPS.
+const gpsVehiculoUuid = computed(() =>
+    planillaActiva.value?.internal_control?.vehicle_uuid
+    || servicioSeleccionado.value?.internal_control?.vehicle_uuid
+    || ''
+);
+const gpsProyectoUuid = computed(() =>
+    servicioSeleccionado.value?.project_uuid
+    || servicioSeleccionado.value?.project?.uuid
+    || ''
+);
+
+// Mantiene el rastreo global activo mientras se opera la planilla y
+// actualiza vehículo/proyecto sin reiniciar el watch ni duplicar sesiones.
+const sincronizarGpsOperativo = () => {
+    if (gpsVehiculoUuid.value) {
+        if (driverTracking.isTracking) {
+            driverTracking.updateContext({ vehicleUuid: gpsVehiculoUuid.value, projectUuid: gpsProyectoUuid.value || null });
+        } else {
+            driverTracking.ensureTracking({ vehicleUuid: gpsVehiculoUuid.value, projectUuid: gpsProyectoUuid.value || null });
+        }
+    }
+};
+
+const activarGpsOperativo = async () => {
+    if (gpsVehiculoUuid.value) {
+        driverTracking.updateContext({ vehicleUuid: gpsVehiculoUuid.value, projectUuid: gpsProyectoUuid.value || null });
+    }
+    await driverTracking.retryFromUserGesture();
+    sincronizarGpsOperativo();
+};
 
 // --- ESTADOS ---
 const isSuperAdmin = computed(() => permissionsStore.roles?.includes('SUPERADMIN'));
@@ -1167,11 +1508,28 @@ const firma = reactive({
 // más de un recorrido en el día; con un solo recorrido se mantiene el
 // flujo normal (diligenciamiento único, firmas únicas).
 const rutasMulti = computed(() => recorridosPlanillaActiva.value.length > 1);
+// Disponibilidad: la planilla inició sin recorridos anexados. Solo firman conductor y coordinador.
+const esDisponibilidad = computed(() => (recorridosPlanillaActiva.value || []).length === 0);
 const cierresRecorridos = ref([]);
 const firmasRecorridos = ref([]);
 const firmaPadsRecorridos = ref({});
 
 const cierreDe = (i) => cierresRecorridos.value[i] || {};
+
+const kmInicialRecorrido = (i) => {
+    if (i <= 0) return Number(formData.starting_kilometer || 0);
+    for (let prev = i - 1; prev >= 0; prev--) {
+        const k = cierresRecorridos.value[prev]?.ending_kilometer;
+        if (k !== '' && k !== null && k !== undefined) return Number(k);
+    }
+    return Number(formData.starting_kilometer || 0);
+};
+
+const kmEstimadoRecorrido = (i) => {
+    const end = Number(cierresRecorridos.value[i]?.ending_kilometer || 0);
+    const start = kmInicialRecorrido(i);
+    return end >= start ? (end - start) : 0;
+};
 
 // Cierre parcial: cada recorrido se puede cerrar y firmar por separado.
 // Los recorridos ya cerrados se marcan con ✓ y la planilla queda en curso
@@ -1180,6 +1538,12 @@ const cerradosRecorridos = ref([]);
 const recorridoSeleccionado = ref(0);
 
 const recorridoEstaCerrado = (i) => !!cerradosRecorridos.value[i];
+
+// CC del funcionario del recorrido seleccionado, como texto informativo bajo su nombre en Firmas de Entrega.
+const detalleFuncionarioCc = computed(() => {
+    const cc = (cierresRecorridos.value[recorridoSeleccionado.value]?.funcionario_cc || '').trim();
+    return cc ? `CC ${cc}` : '';
+});
 
 const pendientesRecorridos = computed(() => {
     const rutas = recorridosPlanillaActiva.value;
@@ -1192,37 +1556,54 @@ const todosRecorridosCerrados = computed(() => {
 });
 
 const seleccionarRecorrido = (i) => {
-    if (recorridoEstaCerrado(i)) return;
     recorridoSeleccionado.value = i;
+    sugerenciaCierre.value = null;
 };
 
 const inicializarCierresPorRecorrido = () => {
     const rutas = recorridosPlanillaActiva.value;
-    const ahora = new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false });
+    if (!rutas.length) return;
+    const now = new Date();
+    const ahora = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     cierresRecorridos.value = rutas.map(r => ({
-        end_time: r.end_time ? String(r.end_time).substring(0, 5) : '',
-        ending_kilometer: r.ending_kilometer ?? '',
+        end_time: r.end_time ? String(r.end_time).substring(0, 5) : ahora,
+        ending_kilometer: (r.ending_kilometer !== null && r.ending_kilometer !== undefined) ? r.ending_kilometer : '',
         number_of_tolls: r.number_of_tolls || 0,
         total_toll_value: r.total_toll_value || 0,
         end_novelty: r.end_novelty || '',
+        funcionario_nombre: r.funcionario_nombre || '',
+        funcionario_cc: r.funcionario_cc || '',
     }));
-    cerradosRecorridos.value = rutas.map(r => !!r.end_time);
+    cerradosRecorridos.value = rutas.map(r => !!(r.end_time && (r.ending_kilometer !== null && r.ending_kilometer !== '')));
     firmasRecorridos.value = rutas.map(() => ({
         funcionarioNombre: servicioSeleccionado.value?.official_name_and_surname || userStore.user?.full_name || '',
-        conductorNombre: conductorSeleccionadoNombre.value,
+        conductorNombre: conductorSeleccionadoNombre.value || '',
     }));
     firmaPadsRecorridos.value = {};
     const primerPendiente = cerradosRecorridos.value.findIndex(c => !c);
-    recorridoSeleccionado.value = primerPendiente === -1 ? (rutas.length - 1) : Math.max(primerPendiente, 0);
-    if (rutasMulti.value && rutas.length > 1) {
-        cierresRecorridos.value.forEach((c, i) => {
-            if (!c.end_time && !cerradosRecorridos.value[i]) c.end_time = ahora;
-        });
-    }
+    recorridoSeleccionado.value = primerPendiente === -1 ? 0 : primerPendiente;
 };
 
 const registrarPadRecorrido = (i, rol, el) => {
     if (el) firmaPadsRecorridos.value[`${i}-${rol}`] = el;
+};
+
+// Sincroniza el funcionario guardado en cada recorrido hacia su copia de cierre
+// cuando esta está vacía. No pisa ediciones del usuario ni recorridos ya cerrados.
+// Evita el bloqueo "requiere nombre y CC" aunque el dato ya exista en el recorrido.
+const sincronizarFuncionarioCierres = () => {
+    const rutas = recorridosPlanillaActiva.value;
+    if (!rutas.length || cierresRecorridos.value.length !== rutas.length) return;
+    rutas.forEach((r, idx) => {
+        const c = cierresRecorridos.value[idx];
+        if (!c) return;
+        if (!(c.funcionario_nombre || '').trim() && (r.funcionario_nombre || '').trim()) {
+            c.funcionario_nombre = r.funcionario_nombre;
+        }
+        if (!(c.funcionario_cc || '').trim() && (r.funcionario_cc || '').trim()) {
+            c.funcionario_cc = r.funcionario_cc;
+        }
+    });
 };
 
 const modal = reactive({
@@ -1352,18 +1733,101 @@ const normalizarRecorridos = (list) => {
     if (!Array.isArray(list)) return [];
     return list
         .map(r => ({
+            uuid: r?.uuid || undefined,
+            order_index: r?.order_index || undefined,
             origin: r?.origin || '',
             destination: r?.destination || '',
+            funcionario_nombre: (r?.funcionario_nombre || '').trim(),
+            funcionario_cc: (r?.funcionario_cc || '').trim(),
         }))
         .filter(r => r.origin || r.destination);
 };
 
 const agregarRecorridoDia = () => {
-    recorridosDia.value.push({ origin: '', destination: '' });
+    recorridosDia.value.push({ origin: '', destination: '', funcionario_nombre: '', funcionario_cc: '' });
 };
+
+// Valida que cada recorrido tenga funcionario completo, uniendo lo digitado
+// en el editor con lo ya guardado en la planilla. Retorna el índice (0-based)
+// del primer recorrido incompleto, o -1 si todos están completos.
+// Evita avanzar/iniciar/cerrar cuando el funcionario no quedó almacenado.
+const indiceRecorridoSinFuncionario = () => {
+    const guardados = planillaActiva.value?.routes || [];
+    const editor = normalizarRecorridos(recorridosDia.value);
+    const total = Math.max(guardados.length, editor.length);
+    if (!total) return -1;
+    for (let i = 0; i < total; i++) {
+        const g = guardados[i] || {};
+        const e = editor[i] || {};
+        const nombre = (e.funcionario_nombre || g.funcionario_nombre || '').trim();
+        const cc = (e.funcionario_cc || g.funcionario_cc || '').trim();
+        if (!nombre || !cc) return i;
+    }
+    return -1;
+};
+
+const mensajeFuncionarioFaltante = (i) => `El recorrido ${i + 1} requiere nombre y apellido del funcionario y número de CC`;
 
 const quitarRecorridoDia = (idx) => {
     recorridosDia.value.splice(idx, 1);
+    delete sugerenciasFuncionario.value[idx];
+};
+
+// Sugerencia de funcionario registrado: al digitar el CC se busca si ya existe
+// y se ofrece reutilizar sus datos con el botón "Usar".
+const sugerenciasFuncionario = ref({});
+const sugerenciaCierre = ref(null);
+
+const extraerFuncionarios = (res) => {
+    const d = res?.data?.data ?? res?.data ?? res;
+    return Array.isArray(d) ? d : [];
+};
+
+const buscarFuncionarioSugerido = async (r, idx) => {
+    delete sugerenciasFuncionario.value[idx];
+    const cc = (r?.funcionario_cc || '').trim();
+    if (cc.length < 3) return;
+    try {
+        const lista = extraerFuncionarios(await serviceDeliveryControlSheetService.searchFuncionario(cc));
+        const exacto = lista.find(f => String(f.funcionario_cc || '').trim() === cc);
+        if (exacto && (exacto.funcionario_nombre || '').trim().toLowerCase() !== (r.funcionario_nombre || '').trim().toLowerCase()) {
+            sugerenciasFuncionario.value[idx] = exacto;
+        }
+    } catch { /* búsqueda silenciosa: no bloquea el diligenciamiento */ }
+};
+
+const usarFuncionarioSugerido = (r, idx) => {
+    const sug = sugerenciasFuncionario.value[idx];
+    if (!sug) return;
+    r.funcionario_nombre = sug.funcionario_nombre || '';
+    r.funcionario_cc = sug.funcionario_cc || r.funcionario_cc;
+    delete sugerenciasFuncionario.value[idx];
+};
+
+const descartarSugerencia = (idx) => {
+    delete sugerenciasFuncionario.value[idx];
+};
+
+const buscarFuncionarioCierre = async () => {
+    sugerenciaCierre.value = null;
+    const c = cierresRecorridos.value[recorridoSeleccionado.value] || {};
+    const cc = (c.funcionario_cc || '').trim();
+    if (cc.length < 3) return;
+    try {
+        const lista = extraerFuncionarios(await serviceDeliveryControlSheetService.searchFuncionario(cc));
+        const exacto = lista.find(f => String(f.funcionario_cc || '').trim() === cc);
+        if (exacto && (exacto.funcionario_nombre || '').trim().toLowerCase() !== (c.funcionario_nombre || '').trim().toLowerCase()) {
+            sugerenciaCierre.value = exacto;
+        }
+    } catch { /* búsqueda silenciosa */ }
+};
+
+const usarFuncionarioCierre = () => {
+    const c = cierresRecorridos.value[recorridoSeleccionado.value];
+    if (!c || !sugerenciaCierre.value) return;
+    c.funcionario_nombre = sugerenciaCierre.value.funcionario_nombre || '';
+    c.funcionario_cc = sugerenciaCierre.value.funcionario_cc || c.funcionario_cc;
+    sugerenciaCierre.value = null;
 };
 
 const guardarRecorridosDia = async () => {
@@ -1371,10 +1835,21 @@ const guardarRecorridosDia = async () => {
     if (!uuid) return toast('Atención', 'Seleccione primero el servicio del día', 'warning');
     const validos = normalizarRecorridos(recorridosDia.value);
     if (!validos.length) return toast('Atención', 'Agregue al menos un recorrido con origen y destino', 'warning');
+    const sinFuncionario = validos.findIndex(r => !r.funcionario_nombre || !r.funcionario_cc);
+    if (sinFuncionario !== -1) return toast('Atención', mensajeFuncionarioFaltante(sinFuncionario), 'warning');
     guardandoRecorridos.value = true;
     try {
         const updated = await store.updateItem(uuid, { routes: validos });
         const saved = updated?.routes || validos;
+        // Verificación de almacenamiento: si el backend no devolvió el funcionario
+        // (p. ej. columnas faltantes en BD de producción), no se da por guardado
+        // y se advierte para no perder la información digitada.
+        const sinGuardar = (Array.isArray(saved) ? saved : []).findIndex(
+            r => !(r?.funcionario_nombre || '').trim() || !(r?.funcionario_cc || '').trim()
+        );
+        if (sinGuardar !== -1) {
+            return toast('Atención', `${mensajeFuncionarioFaltante(sinGuardar)} por que no se esta almacenando la informacion. Verifique la base de datos.`, 'warning');
+        }
         const aplicar = (nodo) => {
             if (nodo && nodo.uuid === uuid) nodo.routes = saved.map(r => ({ ...r }));
         };
@@ -1383,10 +1858,14 @@ const guardarRecorridosDia = async () => {
             (s.children || []).forEach(aplicar);
         });
         recorridosDia.value = normalizarRecorridos(saved);
+        sugerenciasFuncionario.value = {};
         persistirProgreso();
         toast('¡Éxito!', `Se guardaron ${recorridosDia.value.length} recorrido(s) del día`, 'success');
     } catch (err) {
-        toast('Error', err?.response?.data?.message || 'No se pudieron guardar los recorridos', 'error');
+        const detalle = err?.response?.data?.errors
+            ? Object.values(err.response.data.errors).flat().join(' ')
+            : (err?.response?.data?.message || 'No se pudieron guardar los recorridos');
+        toast('Error', `${detalle}. La información del funcionario no se almacenó.`, 'error');
     } finally {
         guardandoRecorridos.value = false;
     }
@@ -1606,8 +2085,12 @@ const goBack = () => {
 };
 
 const goStep = (n) => {
-    if (n === 4 && rutasMulti.value && cierresRecorridos.value.length !== recorridosPlanillaActiva.value.length) {
-        inicializarCierresPorRecorrido();
+    if (n === 4 && rutasMulti.value) {
+        if (cierresRecorridos.value.length !== recorridosPlanillaActiva.value.length) {
+            inicializarCierresPorRecorrido();
+        } else {
+            sincronizarFuncionarioCierres();
+        }
     }
     currentStep.value = n;
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1652,12 +2135,19 @@ const iniciarServicio = async () => {
             return toast('Atención', 'Registre primero la inspección preoperacional del día para este vehículo (se exige una sola vez al día).', 'warning');
         }
     }
-    if (!tieneRutaDefinida.value) {
-        const enEditor = normalizarRecorridos(recorridosDia.value).length;
-        if (!enEditor) {
-            return toast('Atención', 'Este servicio no tiene ruta definida. Registre y guarde al menos un recorrido antes de iniciar.', 'warning');
-        }
+    // Modo disponibilidad: sin recorridos se permite iniciar y quedar en servicio.
+    // Solo se exige hora/km + inspección; el funcionario se pedirá si hay recorridos.
+    const enEditorInicio = normalizarRecorridos(recorridosDia.value).length;
+    const esInicioDisponibilidad = !tieneRutaDefinida.value && !enEditorInicio;
+    if (!tieneRutaDefinida.value && !esInicioDisponibilidad) {
         return toast('Atención', 'Tiene recorridos sin guardar. Pulse «Guardar recorridos» antes de iniciar el servicio.', 'warning');
+    }
+    if (!esInicioDisponibilidad) {
+        // El funcionario debe quedar almacenado desde el inicio: si falta, no se inicia.
+        const sinFuncInicio = indiceRecorridoSinFuncionario();
+        if (sinFuncInicio !== -1) {
+            return toast('Atención', mensajeFuncionarioFaltante(sinFuncInicio), 'warning');
+        }
     }
     try {
         submitting.value = true;
@@ -1670,6 +2160,8 @@ const iniciarServicio = async () => {
         goStep(3);
         startTimer();
         persistirProgreso();
+        // El GPS debe seguir registrando la ruta durante el servicio en curso.
+        sincronizarGpsOperativo();
     } catch (err) {
         console.error(err);
         toast('Error', 'No se pudo iniciar el servicio', 'error');
@@ -1682,11 +2174,33 @@ const goStep4 = () => {
     const guardados = (planillaActiva.value?.routes || []).length;
     const legacy = (planillaActiva.value?.daily_route || servicioSeleccionado.value?.daily_route || '').trim();
     const enEditor = normalizarRecorridos(recorridosDia.value).length;
-    if (!guardados && !legacy && !enEditor) {
-        return toast('Atención', 'Registre y guarde al menos un recorrido del día antes de finalizar.', 'warning');
+    // Disponibilidad: sin recorridos ni ruta legacy se permite finalizar como disponibilidad.
+    const esPasoDisponibilidad = !guardados && !legacy && !enEditor;
+    if (esPasoDisponibilidad) {
+        if (!formData.end_time) {
+            const now = new Date();
+            formData.end_time = now.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false });
+        }
+        goStep(4);
+        persistirProgreso();
+        return;
     }
     if (enEditor && enEditor !== guardados) {
         return toast('Atención', 'Tiene recorridos sin guardar. Pulse «Guardar recorridos del día» antes de finalizar.', 'warning');
+    }
+    // Si hay cambios de funcionario sin guardar, se exige guardar primero para no perderlos.
+    const editorValidos = normalizarRecorridos(recorridosDia.value);
+    const cambioFuncionario = editorValidos.some((e, i) => {
+        const g = (planillaActiva.value?.routes || [])[i] || {};
+        return (e.funcionario_nombre || '') !== ((g.funcionario_nombre || '').trim())
+            || (e.funcionario_cc || '') !== ((g.funcionario_cc || '').trim());
+    });
+    if (cambioFuncionario) {
+        return toast('Atención', 'Tiene cambios de funcionario sin guardar. Pulse «Guardar recorridos del día» antes de finalizar.', 'warning');
+    }
+    const sinFunc = indiceRecorridoSinFuncionario();
+    if (sinFunc !== -1) {
+        return toast('Atención', mensajeFuncionarioFaltante(sinFunc), 'warning');
     }
     if (!rutasMulti.value && !formData.end_time) {
         const now = new Date();
@@ -1711,8 +2225,18 @@ const goStep4 = () => {
 };
 
 const calcularResumen = (endTime) => {
-    const [h1, m1] = formData.start_time.split(':').map(Number);
+    if (!formData.start_time || !endTime) {
+        resumen.duracion = '0h 0m';
+        resumen.duracionFormatted = '00:00:00';
+        return;
+    }
+    const [h1, m1] = String(formData.start_time).split(':').map(Number);
     const [h2, m2] = String(endTime).split(':').map(Number);
+    if (isNaN(h1) || isNaN(m1) || isNaN(h2) || isNaN(m2)) {
+        resumen.duracion = '0h 0m';
+        resumen.duracionFormatted = '00:00:00';
+        return;
+    }
     let diffMin = (h2 * 60 + m2) - (h1 * 60 + m1);
     if (diffMin < 0) diffMin += 1440;
     resumen.duracion = `${Math.floor(diffMin / 60)}h ${diffMin % 60}m`;
@@ -1721,36 +2245,24 @@ const calcularResumen = (endTime) => {
 
 const goStep5 = () => {
     if (rutasMulti.value) {
-        const i = recorridoSeleccionado.value;
-
-        if (todosRecorridosCerrados.value) {
-            // Solo queda certificar la planilla completa.
-            const ultimo = cierresRecorridos.value[cierresRecorridos.value.length - 1] || {};
-            calcularResumen(ultimo.end_time || formData.end_time);
-            resumen.kmTotal = Math.max(0, Number(ultimo.ending_kilometer) - Number(formData.starting_kilometer));
-            goStep(5);
-            persistirProgreso();
-            return;
+        if (!todosRecorridosCerrados.value) {
+            return toast('Atención', 'Debe cerrar y certificar cada uno de los recorridos en el Paso 4 antes de continuar a la certificación final.', 'warning');
         }
-
-        const c = cierresRecorridos.value[i] || {};
-        if (!c.end_time || !c.ending_kilometer) {
-            return toast('Atención', `El recorrido ${i + 1} requiere hora de fin y kilometraje final.`, 'warning');
-        }
-
-        calcularResumen(c.end_time);
-        resumen.kmTotal = Math.max(0, Number(c.ending_kilometer) - Number(formData.starting_kilometer));
-
-        const fr = firmasRecorridos.value[i] || {};
-        if (!fr.funcionarioNombre) fr.funcionarioNombre = servicioSeleccionado.value?.official_name_and_surname || userStore.user?.full_name || '';
-        if (!fr.conductorNombre) fr.conductorNombre = conductorSeleccionadoNombre.value;
-
+        const ultimo = cierresRecorridos.value[cierresRecorridos.value.length - 1] || {};
+        calcularResumen(ultimo.end_time || formData.end_time);
+        resumen.kmTotal = Math.max(0, Number(ultimo.ending_kilometer || formData.ending_kilometer || 0) - Number(formData.starting_kilometer || 0));
         goStep(5);
         persistirProgreso();
         return;
     }
     if (!formData.end_time || !formData.ending_kilometer) {
         return toast('Atención', 'La hora de fin y el kilometraje final son obligatorios.', 'warning');
+    }
+    // Con un solo recorrido el funcionario vive en la ruta guardada: se exige
+    // antes de pasar a firmas para no cerrar sin ese dato almacenado.
+    const sinFuncUnico = indiceRecorridoSinFuncionario();
+    if (sinFuncUnico !== -1) {
+        return toast('Atención', mensajeFuncionarioFaltante(sinFuncUnico), 'warning');
     }
 
     calcularResumen(formData.end_time);
@@ -1852,7 +2364,7 @@ const guardarPlanilla = async () => {
     // solo entonces se certifica la planilla en su totalidad.
     if (rutasMulti.value) {
         if (!todosRecorridosCerrados.value) {
-            return toast('Atención', `Primero cierre y firme el recorrido ${recorridoSeleccionado.value + 1}.`, 'warning');
+            return toast('Atención', 'Primero cierre y certifique cada uno de los recorridos en el Paso 4.', 'warning');
         }
         try {
             submitting.value = true;
@@ -1866,24 +2378,56 @@ const guardarPlanilla = async () => {
         return;
     }
 
-    if (firmaFuncionarioVacia.value || firmaConductorVacia.value) {
-        return toast('Falta Firma', 'Ambas firmas digitales son requeridas para certificar la planilla.', 'warning');
+    // Disponibilidad: solo firman conductor y coordinador (vía enlace). No se exige firma de funcionario.
+    if (!esDisponibilidad.value && firmaFuncionarioVacia.value) {
+        return toast('Falta Firma', 'La firma del funcionario es requerida para certificar la planilla.', 'warning');
+    }
+    if (firmaConductorVacia.value) {
+        return toast('Falta Firma', 'La firma del conductor es requerida para certificar la planilla.', 'warning');
+    }
+
+    // Con un solo recorrido el funcionario y el cierre de la ruta deben quedar
+    // almacenados en la tabla de recorridos, no solo en la planilla global.
+    // Se valida y se envía el arreglo routes para que el backend lo persista.
+    if (!esDisponibilidad.value && !rutasMulti.value) {
+        const sinFunc = indiceRecorridoSinFuncionario();
+        if (sinFunc !== -1) {
+            return toast('Atención', mensajeFuncionarioFaltante(sinFunc), 'warning');
+        }
     }
 
     try {
         submitting.value = true;
-        const fFirma = canvasFuncionarioRef.value.toDataURL('image/png');
+        const fFirma = !esDisponibilidad.value ? canvasFuncionarioRef.value.toDataURL('image/png') : null;
         const cFirma = canvasConductorRef.value.toDataURL('image/png');
+
+        const rutaUnica = (!esDisponibilidad.value && !rutasMulti.value)
+            ? (recorridosPlanillaActiva.value[0] || {})
+            : null;
+        const cierreRutaUnica = rutaUnica ? [{
+            origin: rutaUnica.origin || '',
+            destination: rutaUnica.destination || '',
+            funcionario_nombre: (rutaUnica.funcionario_nombre || '').trim() || (firma.funcionarioNombre || '').trim(),
+            funcionario_cc: (rutaUnica.funcionario_cc || '').trim(),
+            end_time: formData.end_time || null,
+            ending_kilometer: formData.ending_kilometer ?? null,
+            number_of_tolls: formData.number_of_tolls ?? 0,
+            total_toll_value: formData.total_toll_value ?? 0,
+            end_novelty: formData.end_novelty || null,
+            funcionario_signature: fFirma,
+            conductor_signature: cFirma,
+        }] : null;
 
         const payload = {
             ...formData,
             servicioId: planillaActivaUuid.value,
-            funcionario_signature: fFirma,
+            ...(fFirma ? { funcionario_signature: fFirma } : {}),
             conductor_signature: cFirma,
             funcionario_name: firma.funcionarioNombre,
             conductor_name: firma.conductorNombre,
             total_hours: resumen.duracionFormatted,
-            status: 'COMPLETED'
+            status: 'COMPLETED',
+            ...(cierreRutaUnica ? { routes: cierreRutaUnica } : {}),
         };
 
         await store.closeService(planillaActivaUuid.value, payload);
@@ -1909,6 +2453,8 @@ const actualizarRutaLocal = (i, c) => {
         r.number_of_tolls = c.number_of_tolls ?? r.number_of_tolls;
         r.total_toll_value = c.total_toll_value ?? r.total_toll_value;
         r.end_novelty = c.end_novelty || r.end_novelty;
+        r.funcionario_nombre = (c.funcionario_nombre || '').trim() || r.funcionario_nombre;
+        r.funcionario_cc = (c.funcionario_cc || '').trim() || r.funcionario_cc;
     };
     serviciosCatalogo.value.forEach(s => {
         aplicar(s);
@@ -1919,7 +2465,7 @@ const actualizarRutaLocal = (i, c) => {
 /**
  * Guarda el cierre y las firmas de UN solo recorrido seleccionado.
  * La planilla continúa en curso hasta cerrar el último recorrido, que entonces
- * dispara la certificación global (closeService).
+ * habilita la certificación global (closeService) en el Paso 5.
  */
 const guardarCierreRecorrido = async () => {
     const rutas = recorridosPlanillaActiva.value;
@@ -1927,8 +2473,24 @@ const guardarCierreRecorrido = async () => {
     if (i < 0 || i >= rutas.length) return;
 
     const c = cierresRecorridos.value[i] || {};
+    const rutaGuardada = rutas[i] || {};
+    // Respaldo: si la copia del cierre está vacía, usar el funcionario ya guardado en el recorrido.
+    if (!(c.funcionario_nombre || '').trim() && (rutaGuardada.funcionario_nombre || '').trim()) {
+        c.funcionario_nombre = rutaGuardada.funcionario_nombre;
+    }
+    if (!(c.funcionario_cc || '').trim() && (rutaGuardada.funcionario_cc || '').trim()) {
+        c.funcionario_cc = rutaGuardada.funcionario_cc;
+    }
     if (!c.end_time || c.ending_kilometer === '' || c.ending_kilometer === null) {
         return toast('Atención', `El recorrido ${i + 1} requiere hora de fin y kilometraje final.`, 'warning');
+    }
+    if (!(c.funcionario_nombre || '').trim() || !(c.funcionario_cc || '').trim()) {
+        return toast('Atención', `El recorrido ${i + 1} requiere CC y nombre del funcionario. Diligéncielos en la tarjeta de cierre.`, 'warning');
+    }
+
+    const kmMin = kmInicialRecorrido(i);
+    if (Number(c.ending_kilometer) < kmMin) {
+        return toast('Kilometraje Inválido', `El kilometraje final (${c.ending_kilometer}) no puede ser menor al kilometraje inicial del recorrido (${kmMin}).`, 'warning');
     }
 
     const pf = firmaPadsRecorridos.value[`${i}-funcionario`];
@@ -1944,12 +2506,14 @@ const guardarCierreRecorrido = async () => {
         await store.closeRoute(planillaActivaUuid.value, {
             route_uuid: ruta.uuid || '',
             route_index: i,
+            funcionario_nombre: (c.funcionario_nombre || '').trim(),
+            funcionario_cc: (c.funcionario_cc || '').trim(),
             end_time: c.end_time,
             ending_kilometer: c.ending_kilometer,
             number_of_tolls: c.number_of_tolls || 0,
             total_toll_value: c.total_toll_value || 0,
             end_novelty: c.end_novelty || '',
-            funcionario_name: fr.funcionarioNombre || '',
+            funcionario_name: (c.funcionario_nombre || '').trim(),
             conductor_name: fr.conductorNombre || '',
             funcionario_signature: pf.getDataUrl(),
             conductor_signature: pc.getDataUrl(),
@@ -1960,15 +2524,15 @@ const guardarCierreRecorrido = async () => {
 
         const pend = pendientesRecorridos.value;
         if (pend.length === 0) {
-            // Todos los recorridos quedaron cerrados: completar y certificar la planilla.
-            await cerrarPlanillaGlobalMulti();
+            toast('¡Todos los Recorridos Cerrados!', 'Todos los recorridos han sido certificados. Ahora puede continuar a la certificación final de la planilla.', 'success');
+            persistirProgreso();
+            goStep(3);
             return;
         }
 
-        recorridoSeleccionado.value = pend[0];
-        toast('¡Éxito!', `Recorrido ${i + 1} cerrado. Quedan ${pend.length} recorrido(s) por cerrar.`, 'success');
-        goStep(3);
+        toast('¡Éxito!', `Recorrido ${i + 1} cerrado correctamente.`, 'success');
         persistirProgreso();
+        goStep(3);
     } catch (err) {
         console.error(err);
         toast('Error', 'No se pudo guardar el cierre del recorrido.', 'error');
@@ -1978,12 +2542,75 @@ const guardarCierreRecorrido = async () => {
 };
 
 /**
+ * Permite guardar o rectificar el funcionario de un recorrido previamente cerrado
+ * sin perder sus datos de llegada ni sus firmas.
+ */
+const guardarFuncionarioRecorridoCerrado = async () => {
+    const rutas = recorridosPlanillaActiva.value;
+    const i = recorridoSeleccionado.value;
+    if (i < 0 || i >= rutas.length) return;
+    const c = cierresRecorridos.value[i] || {};
+    const nombre = (c.funcionario_nombre || '').trim();
+    const cc = (c.funcionario_cc || '').trim();
+    if (!nombre || !cc) {
+        return toast('Atención', 'Ingrese el nombre y número de CC del funcionario.', 'warning');
+    }
+    try {
+        submitting.value = true;
+        const ruta = rutas[i];
+        await store.closeRoute(planillaActivaUuid.value, {
+            route_uuid: ruta.uuid || '',
+            route_index: i,
+            funcionario_nombre: nombre,
+            funcionario_cc: cc,
+            end_time: c.end_time || ruta.end_time,
+            ending_kilometer: c.ending_kilometer || ruta.ending_kilometer,
+            number_of_tolls: c.number_of_tolls || ruta.number_of_tolls || 0,
+            total_toll_value: c.total_toll_value || ruta.total_toll_value || 0,
+            end_novelty: c.end_novelty || ruta.end_novelty || '',
+        });
+        actualizarRutaLocal(i, c);
+        if (recorridosDia.value[i]) {
+            recorridosDia.value[i].funcionario_nombre = nombre;
+            recorridosDia.value[i].funcionario_cc = cc;
+        }
+        toast('¡Funcionario Guardado!', `Se almacenó el funcionario para el recorrido ${i + 1}`, 'success');
+    } catch (err) {
+        console.error(err);
+        toast('Error', 'No se pudo actualizar el funcionario del recorrido.', 'error');
+    } finally {
+        submitting.value = false;
+    }
+};
+
+/**
  * Cierra la planilla completa cuando todos los recorridos quedaron cerrados y
- * firmados individualmente. El payload global NO reenvía firmas por ruta (ya
- * fueron persistidas en cada /close-route) para no duplicar registros.
+ * firmados individualmente.
  */
 const cerrarPlanillaGlobalMulti = async () => {
     const ultimo = cierresRecorridos.value[cierresRecorridos.value.length - 1] || {};
+    if (!resumen.duracionFormatted || resumen.duracionFormatted.includes('NaN')) {
+        calcularResumen(ultimo.end_time || formData.end_time);
+    }
+    const durFormatted = resumen.duracionFormatted || '00:00:00';
+
+    const rutasSincronizar = (recorridosPlanillaActiva.value || []).map((r, idx) => {
+        const c = cierresRecorridos.value[idx] || {};
+        return {
+            uuid: r.uuid || undefined,
+            order_index: idx + 1,
+            origin: r.origin,
+            destination: r.destination,
+            funcionario_nombre: (c.funcionario_nombre || r.funcionario_nombre || '').trim(),
+            funcionario_cc: (c.funcionario_cc || r.funcionario_cc || '').trim(),
+            end_time: c.end_time || r.end_time,
+            ending_kilometer: c.ending_kilometer || r.ending_kilometer,
+            number_of_tolls: c.number_of_tolls ?? r.number_of_tolls ?? 0,
+            total_toll_value: c.total_toll_value ?? r.total_toll_value ?? 0,
+            end_novelty: c.end_novelty || r.end_novelty || '',
+        };
+    });
+
     const payload = {
         ...formData,
         servicioId: planillaActivaUuid.value,
@@ -1991,8 +2618,9 @@ const cerrarPlanillaGlobalMulti = async () => {
         ending_kilometer: ultimo.ending_kilometer || formData.ending_kilometer,
         number_of_tolls: cierresRecorridos.value.reduce((acc, c) => acc + (Number(c.number_of_tolls) || 0), 0),
         total_toll_value: cierresRecorridos.value.reduce((acc, c) => acc + (Number(c.total_toll_value) || 0), 0),
-        total_hours: resumen.duracionFormatted,
+        total_hours: durFormatted,
         status: 'COMPLETED',
+        routes: rutasSincronizar,
     };
     await store.closeService(planillaActivaUuid.value, payload);
     marcarPlanillaCerrada(planillaActivaUuid.value);
@@ -2078,6 +2706,9 @@ const reiniciar = () => {
 onMounted(async () => {
     updateClock();
     clockInterval = setInterval(updateClock, 1000);
+    // Prepara el permiso GPS al abrir el Control Operativo para que el
+    // rastreo global pueda continuar sin pedirlo en mitad de la ruta.
+    driverTracking.checkPermission().catch(() => {});
 
     try {
         isViewLoading.value = true;
@@ -2139,6 +2770,7 @@ watch(() => formData.servicioId, (newVal) => {
     if (activa.start_time) {
         goStep(3);
         startTimer();
+        sincronizarGpsOperativo();
     } else if (!esMultiDia.value && activa.end_time && activa.ending_kilometer) {
         goStep(6);
     }
@@ -2164,11 +2796,22 @@ watch(planillaActivaUuid, (uuid) => {
         return;
     }
     recorridosDia.value = normalizarRecorridos(planillaActiva.value?.routes || []);
+    if (rutasMulti.value) {
+        inicializarCierresPorRecorrido();
+    }
+    sincronizarGpsOperativo();
 });
 
-// Al entrar al paso 2 se verifica la inspección del día (una sola vez al día).
+// Al entrar al paso 2 se verifica la inspección del día. Al entrar al paso 4 se inicializan los cierres.
 watch(currentStep, (n) => {
     if (n === 2 && formData.servicioId) verificarInspeccionDia();
+    if (n === 4 && rutasMulti.value) {
+        if (cierresRecorridos.value.length !== recorridosPlanillaActiva.value.length) {
+            inicializarCierresPorRecorrido();
+        } else {
+            sincronizarFuncionarioCierres();
+        }
+    }
 });
 </script>
 
