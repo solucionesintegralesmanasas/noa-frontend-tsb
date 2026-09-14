@@ -120,16 +120,12 @@ class VehicleInspectionService extends BaseService {
         const vehicleQuery = buildParams();
         const driverQuery = buildParams({ type: 'is_driver' });
 
-        console.log('Consulta vehicles/list url:', 'fleet-management/vehicles/list' + vehicleQuery);
-
         const [companies, vehicles, drivers, inspectionItems] = await Promise.all([
             fetchSafe('administration/companies/list' + companyQuery),
             fetchSafe('fleet-management/vehicles/list' + vehicleQuery),
             fetchSafe('third-parties/list' + driverQuery),
             fetchSafe('catalogs/inspection-items/list')
         ]);
-
-        console.log('RESULTADO VEHICULOS:', vehicles);
 
         return { companies, vehicles, drivers, inspectionItems };
     }

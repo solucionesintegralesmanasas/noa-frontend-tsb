@@ -661,11 +661,6 @@ const initResultsFromCatalog = (existingResults = []) => {
 
 onMounted(async () => {
     isViewLoading.value = true;
-    
-    console.log("=== INSPECTION FORM DEBUG ===");
-    console.log("userStore.third_party_uuid:", userStore.third_party_uuid);
-    console.log("userStore.uuid_driver:", userStore.uuid_driver);
-    console.log("============================");
 
     try {
         await store.loadFormOptions();

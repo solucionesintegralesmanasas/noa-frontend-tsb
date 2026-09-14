@@ -652,7 +652,7 @@
                                             <h6 class="fw-medium mb-3">Logotipo de la Empresa</h6>
                                             <div class="d-flex flex-column align-items-center gap-3">
                                                 <div class="position-relative border rounded-3 p-2 bg-light d-flex align-items-center justify-content-center" style="width: 150px; height: 150px;">
-                                                    <img :src="identityPreviews.logo || '/assets/img/team/default.png'" class="img-fluid rounded-3" style="max-height: 100%; max-width: 100%; object-fit: contain;" />
+                                                    <img :src="identityPreviews.logo || '/assets/img/team/default.png'" alt="Logotipo de la empresa" class="img-fluid rounded-3" style="max-height: 100%; max-width: 100%; object-fit: contain;" />
                                                 </div>
                                                 <div class="w-100 px-3">
                                                     <label class="btn btn-sm btn-outline-primary px-3 rounded-pill cursor-pointer mt-1">
@@ -669,7 +669,7 @@
                                             <h6 class="fw-medium mb-3">Firma Digital del Representante Legal</h6>
                                             <div class="d-flex flex-column align-items-center gap-3">
                                                 <div class="position-relative border rounded-3 p-2 bg-light d-flex align-items-center justify-content-center" style="width: 150px; height: 150px;">
-                                                    <img :src="identityPreviews.signature || '/assets/img/team/default.png'" class="img-fluid rounded-3" style="max-height: 100%; max-width: 100%; object-fit: contain;" />
+                                                    <img :src="identityPreviews.signature || '/assets/img/team/default.png'" alt="Firma digital del representante legal" class="img-fluid rounded-3" style="max-height: 100%; max-width: 100%; object-fit: contain;" />
                                                 </div>
                                                 <div class="w-100 px-3">
                                                     <label class="btn btn-sm btn-outline-primary px-3 rounded-pill cursor-pointer mt-1">
@@ -699,7 +699,7 @@
                                             <h6 class="fw-medium mb-3">Logo Ministerio de Transporte</h6>
                                             <div class="d-flex flex-column align-items-center gap-3">
                                                 <div class="position-relative border rounded-3 p-2 bg-light d-flex align-items-center justify-content-center" style="width: 120px; height: 120px;">
-                                                    <img :src="identityPreviews.ministry_logo || '/img/transporte.png'" class="img-fluid rounded-3" style="max-height: 100%; max-width: 100%; object-fit: contain;" />
+                                                    <img :src="identityPreviews.ministry_logo || '/img/transporte.png'" alt="Logo Ministerio de Transporte" class="img-fluid rounded-3" style="max-height: 100%; max-width: 100%; object-fit: contain;" />
                                                 </div>
                                                 <div class="w-100 px-2">
                                                     <label class="btn btn-sm btn-outline-primary px-3 rounded-pill cursor-pointer mt-1">
@@ -716,7 +716,7 @@
                                             <h6 class="fw-medium mb-3">Logo Superintendencia</h6>
                                             <div class="d-flex flex-column align-items-center gap-3">
                                                 <div class="position-relative border rounded-3 p-2 bg-light d-flex align-items-center justify-content-center" style="width: 120px; height: 120px;">
-                                                    <img :src="identityPreviews.super_logo || '/img/super2.png'" class="img-fluid rounded-3" style="max-height: 100%; max-width: 100%; object-fit: contain;" />
+                                                    <img :src="identityPreviews.super_logo || '/img/super2.png'" alt="Logo Superintendencia" class="img-fluid rounded-3" style="max-height: 100%; max-width: 100%; object-fit: contain;" />
                                                 </div>
                                                 <div class="w-100 px-2">
                                                     <label class="btn btn-sm btn-outline-primary px-3 rounded-pill cursor-pointer mt-1">
@@ -733,7 +733,7 @@
                                             <h6 class="fw-medium mb-3">Hoja Membretada</h6>
                                             <div class="d-flex flex-column align-items-center gap-3">
                                                 <div class="position-relative border rounded-3 p-2 bg-light d-flex align-items-center justify-content-center" style="width: 120px; height: 120px;">
-                                                    <img v-if="identityPreviews.letterhead" :src="identityPreviews.letterhead" class="img-fluid rounded-3" style="max-height: 100%; max-width: 100%; object-fit: contain;" />
+                                                    <img v-if="identityPreviews.letterhead" :src="identityPreviews.letterhead" alt="Hoja membretada" class="img-fluid rounded-3" style="max-height: 100%; max-width: 100%; object-fit: contain;" />
                                                     <div v-else class="text-muted text-center">
                                                         <i class="fad fa-file-alt fs-2 mb-1"></i>
                                                         <p class="fs-10 mb-0">Sin membretada</p>
@@ -1472,8 +1472,6 @@ onMounted(async () => {
             }
 
             const data = await systemConfigStore.fetchByCompany(companyUuid);
-            console.log('Datos de configuración recibidos de la API:', data);
-            
             if (data) {
                 Object.assign(formData, {
                     fuec_require_daily_inspections: data.fuec_require_daily_inspections === 1 || data.fuec_require_daily_inspections === true,

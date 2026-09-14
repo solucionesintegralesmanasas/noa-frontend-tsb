@@ -196,7 +196,6 @@ onMounted(async () => {
     isViewLoading.value = true;
     try {
         await store.fetchProfileById(route.params.id);
-        console.debug('[FinancialStatementsDetail] selectedItem:', JSON.parse(JSON.stringify(store.selectedItem || {})));
         if (!store.selectedItem) {
             await Swal.fire('No encontrado', 'El registro solicitado no existe.', 'warning');
             goBack();

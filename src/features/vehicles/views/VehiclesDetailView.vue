@@ -784,7 +784,6 @@ const viewOwner = () => {
 
 const viewDocument = (doc) => {
     // Implementar modal o navegación a detalle del documento
-    console.log('Ver documento:', doc);
 };
 
 const handleDownloadTechnicalSheet = async () => {

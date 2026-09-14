@@ -300,7 +300,7 @@
                             <label class="form-label">Firma del representante</label>
                             <div class="d-flex flex-column gap-2 p-2 border rounded-3 bg-light">
                                 <div v-if="filePreviews.signature" class="preview-box text-center">
-                                    <img :src="filePreviews.signature" class="img-thumbnail img-fluid" style="max-height: 60px;">
+                                    <img :src="filePreviews.signature" alt="Vista previa de la firma del representante" class="img-thumbnail img-fluid" style="max-height: 60px;">
                                 </div>
                                 <input type="file" class="form-control form-control-sm"
                                     @change="onFileChange($event, 'signature')" accept="image/*" />

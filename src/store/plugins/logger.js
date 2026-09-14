@@ -5,7 +5,7 @@ const NOISY_ACTIONS = new Set(['can', 'hasRole']);
 export const createLoggerPlugin = (options = {}) => {
     return (context) => {
         context.store.$onAction(({ name, store, args, after, onError }) => {
-            if (options.logLevel === 'debug' && !NOISY_ACTIONS.has(name)) {
+            if (import.meta.env.DEV && options.logLevel === 'debug' && !NOISY_ACTIONS.has(name)) {
                 console.log(`[Store: ${store.$id}] Action: ${name}`);
             }
         });

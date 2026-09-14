@@ -92,7 +92,7 @@
                     <h6 class="mb-0 fw-medium" style="font-size: 0.85rem;">Logotipo</h6>
                 </div>
                 <div class="card-body text-center">
-                    <img :src="item.logo_url" class="img-fluid rounded border shadow-sm" style="max-height: 150px;" />
+                    <img :src="item.logo_url" alt="Logotipo del tercero" class="img-fluid rounded border shadow-sm" style="max-height: 150px;" />
                 </div>
             </div>
         </div>

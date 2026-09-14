@@ -1504,7 +1504,6 @@ onMounted(async () => {
             }
         }
 
-        console.log('Valor del campo "Consecutivo FUEC" (number_fuec):', formData.number_fuec);
     } finally {
         setTimeout(() => {
             isViewLoading.value = false;
