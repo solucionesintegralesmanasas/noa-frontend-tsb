@@ -307,15 +307,13 @@ const filteredVehicles = computed(() => {
     const all = (isConductor.value || !formData.company_uuid)
         ? (store.catalogs.vehicles || [])
         : (store.catalogs.vehicles || []).filter(v => v.company_uuid === formData.company_uuid);
-    if (!isConductor.value || !assignedVehiclesLoaded.value) return all;
-    if (!assignedVehicleUuids.value.length) return all;
-    const set = new Set(assignedVehicleUuids.value);
-    const filtered = all.filter(v => set.has(v.uuid));
-    if (!filtered.length) return all;
-    if (!primaryVehicleUuid.value) return filtered;
-    const primary = filtered.find(v => v.uuid === primaryVehicleUuid.value);
-    if (!primary) return filtered;
-    return [primary, ...filtered.filter(v => v.uuid !== primaryVehicleUuid.value)];
+
+    // El backend ya filtra los vehículos permitidos para el conductor.
+    // Solo colocamos el vehículo principal primero si está definido.
+    if (!isConductor.value || !primaryVehicleUuid.value) return all;
+    const primary = all.find(v => v.uuid === primaryVehicleUuid.value);
+    if (!primary) return all;
+    return [primary, ...all.filter(v => v.uuid !== primaryVehicleUuid.value)];
 });
 
 /** Carga los vehículos asignados al conductor en sus proyectos (solo rol CONDUCTOR). */
@@ -346,12 +344,15 @@ const loadConductorAssignments = async () => {
                 const item = det?.data?.data ?? det?.data ?? det ?? {};
                 const assigns = item.driverVehicleAssignments || item.driver_vehicle_assignments || item.assignments || [];
                 const activeAssigns = assigns
-                    .filter(a => a.is_active !== false && a.is_active !== 0 && a.vehicle_uuid)
+                    .filter(a => a.is_active !== false && a.is_active !== 0 && a.vehicle_uuid && (!a.third_party_uuid || a.third_party_uuid === userStore.uuid_driver || a.third_party_uuid === userStore.third_party_uuid))
                     .sort((a, b) => (b.id || 0) - (a.id || 0));
                 for (const a of activeAssigns) {
                     if (!seen.has(a.vehicle_uuid)) {
                         seen.add(a.vehicle_uuid);
                         ordered.push(a.vehicle_uuid);
+                        if (a.vehicle && a.vehicle.uuid && (!store.catalogs.vehicles || !store.catalogs.vehicles.some(v => v.uuid === a.vehicle.uuid))) {
+                            store.catalogs.vehicles = [...(store.catalogs.vehicles || []), a.vehicle];
+                        }
                         if (!primaryFound) {
                             primaryVehicleUuid.value = a.vehicle_uuid;
                             primaryFound = true;
@@ -514,10 +515,6 @@ const validateForm = () => {
 
     if (!formData.company_uuid) validationErrors.company_uuid = 'Este campo es obligatorio';
     if (!formData.vehicle_uuid) validationErrors.vehicle_uuid = 'Este campo es obligatorio';
-    if (isConductor.value && assignedVehiclesLoaded.value && formData.vehicle_uuid && assignedVehicleUuids.value.length
-        && !assignedVehicleUuids.value.includes(formData.vehicle_uuid)) {
-        validationErrors.vehicle_uuid = 'Solo puedes inspeccionar tus vehículos asignados en proyecto';
-    }
     if (!formData.inspection_date) validationErrors.inspection_date = 'Este campo es obligatorio';
     if (formData.mileage === '' || formData.mileage === null || formData.mileage === undefined || formData.mileage <= 0) {
         validationErrors.mileage = 'Ingresa un kilometraje válido';

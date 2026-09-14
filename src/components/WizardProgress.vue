@@ -31,12 +31,15 @@
         </template>
       </div>
 
-      <div class="d-flex gap-2 ms-md-auto">
-        <button v-if="showSkip" type="button" class="btn btn-falcon-default btn-sm" @click="$emit('skip')">
-          Omitir paso
+      <div class="d-flex flex-wrap gap-2 ms-md-auto">
+        <button v-if="showPrev" type="button" class="btn btn-falcon-default btn-sm" @click="$emit('prev')">
+          <i class="fas fa-arrow-left me-1"></i>Anterior
+        </button>
+        <button v-if="showSkip" type="button" class="btn btn-falcon-default btn-sm" @click="$emit('skip')" title="Avanza al siguiente paso sin guardar">
+          Siguiente<i class="fas fa-arrow-right ms-1"></i>
         </button>
         <button v-if="showFinish" type="button" class="btn btn-primary btn-sm" @click="$emit('finish')">
-          Terminar
+          <i class="fas fa-check me-1"></i>Terminar
         </button>
       </div>
     </div>
@@ -54,11 +57,12 @@ import { WIZARD_STEPS } from '@/hooks/useDocumentWizard.js';
 const props = defineProps({
   current: { type: String, required: true },
   doneKeys: { type: Array, default: () => [] },
+  showPrev: { type: Boolean, default: true },
   showSkip: { type: Boolean, default: true },
   showFinish: { type: Boolean, default: true },
 });
 
-defineEmits(['skip', 'finish']);
+defineEmits(['prev', 'skip', 'finish']);
 
 const steps = computed(() => WIZARD_STEPS);
 

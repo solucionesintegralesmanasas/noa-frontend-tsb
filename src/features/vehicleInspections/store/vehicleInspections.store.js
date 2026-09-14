@@ -85,12 +85,22 @@ export const useVehicleInspectionsStore = defineStore('vehicleInspections', {
          */
         async fetchItems() {
             return this._run(async () => {
-                const response = await vehicleInspectionsService.list({
+                const { isConductor, uuidDriver } = vehicleInspectionsService._getUserContext();
+
+                const params = {
                     page: this.pagination.currentPage,
                     per_page: this.pagination.itemsPerPage,
                     search: this.search || undefined,
                     sort: '-inspection_date',
-                });
+                };
+
+                // Para conductores: filtrar por driver_uuid (su UUID propio como conductor),
+                // no por third_party_uuid (que puede ser del afiliado/propietario del vehículo)
+                if (isConductor && uuidDriver) {
+                    params.driver_uuid = uuidDriver;
+                }
+
+                const response = await vehicleInspectionsService.list(params);
                 const p = response?.data ?? response;
                 this.items = p.data ?? [];
                 this.pagination.currentPage = p.current_page ?? 1;

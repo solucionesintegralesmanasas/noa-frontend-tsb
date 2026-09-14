@@ -191,11 +191,11 @@
                                                 style="width: 14px; height: 14px;"></span>
                                             <i v-else class="fad fa-file-pdf text-danger" style="font-size:14px;" />
                                         </button>
-                                        <button class="btn btn-falcon-default" type="button" title="Firmar inspección"
+                                        <button v-if="isAdmin" class="btn btn-falcon-default" type="button" title="Firmar inspección"
                                             @click="openSignaturePad(data)">
                                             <i class="fad fa-signature text-success" style="font-size:14px;" />
                                         </button>
-                                        <button class="btn btn-falcon-default" type="button" title="Compartir link de firma"
+                                        <button v-if="isAdmin" class="btn btn-falcon-default" type="button" title="Compartir link de firma"
                                             @click="generatePublicSignLink(data.uuid)">
                                             <i class="fad fa-share-alt text-primary" style="font-size:14px;" />
                                         </button>
@@ -503,6 +503,9 @@ const { confirmDelete, initTooltips, destroyTooltips } = useTableActions(store, 
 
 const can = (action) => permissionsStore.can(action);
 
+// Solo administradores (SUPERADMIN o ADMIN_EMPRESA) pueden firmar inspecciones vehiculares
+const isAdmin = computed(() => permissionsStore.hasRole('SUPERADMIN') || permissionsStore.hasRole('ADMIN_EMPRESA'));
+
 const formatDate = (dateStr) => {
     if (!dateStr) return '-';
     return dateStr.split(' ')[0].split('T')[0];
@@ -593,6 +596,15 @@ const openHistory = async (data) => {
 };
 
 const openSignaturePad = async (data) => {
+    if (!isAdmin.value) {
+        Swal.fire({
+            title: 'Sin permiso',
+            text: 'Solo un administrador puede firmar inspecciones vehiculares.',
+            icon: 'warning',
+            confirmButtonText: 'Entendido'
+        });
+        return;
+    }
     selectedInspectionForSignature.value = data;
     showSignatureDialog.value = true;
     sigLoadingDetail.value = true;
@@ -665,6 +677,15 @@ const onSignatureSaved = async (signatureData) => {
 };
 
 const generatePublicSignLink = async (uuid) => {
+    if (!isAdmin.value) {
+        Swal.fire({
+            title: 'Sin permiso',
+            text: 'Solo un administrador puede compartir el enlace de firma.',
+            icon: 'warning',
+            confirmButtonText: 'Entendido'
+        });
+        return;
+    }
     try {
         Swal.fire({
             title: 'Generando enlace...',

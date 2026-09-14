@@ -8,6 +8,7 @@
                 v-if="wizardUuid"
                 current="tarjeta"
                 :done-keys="wizardDoneKeys"
+                @prev="goBack"
                 @skip="goNextStep"
                 @finish="goExit"
             />
@@ -157,7 +158,7 @@
                         </div>
 
                         <div class="col-12 mt-4 pt-3 border-top">
-                            <BaseFormActions :submitting="submitting" :is-edit-mode="isEditMode || esActualizacion" @cancel="goBack" />
+                            <BaseFormActions :submitting="submitting" :is-edit-mode="isEditMode || esActualizacion" :wizard-mode="!!wizardUuid" @cancel="goBack" />
                         </div>
                     </form>
                 </div>
