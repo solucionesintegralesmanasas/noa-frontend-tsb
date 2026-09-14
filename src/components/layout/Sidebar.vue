@@ -2,9 +2,9 @@
     <nav v-if="showSidebar" class="navbar navbar-light navbar-vertical navbar-expand-xl">
         <div class="d-flex align-items-center">
             <router-link class="navbar-brand" to="/dashboard">
-                <div class="d-flex align-items-center py-2">
-                    <img src="/noa.png" alt="NOA Transportes" width="48" class="me-2" style="height: auto; max-height: 55px;" />
-                    <NoaBadge size="26px" />
+                <div class="d-flex align-items-center py-2 gap-4">
+                    <img src="/noa.svg" alt="NOA Transportes" class="sidebar-brand-icon" />
+                    <NoaBadge size="40px" class="sidebar-brand-badge" />
                 </div>
             </router-link>
         </div>
@@ -57,8 +57,8 @@
                         </div>
 
                         <!-- Informacion empresa -->
-                        <a class="nav-link dropdown-indicator" :aria-expanded="isOpen('company')"
-                            @click.prevent="toggleCollapse('company')" role="button"
+                        <a class="nav-link dropdown-indicator" :aria-expanded="isOpen('company')" aria-controls="company" tabindex="0"
+                            @click.prevent="toggleCollapse('company')" @keydown.enter.space.prevent="toggleCollapse('company')" role="button"
                             v-if="can('companies.index') || can('companies.profile') || can('branches.index') || can('economic_activities.index') || can('bank_details.index') || can('tax_information.index') || can('enabling_resolutions.index') || can('conveyor_capacity.index') || can('employee.index')">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon" v-once><span class="fas fa-building"></span></span>
@@ -150,8 +150,8 @@
                         </ul>
 
                         <!-- Informacion Tecninca  -->
-                        <a class="nav-link dropdown-indicator" :aria-expanded="isOpen('informacion-tecnica')"
-                            @click.prevent="toggleCollapse('informacion-tecnica')" role="button"
+                        <a class="nav-link dropdown-indicator" :aria-expanded="isOpen('informacion-tecnica')" aria-controls="informacion-tecnica" tabindex="0"
+                            @click.prevent="toggleCollapse('informacion-tecnica')" @keydown.enter.space.prevent="toggleCollapse('informacion-tecnica')" role="button"
                             v-if="can('experiences.index')">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon" v-once><span class="fas fa-tools"></span></span>
@@ -171,8 +171,8 @@
                             </li>
                         </ul>
                         <!-- Informacion Financiera -->
-                        <a class="nav-link dropdown-indicator" :aria-expanded="isOpen('informacion-financiera')"
-                            @click.prevent="toggleCollapse('informacion-financiera')" role="button"
+                        <a class="nav-link dropdown-indicator" :aria-expanded="isOpen('informacion-financiera')" aria-controls="informacion-financiera" tabindex="0"
+                            @click.prevent="toggleCollapse('informacion-financiera')" @keydown.enter.space.prevent="toggleCollapse('informacion-financiera')" role="button"
                             v-if="can('rup_records.index') || can('tax_declarations.index') || can('financial_statements.index')">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon" v-once><span class="fas fa-chart-line"></span></span>
@@ -508,9 +508,13 @@ watch(() => route.path, () => {
     closeMobileSidebar();
 });
 
-watch(companyLogo, (newPath) => {
-    console.log('Ruta del logo en Sidebar:', newPath);
-}, { immediate: true });
-
 const can = (action, subject) => permissionsStore.can(action, subject);
 </script>
+
+<style scoped>
+.sidebar-brand-icon {
+    height: 36px;
+    width: auto;
+    flex-shrink: 0;
+}
+</style>

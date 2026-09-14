@@ -6,7 +6,7 @@
     <div class="glass-card">
       <div class="brand-panel">
         <div class="logo-box">
-          <img src="/logo.png" alt="NOA Transportes" class="brand-logo-img" width="1010" height="270" fetchpriority="high" decoding="async" />
+          <img src="/logo.svg" alt="NOA Transportes" class="brand-logo-img" width="1010" height="270" fetchpriority="high" decoding="async" />
         </div>
         <p class="brand-desc">Plataforma de gestión ERP diseñada para eficiencia, seguridad y escalabilidad en tu
           operación logística.</p>

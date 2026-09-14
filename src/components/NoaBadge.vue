@@ -6,14 +6,15 @@
     >
         <img 
             v-if="!hideImage" 
-            src="/noa.svg" 
+            src="/logo.svg" 
             alt="NOA Transportes" 
             class="noa-img"
             :class="{ 'me-1': inline }"
+            :style="{ height: size }"
         />
         <div v-if="hideImage" class="noa-text-brand text-primary fw-bold">NOA</div>
         <div 
-            v-if="showSubtitle" 
+            v-if="showSubtitle && hideImage" 
             class="transportes"
             :class="{ 'transportes-inline': inline, 'transportes-text-mode': hideImage && !inline }"
         >
@@ -56,9 +57,9 @@ defineProps({
 }
 
 .noa-img {
-    width: clamp(150px, 20vw, 210px);
-    height: auto;
-    aspect-ratio: 640 / 220;
+    width: auto;
+    max-width: 100%;
+    aspect-ratio: 1010 / 270;
     object-fit: contain;
     display: block;
     flex-shrink: 0;

@@ -8,7 +8,7 @@
             aria-label="Cargando aplicación"
         >
             <div class="loader-card">
-                <NoaBadge size="36px" />
+                <NoaBadge size="56px" />
                 <p v-if="message" class="loading-message">{{ message }}</p>
                 <div class="progress">
                     <div class="progress-bar"></div>

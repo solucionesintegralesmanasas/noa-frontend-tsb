@@ -10,7 +10,7 @@
 
         <router-link class="navbar-brand me-1 me-sm-3" :class="{ 'd-xl-none': !showBrand }" to="/dashboard">
             <div class="d-flex align-items-center">
-                <img src="/logo.png" alt="NOA Transportes" class="navbar-brand-logo" />
+                <img src="/logo.svg" alt="NOA Transportes" class="navbar-brand-logo" />
                 <span v-if="showBrand" class="badge bg-primary bg-opacity-10 text-primary fw-bold ms-2 py-1 px-2 fs-11 d-none d-sm-inline-flex align-items-center gap-1">
                     <i class="fas fa-steering-wheel"></i> Portal Conductor
                 </span>
@@ -22,7 +22,7 @@
             <li class="nav-item dropdown">
                 <a class="nav-link px-0"
                     :class="{ 'notification-indicator notification-indicator-primary': store.unreadCount > 0 }"
-                    id="navbarDropdownNotification" role="button" data-bs-toggle="dropdown" aria-haspopup="true"
+                    id="navbarDropdownNotification" role="button" aria-label="Notificaciones" data-bs-toggle="dropdown" aria-haspopup="true"
                     aria-expanded="false">
                     <span class="fas fa-bell" style="font-size: 33px;"></span>
                 </a>

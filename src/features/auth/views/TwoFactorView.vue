@@ -15,7 +15,7 @@
           </div>
           <span class="logo-ver">v 1.0.1</span>
         </div>
-        <h2 class="brand-name">NEXT<span>FUEC</span></h2>
+        <h2 class="brand-name">NOA<span>Transportes</span></h2>
         <p class="brand-desc">Plataforma de gestión ERP diseñada para eficiencia, seguridad y escalabilidad en tu
           operación logística.</p>
         <div class="brand-badges">
