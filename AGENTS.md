@@ -11,32 +11,39 @@
 - **State Management:** Pinia 3 (version `^3.0.4`)
 - **Routing:** Vue Router 4 (version `^4.6.4`)
 - **Internationalization (i18n):** vue-i18n 11 (version `^11.4.4`)
-- **UI Library:** PrimeVue 4 (version `^4.5.5`) + PrimeIcons (`^7.0.0`) + `@primeuix/themes` (`^2.0.3`)
+- **UI Library:** PrimeVue 4 (`^4.5.5`) + `@primeuix/themes` (`^2.0.3`) con preset Aura + componentes globales (`DataTable`, `Column`, `PrimeSelect`, `PrimeMultiSelect`, `PButton`)
 - **HTTP Client:** Axios (version `^1.16.1`)
-- **Alerts & Toasts:** SweetAlert2 (`^11.26.25`) + Vue Toastification (`^2.0.0-rc.5`)
-- **Legacy UI Components:** jQuery (`^4.0.0`) + Select2 (`^4.1.0`) + jQuery Validation (`^1.22.1`)
+- **Alerts & Toasts:** SweetAlert2 (`^11.26.25`) con `import()` diferido vía `utils/toast.js` + Vue Toastification (`^2.0.0-rc.5`)
+- **Iconografía:** FontAwesome Pro (CSS + webfonts). `primeicons` eliminado 2026-09-15.
 - **Native Mobile:** Capacitor (`^7.0.0`) + Plugins (`@capacitor/preferences`, `CapacitorHttp`)
-- **Helpers:** Crypto-js (`^4.2.0`), DayJS (`^1.11.21`), JWT Decode (`^4.0.0`), LZ-String (`^1.5.0`), Vue3 Form Wizard (`^1.1.1`)
-- **Testing/Formatting:** No test framework, no linter, no typecheck.
+- **Helpers:** DayJS (`^1.11.21`)
+- **Testing/Formatting:** Sin linter ni typecheck. Scripts informativos `test:a11y` / `test:perf` (ver Comandos).
+
+> **Eliminados 2026-09-15:** jQuery, Select2, `primeicons`, `signature_pad`. No reintroducir.
 
 ## Commands
 
-| Command           | Purpose                                    |
-| ----------------- | ------------------------------------------ |
-| `npm run dev`     | Vite dev server                            |
-| `npm run build`   | Vite production build (outputs to `dist/`) |
-| `npm run preview` | Serve `dist/` locally                      |
+| Command           | Purpose                                             |
+| ----------------- | --------------------------------------------------- |
+| `npm run dev`     | Vite dev server                                     |
+| `npm run build`   | Vite production build (outputs to `dist/`)          |
+| `npm run preview` | Serve `dist/` localmente (usar para medir prod)     |
+| `npm run test`    | `test:a11y` + `test:perf` — solo informan, exit 0    |
+| `npm run test:a11y` | Conteo de antipatrones a11y en `src/`             |
+| `npm run test:perf` | Presupuesto de peso de `dist/` y chequeos HTML    |
 
-No lint/typecheck/test scripts exist.
+No hay linter ni typecheck.
+
+> **Para Lighthouse:** medir contra `npm run preview` o el Apache de producción, **nunca** contra `localhost:5173` (dev sirve módulos sin minificar y distorsiona el puntaje).
 
 ## Entrypoints & Boot Order
 
 - `index.html` → `src/main.js` (async bootstrap with error UI fallback)
 - `main.js` calls `registerPlugins(app)` from `src/utils/plugins.js` — **plugin registration order is critical**:
   1. Pinia (state)
-  2. PrimeVue + UI libs (jQuery/Select2/Swal exposed globally on `window`)
+  2. PrimeVue (componentes globales; el CSS de SweetAlert2 se importa en `main.js`)
   3. Token Manager (loads auth token from encrypted storage)
-  4. Store hydration (auth + permissions — router depends on them)
+  4. Store hydration (auth + permissions — router depends on them; timeout 1s)
   5. Router + i18n
   6. Global error handlers
 
@@ -57,9 +64,10 @@ No lint/typecheck/test scripts exist.
 ## Router & Guards
 
 - `src/router/index.js` with guards in sequential order: `authGuard → twoFAGuard → tenantGuard → permissionsGuard`. Utiliza `createWebHashHistory()` para garantizar la compatibilidad híbrida sin pantalla en blanco en Capacitor.
-- Guard implementations are stubs in `src/router/guards/` (currently all pass-through).
+- Guards reales en `src/router/guards/*.js` (`auth.js`, `2fa.js`, `permissions.js`). `tenantGuard` es un pass-through pendiente de implementar.
 - Route meta flags: `auth`, `public`, `requiresTenant`, `requires2FA`.
 - Error routes: `/401`, `/403`, `/404`, `/500`. Catch-all redirects to `/404`.
+- `permissionsStore.hasRole()` normaliza separadores: `super-admin` = `super_admin` = `SUPERADMIN`. Usar `hasRole('superadmin')` / `hasRole('administrador')`.
 
 ## Dynamic Layout Resolution
 
@@ -102,7 +110,30 @@ No lint/typecheck/test scripts exist.
 - **Monitoreo**: El monitoreo de conectividad se suscribe a los eventos `online`/`offline` nativos y al endpoint `/health`.
 - **Media Utility**: `src/utils/media.js` provee la función robusta `getMediaUrl(path, fallback)` para reconstruir de forma absoluta y limpia las rutas de imágenes y archivos cargados en el storage del Backend.
 - **Notifications System**: `src/features/notifications/store/notifications.store.js` provee un estado centralizado para alertas tempranas de documentos vehiculares vencidos (SOAT, Tecnicomecánica, Licencias) manteniendo la UI reactiva y dinámica.
-- **Importación Obligatoria de Componentes Comunes**: Los componentes compartidos como `BaseFormActions` y `BasePageHeader` no están registrados globalmente por defecto en el bundler de Vite. Cada vista de formulario (`*FormView.vue`) que los utilice en su template debe importarlos de forma explícita en su bloque `<script setup>` (ej. `import BaseFormActions from '@/components/BaseFormActions.vue';`). El script de automatización `scripts/fix_all_imports.py` puede usarse para auditar e inyectar estas importaciones de manera masiva.
+- **Importación Obligatoria de Componentes Comunes**: Los componentes compartidos como `BaseFormActions` y `BasePageHeader` no están registrados globalmente. Cada vista que los use debe importarlos explícitamente en `<script setup>` (ej. `import BaseFormActions from '@/components/BaseFormActions.vue';`).
+
+## Accesibilidad y Formularios (obligatorio)
+
+Reglas cerradas en las fases 1-3 (2026-09-15). Verificables con `npm run test:a11y` (objetivo: no aumentar los conteos).
+
+- **Formularios nuevos:** usar `useAccessibleForm.js` (o `useFormManager.js`, su envoltura compatible).
+- **Asociación label/control:** `label for` ↔ `id` del control. En `PrimeSelect` usar `:input-id` con el mismo valor del `for`.
+- **ARIA por campo:** `:aria-invalid="!!validationErrors['<campo>']"` y `:aria-describedby` condicional al `id` de error.
+- **IDs:** control `f-<campo>` (puntos → guiones); error `f-<campo>-error` con `role="alert"`.
+- **Foco al primer error:** `.focus()` real (no solo `scrollIntoView`). Selector: `'[aria-invalid="true"], .is-invalid'`.
+- **Aislados:** `type="hidden"` no lleva etiqueta ni `id`. `readonly`/`disabled` de cálculo llevan `aria-readonly`/`aria-hidden` según corresponda.
+- **Validación:** vacíos con `isEmpty` (equivalente a `!v` + `trim()` para strings); nunca `!value` directo en strings.
+- **Iconos decorativos:** `aria-hidden="true"`. Botones icon-only: `aria-label` en español.
+- **Prohibido:** `role="button"` en `router-link`, `<a>` sin `href`, `href="#"`, `javascript:void(0)`, `aria-label` en inglés, `console.*` directo (usar `logger`), imports directos de `sweetalert2` (usar `utils/toast.js`).
+
+## Estado del Proyecto y Medición (2026-09-15)
+
+- **Fases 1-3 cerradas:** a11y estructural global, 25 formularios migrados, dashboard con accesibilidad 100.
+- **Rendimiento P0-P2 cerrado:** primeicons eliminado, SweetAlert2 diferido, FontAwesome JS eliminado (−1.2 MB), jQuery/Select2 eliminados y 22 vistas migradas a `PrimeSelect` (−148 kB, −2.703 líneas).
+- **Métricas:** `totalJS` 2565 kB · `totalCSS` 241 kB. Reportes en `docs/metrics/a11y-*.json`, `perf-*.json` y `lighthouse.md` (manual).
+- **Plan de rendimiento pendiente:** `Documentos\plan-mejora-rendimiento-noa.md` — bloqueado hasta poder medir en producción.
+- **No eliminar `lodash.min.js`:** `public/assets/js/theme.js` usa `window._` 11 veces.
+- **Deuda conocida:** `vendor-primevue` ~806 kB, `theme.min.css` 892 kB sin purga, `bootstrap.min.js` global (Modal/Tooltip), Leaflet por CDN, `tenantGuard` sin implementar.
 
 ## Módulos y Features del Sistema (`src/features/`)
 
@@ -136,13 +167,13 @@ Listado de submódulos de negocio disponibles y activos en la aplicación:
 
 Abstracciones de lógica reutilizable para mantener los componentes `.vue` dedicados a la interfaz:
 
-- **`useForm.js`**: Utilidades sencillas para interactuar con formularios Vue.
-- **`useFormManager.js`**: Manejo avanzado de validaciones, cargas y envío estructurado de datos.
+- **`useAccessibleForm.js`**: Composable estándar para formularios accesibles (trim, reglas `required/minLength/maxLength/email/pattern`, mensajes con etiqueta, `validateAndFocus`, `fieldAria`/`errorId`, `submit` anti-doble-envío). **Usar en formularios nuevos.**
+- **`useFormManager.js`**: Envoltura compatible sobre `useAccessibleForm` (misma firma histórica). `useForm.js` fue eliminado.
 - **`useNotifications.js`**: Hook para disparar notificaciones visuales contextuales.
-- **`useSelect2.js`**: Inicialización reactiva y limpieza del plugin jQuery Select2 en selects modernos.
 - **`useSidebar.js`**: Control del estado colapsable y responsivo de la barra lateral.
 - **`useTable.js`**: Abstracción para el control de tablas, filtros, búsqueda debounced y paginación.
 - **`useTableActions.js`**: Manejo de eventos comunes en tablas como confirmación de eliminación con SweetAlert2.
+- Otros: `useDocumentWizard.js`, `useChatPolling.js`, `useGeolocation.js`, `useNitLookup.js`, `useNoAutocomplete.js`.
 
 ## Utilidades del Sistema (`src/utils/`)
 
