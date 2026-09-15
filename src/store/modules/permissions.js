@@ -34,16 +34,20 @@ export const usePermissionsStore = defineStore("permissions", {
 
         hasRole(role) {
             if (!role) return false;
-            const target = String(role).toUpperCase();
+            // Normaliza separadores para que 'super-admin', 'super_admin' y
+            // 'SUPERADMIN' coincidan con una sola comparación canónica.
+            const normalize = (v) => String(v).toUpperCase().replace(/[-_\s]+/g, '');
+            const target = normalize(role);
             return (this.roles || []).some(r => {
-                if (typeof r === 'string') return r.toUpperCase() === target;
-                if (typeof r === 'object' && r?.name) return String(r.name).toUpperCase() === target;
-                return false;
+                const name = typeof r === 'string' ? r : r?.name;
+                if (!name) return false;
+                return normalize(name) === target;
             }) || (typeof rbac.hasRole === 'function' && rbac.hasRole(role));
         },
 
         can(action, subject = null) {
-            if (this.hasRole('super_admin') || this.hasRole('Administrador') || this.hasRole('Super Administrador') || this.hasRole('SUPERADMIN') || this.hasRole('super-admin')) {
+            // Acceso global de administración (una sola comparación normalizada)
+            if (this.hasRole('superadmin') || this.hasRole('administrador')) {
                 return true;
             }
             

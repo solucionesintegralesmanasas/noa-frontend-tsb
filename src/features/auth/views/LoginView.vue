@@ -15,11 +15,11 @@
           <span class="badge badge-green">Seguro</span>
           <span class="badge badge-sky">Cloud</span>
         </div>
-        <div class="brand-terms">Términos y <a href="#">Condiciones</a></div>
+        <div class="brand-terms">Términos y <span class="brand-terms-link" role="note">Condiciones</span></div>
       </div>
       <div class="form-panel">
         <div class="form-head">
-          <h3 class="form-title-text">Iniciar Sesión</h3>
+          <h1 class="form-title-text">Iniciar Sesión</h1>
           <p class="form-sub">Accede a NOA Transportes para gestionar tu flota</p>
         </div>
         <hr class="divider-line">
@@ -38,7 +38,7 @@
                   placeholder="nombre@empresa.com"
                   v-model="formData.email"
                   :aria-invalid="!!errors.email"
-                  aria-describedby="login-email-error"
+                  :aria-describedby="errors.email ? 'login-email-error' : undefined"
                 >
               </div>
               <span v-if="errors.email" id="login-email-error" class="ferror" role="alert">{{ errors.email }}</span>
@@ -48,7 +48,7 @@
             <div class="fgroup">
               <div class="flabel-row">
                 <label class="flabel" for="login-password">Contraseña</label>
-                <a href="#" class="flink" @click.prevent>¿Olvidaste tu contraseña?</a>
+                <span class="flink flink-disabled" aria-disabled="true" title="Recuperación de contraseña no disponible por el momento">¿Olvidaste tu contraseña?</span>
               </div>
               <div class="iw">
                 <i class="pi pi-lock iico" aria-hidden="true"></i>
@@ -61,7 +61,7 @@
                   placeholder="••••••••"
                   v-model="formData.password"
                   :aria-invalid="!!errors.password"
-                  aria-describedby="login-password-error"
+                  :aria-describedby="errors.password ? 'login-password-error' : undefined"
                 >
                 <button
                   type="button"
@@ -114,11 +114,11 @@ onMounted(() => {
   configStore.setLoading(false);
 });
 
-const { formData, errors, isSubmitting, validate } = useFormManager(
+const { formData, errors, isSubmitting, validateAndFocus } = useFormManager(
   { email: '', password: '' },
   {
-    email: { required: true },
-    password: { required: true }
+    email: { required: true, email: true, label: 'El correo electrónico' },
+    password: { required: true, label: 'La contraseña' }
   }
 );
 
@@ -131,7 +131,7 @@ const loginError = shallowRef('');
  */
 const handleLogin = async () => {
   loginError.value = '';
-  if (!validate()) return;
+  if (!(await validateAndFocus())) return;
 
   isSubmitting.value = true;
 
@@ -173,8 +173,9 @@ const handleLogin = async () => {
 .badge-blue{background:rgba(44,123,229,0.1);color:#1a68d1;}
 .badge-green{background:rgba(0,210,122,0.1);color:#0a8a50;}
 .badge-sky{background:rgba(0,210,244,0.1);color:#0899b0;}
-.brand-terms{font-size:0.75rem;color:#94a3b8;}
-.brand-terms a{color:#2c7be5;text-decoration:none;font-weight:500;}
+.brand-terms{font-size:0.75rem;color:#64748b;}
+.brand-terms a{color:#1a68d1;text-decoration:none;font-weight:500;}
+.brand-terms-link{color:#1a68d1;font-weight:500;}
 .form-panel{padding:clamp(1.5rem,3.5vw,2.5rem) clamp(1rem,3vw,2rem);background:#fff;display:flex;flex-direction:column;justify-content:center;}
 .form-head{margin-bottom:clamp(1rem,2.5vw,1.5rem);}
 .form-title-text{font-size:clamp(1.25rem,2.5vw,1.6rem);font-weight:700;color:#0f172a;margin:0 0 0.35rem;}
@@ -184,16 +185,18 @@ const handleLogin = async () => {
 .flabel-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.4rem;}
 .flabel{display:block;font-size:0.8rem;font-weight:600;color:#334155;letter-spacing:0.2px;margin-bottom:0.4rem;}
 .flabel-row .flabel{margin-bottom:0;}
-.flink{font-size:0.75rem;color:#2c7be5;text-decoration:none;font-weight:500;}
+.flink{font-size:0.75rem;color:#1a68d1;text-decoration:none;font-weight:500;}
+.flink-disabled{cursor:not-allowed;opacity:0.8;}
 .flink:hover{text-decoration:underline;}
 .iw{position:relative;display:flex;align-items:center;}
-.iico{position:absolute;left:13px;color:#94a3b8;font-size:0.85rem;z-index:2;line-height:1;display:flex;align-items:center;}
+.iico{position:absolute;left:13px;color:#64748b;font-size:0.85rem;z-index:2;line-height:1;display:flex;align-items:center;}
 .finput{width:100%;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px 12px 10px 38px;color:#0f172a;font-size:0.9rem;font-family:'Outfit',sans-serif;box-sizing:border-box;transition:all 0.2s;}
-.finput:focus{outline:none;border-color:#2c7be5;background:#fff;box-shadow:0 0 0 3px rgba(44,123,229,0.12);}
-.finput::placeholder{color:#94a3b8;}
+.finput:focus{outline:none;border-color:#2c7be5;background:#fff;box-shadow:0 0 0 3px rgba(44,123,229,0.35);}
+.finput:focus-visible{outline:2px solid #1a68d1;outline-offset:1px;}
+.finput::placeholder{color:#64748b;}
 .finput-pw{padding-right:38px;}
 .finput-error{border-color:#e5484d;background:#fef4f4;}
-.pw-toggle{position:absolute;right:10px;background:none;border:none;cursor:pointer;font-size:0.9rem;line-height:1;padding:4px;color:#94a3b8;display:flex;align-items:center;}
+.pw-toggle{position:absolute;right:10px;background:none;border:none;cursor:pointer;font-size:0.9rem;line-height:1;padding:4px;color:#64748b;display:flex;align-items:center;}
 .pw-toggle:hover{color:#2c7be5;}
 .ferror{display:block;font-size:0.75rem;color:#e5484d;margin-top:0.35rem;}
 .alert-error{background:#fef4f4;border:1px solid #f4b8ba;color:#c2222a;font-size:0.82rem;padding:10px 12px;border-radius:8px;}

@@ -19,7 +19,8 @@ export async function permissionsGuard(to, from, next) {
     }
 
     // Administradores y Super Administradores tienen acceso global
-    if (permStore.hasRole('super-admin') || permStore.hasRole('super_admin') || permStore.hasRole('Administrador') || permStore.hasRole('Super Administrador') || permStore.hasRole('SUPERADMIN')) {
+    // (hasRole normaliza separadores: cubre super-admin, super_admin, SUPERADMIN, etc.)
+    if (permStore.hasRole('superadmin') || permStore.hasRole('administrador')) {
         return next();
     }
 

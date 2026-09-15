@@ -23,20 +23,21 @@
           <span class="badge badge-green">Seguro</span>
           <span class="badge badge-sky">Cloud</span>
         </div>
-        <div class="brand-terms">Términos y <a href="#">Condiciones</a></div>
+        <div class="brand-terms">Términos y <span class="brand-terms-link" role="note">Condiciones</span></div>
       </div>
       <div class="form-panel">
         <div class="form-head">
-          <h3 class="form-title-text">Seguridad 2FA</h3>
+          <h1 class="form-title-text">Seguridad 2FA</h1>
           <p class="form-sub">Ingresa el código de 6 dígitos de tu aplicación autenticadora.</p>
         </div>
         <hr class="divider-line">
         <div class="fgroup">
-          <label class="flabel">Código de Verificación</label>
+          <label class="flabel" for="twofa-code">Código de Verificación</label>
           <div class="iw">
-            <span class="iico">🛡️</span>
-            <input class="finput code-input" type="text" autocomplete="off" placeholder="000000" maxlength="6" v-model="formData.code">
+            <span class="iico" aria-hidden="true">🛡️</span>
+            <input id="twofa-code" class="finput code-input" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="000000" maxlength="6" v-model="formData.code" :aria-invalid="!!errors.code" :aria-describedby="errors.code ? 'twofa-code-error' : undefined">
           </div>
+          <span v-if="errors.code" id="twofa-code-error" class="ferror" role="alert">{{ errors.code }}</span>
         </div>
 
         <button class="btn-main" @click="handleVerify" :disabled="isSubmitting">
@@ -67,15 +68,15 @@ const router = useRouter();
 const authStore = useAuthStore();
 const isSmallMobile = ref(window.innerWidth <= 375);
 
-const { formData, errors, isSubmitting, validate } = useFormManager(
+const { formData, errors, isSubmitting, validateAndFocus } = useFormManager(
   { code: '' },
   {
-    code: { required: true, minLength: 6, maxLength: 6 }
+    code: { required: true, minLength: 6, maxLength: 6, label: 'El código de verificación' }
   }
 );
 
 const handleVerify = async () => {
-  if (!validate()) return;
+  if (!(await validateAndFocus())) return;
 
   isSubmitting.value = true;
   try {

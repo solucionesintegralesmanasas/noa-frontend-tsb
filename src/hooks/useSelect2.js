@@ -37,19 +37,30 @@ const setNestedValue = (obj, field, value) => {
 export function useSelect2(formData, validationErrors) {
 
     /**
-     * Aplica clases de validación visual al contenedor Select2.
+     * Aplica clases de validación visual al contenedor Select2 y expone el
+     * estado al lector de pantalla en el <select> nativo (Select2 lo mantiene
+     * enfocado con la clase select2-hidden-accessible).
      *
      * @param {object} selectRef  - ref del elemento <select>
      * @param {string} field      - Nombre del campo en formData (dot-notation soportado)
      */
     const applyValidation = (selectRef, field) => {
         if (!selectRef?.value || !field) return;
-        const $container = $(selectRef.value).next('.select2-container');
+        const $el = $(selectRef.value);
+        const $container = $el.next('.select2-container');
         $container.removeClass('is-invalid-select2 is-valid-select2');
+        const errorId = `f-${String(field).replace(/\./g, '-')}-error`;
         if (validationErrors?.[field]) {
             $container.addClass('is-invalid-select2');
+            $el.attr('aria-invalid', 'true');
+            $el.attr('aria-describedby', errorId);
         } else if (formData && getNestedValue(formData, field)) {
             $container.addClass('is-valid-select2');
+            $el.attr('aria-invalid', 'false');
+            $el.removeAttr('aria-describedby');
+        } else {
+            $el.attr('aria-invalid', 'false');
+            $el.removeAttr('aria-describedby');
         }
     };
 

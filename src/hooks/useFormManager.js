@@ -1,31 +1,32 @@
 // src/hooks/useFormManager.js
-import { reactive, ref } from 'vue';
+import { useAccessibleForm } from './useAccessibleForm.js';
 
 /**
- * Hook para gestionar formularios con validación básica y loading.
+ * Hook para gestionar formularios con validación y loading.
+ *
+ * Envoltura compatible sobre `useAccessibleForm`: misma firma de retorno
+ * (`{ formData, errors, isSubmitting, validate, reset }`) más los helpers
+ * accesibles (`validateAndFocus`, `fieldAria`, `errorId`, `submit`).
+ *
+ * Mejoras frente a la versión anterior: `trim()` antes de validar, reglas
+ * `minLength`/`maxLength`/`email`/`pattern`, mensajes con nombre de campo y
+ * foco al primer error.
  */
 export function useFormManager(initialState = {}, validationSchema = {}) {
-    const formData = reactive({ ...initialState });
-    const errors = reactive({});
-    const isSubmitting = ref(false);
+    const form = useAccessibleForm(initialState, validationSchema);
 
-    const validate = () => {
-        Object.keys(errors || {}).forEach(key => delete errors[key]);
-        const newErrors = {};
-        Object.keys(validationSchema || {}).forEach(key => {
-            if (validationSchema[key]?.required && !formData[key]) {
-                const labelName = key === 'email' ? 'El correo electrónico' : key === 'password' ? 'La contraseña' : `El campo ${key.replace('_', ' ')}`;
-                newErrors[key] = `${labelName} es obligatorio`;
-            }
-        });
-        Object.assign(errors, newErrors);
-        return Object.keys(newErrors).length === 0;
+    return {
+        formData: form.formData,
+        errors: form.errors,
+        isSubmitting: form.isSubmitting,
+        validate: form.validate,
+        reset: form.reset,
+        // Helpers accesibles (nuevos, opcionales para el llamador)
+        validateAndFocus: form.validateAndFocus,
+        focusFirstError: form.focusFirstError,
+        fieldAria: form.fieldAria,
+        errorId: form.errorId,
+        submit: form.submit,
+        errorSummaryId: form.errorSummaryId,
     };
-
-    const reset = () => {
-        Object.assign(formData, initialState || {});
-        Object.keys(errors || {}).forEach(key => delete errors[key]);
-    };
-
-    return { formData, errors, isSubmitting, validate, reset };
 }
