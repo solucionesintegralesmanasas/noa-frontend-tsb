@@ -8,7 +8,7 @@
         :class="{ 'avatar-empty': !hasPhoto }"
       >
         <template v-if="!hasPhoto">
-          <i class="pi pi-camera avatar-empty-icon" aria-hidden="true"></i>
+          <i class="fas fa-camera avatar-empty-icon" aria-hidden="true"></i>
         </template>
       </component>
       <button
@@ -19,7 +19,7 @@
         title="Quitar foto"
         @click="onRemove"
       >
-        <i class="pi pi-times" aria-hidden="true"></i>
+        <i class="fas fa-times" aria-hidden="true"></i>
       </button>
     </div>
 
@@ -29,7 +29,7 @@
       <PButton
         type="button"
         :label="hasPhoto ? 'Cambiar' : 'Subir foto'"
-        :icon="hasPhoto ? 'pi pi-refresh' : 'pi pi-upload'"
+        :icon="hasPhoto ? 'fas fa-refresh' : 'fas fa-upload'"
         size="small"
         text
         @click="triggerPicker"

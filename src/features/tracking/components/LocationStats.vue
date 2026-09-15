@@ -17,7 +17,7 @@ const displayValue = (value, suffix = '') =>
         <h3 class="font-semibold text-gray-700 mb-4">Estadísticas del día</h3>
 
         <div v-if="loading" class="py-6 text-center text-gray-400">
-            <i class="pi pi-spin pi-spinner text-2xl"></i>
+            <i class="fas fa-spinner fa-spin text-2xl" aria-hidden="true"></i>
         </div>
 
         <div v-else-if="statsData.total_points" class="grid grid-cols-2 gap-4">
@@ -54,7 +54,7 @@ const displayValue = (value, suffix = '') =>
         </div>
 
         <div v-else class="py-6 text-center text-gray-400 text-sm">
-            <i class="pi pi-chart-line text-2xl block mb-2"></i>
+            <i class="fas fa-chart-line text-2xl block mb-2" aria-hidden="true"></i>
             Selecciona un conductor para ver sus estadísticas
         </div>
     </div>

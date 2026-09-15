@@ -3,13 +3,13 @@
   "totales": {
     "langEnHtml": 0,
     "labelsSinFor": 96,
-    "controlesVModelSinId": 137,
+    "controlesVModelSinId": 135,
     "erroresSinRole": 0,
     "ariaLabelsIngles": 3,
     "roleButtonEnRouterLink": 0,
     "enlacesMuertos": 1,
     "aRoleButtonSinHref": 0,
-    "iconosSinAriaHidden": 974
+    "iconosSinAriaHidden": 966
   },
   "porArchivo": {
     "src\\App.vue": {
@@ -124,12 +124,11 @@
       "iconosSinAriaHidden": 6
     },
     "src\\features\\dashboard\\views\\ConductorDashboardView.vue": {
-      "controlesVModelSinId": 2,
-      "iconosSinAriaHidden": 38
+      "controlesVModelSinId": 1,
+      "iconosSinAriaHidden": 33
     },
     "src\\features\\dashboard\\views\\DashboardView.vue": {
-      "controlesVModelSinId": 1,
-      "iconosSinAriaHidden": 14
+      "iconosSinAriaHidden": 13
     },
     "src\\features\\economicactivity\\views\\EconomicActivitiesDetailView.vue": {
       "iconosSinAriaHidden": 4
@@ -299,9 +298,6 @@
     },
     "src\\features\\tracking\\components\\DriverSelfMap.vue": {
       "iconosSinAriaHidden": 15
-    },
-    "src\\features\\tracking\\components\\LocationStats.vue": {
-      "iconosSinAriaHidden": 2
     },
     "src\\features\\tracking\\views\\DriverHistoryView.vue": {
       "controlesVModelSinId": 2,

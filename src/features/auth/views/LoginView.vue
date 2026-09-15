@@ -28,7 +28,7 @@
             <div class="fgroup">
               <label class="flabel" for="login-email">Correo Electrónico</label>
               <div class="iw">
-                <i class="pi pi-envelope iico" aria-hidden="true"></i>
+                <i class="fas fa-envelope iico" aria-hidden="true"></i>
                 <input
                   id="login-email"
                   class="finput"
@@ -51,7 +51,7 @@
                 <span class="flink flink-disabled" aria-disabled="true" title="Recuperación de contraseña no disponible por el momento">¿Olvidaste tu contraseña?</span>
               </div>
               <div class="iw">
-                <i class="pi pi-lock iico" aria-hidden="true"></i>
+                <i class="fas fa-lock iico" aria-hidden="true"></i>
                 <input
                   id="login-password"
                   class="finput finput-pw"
@@ -69,7 +69,7 @@
                   :aria-label="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
                   @click="showPassword = !showPassword"
                 >
-                  <i :class="showPassword ? 'pi pi-eye-slash' : 'pi pi-eye'" aria-hidden="true"></i>
+                  <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'" aria-hidden="true"></i>
                 </button>
               </div>
               <span v-if="errors.password" id="login-password-error" class="ferror" role="alert">{{ errors.password }}</span>

@@ -6,7 +6,6 @@ import { usePermissionsStore } from "@store/modules/permissions.js";
 import { Capacitor } from "@capacitor/core";
 import { Filesystem, Directory } from "@capacitor/filesystem";
 import { Share } from "@capacitor/share";
-import Swal from "sweetalert2";
 
 const ROLES = Object.freeze({
     SUPERADMIN: 'SUPERADMIN',
@@ -198,18 +197,14 @@ export class BaseService {
 
                 return;
             } catch (err) {
-                console.warn('[_downloadPdf] Error abriendo PDF nativo, usando fallback web:', err);
+                logger.warn('[_downloadPdf] Error abriendo PDF nativo, usando fallback web:', err);
                 // Si Share falla (ej. usuario cancela), no hacemos nada más
                 if (err?.message?.includes('Share canceled') || err?.errorMessage?.includes('canceled')) {
                     return;
                 }
-                // Fallback: mostrar mensaje de error
-                Swal.fire({
-                    title: 'Error al abrir PDF',
-                    text: 'No se pudo abrir el archivo PDF. Asegúrese de tener una app lectora de PDFs instalada.',
-                    icon: 'error',
-                    confirmButtonText: 'Entendido',
-                });
+                // Fallback: notificar con el toast estándar (carga diferida)
+                const { toast } = await import("@utils/toast.js");
+                await toast('Error al abrir PDF', 'No se pudo abrir el archivo PDF. Asegúrese de tener una app lectora de PDFs instalada.', 'error');
                 return;
             }
         }

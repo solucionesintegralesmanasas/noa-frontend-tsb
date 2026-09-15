@@ -9,10 +9,7 @@ import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Select from 'primevue/select';
 import MultiSelect from 'primevue/multiselect';
-import Dialog from 'primevue/dialog';
-import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
-import 'primeicons/primeicons.css';
 
 const primeVueOptions = {
     ripple: true,
@@ -45,11 +42,10 @@ export function installPrimeVue(app) {
     app.use(PrimeVue, primeVueOptions);
 
     // Registro global de componentes base para evitar imports repetitivos en vistas
+    // (solo los usados en varias vistas; Dialog se importa directo donde se usa)
     app.component('DataTable', DataTable);
     app.component('Column', Column);
     app.component('PrimeSelect', Select);
     app.component('PrimeMultiSelect', MultiSelect);
-    app.component('PDialog', Dialog);
-    app.component('PInputText', InputText);
     app.component('PButton', Button);
 }

@@ -2,16 +2,16 @@
   "fecha": "2026-09-15",
   "dist": true,
   "metricas": {
-    "totalJS": 2734.1,
-    "totalCSS": 288.8,
+    "totalJS": 2736.1,
+    "totalCSS": 276.9,
     "vendorPrimevue": 806.3,
     "vendorUI": 148.5,
     "vendorFeedback": 76.3,
     "vendorHttp": 40.1,
     "vendorVue": 102.4,
-    "indexJS": 118.7,
-    "numChunksJS": 155,
-    "numChunksCSS": 89
+    "indexJS": 117.3,
+    "numChunksJS": 156,
+    "numChunksCSS": 88
   },
   "html": {
     "scriptsSinDefer": [],
@@ -20,7 +20,7 @@
   },
   "topChunks": [
     {
-      "archivo": "vendor-primevue-Dlw7-BqR.js",
+      "archivo": "vendor-primevue-DL1rH2fT.js",
       "kb": 806.3,
       "tipo": "js"
     },
@@ -30,17 +30,17 @@
       "tipo": "js"
     },
     {
-      "archivo": "index-BsYEQs5G.js",
-      "kb": 118.7,
+      "archivo": "index-fCY0LM7x.js",
+      "kb": 117.3,
       "tipo": "js"
     },
     {
-      "archivo": "vendor-vue-C9yDNBJo.js",
+      "archivo": "vendor-vue-8d4gbgr0.js",
       "kb": 102.4,
       "tipo": "js"
     },
     {
-      "archivo": "ServiceTemplateView-brgHsyBL.js",
+      "archivo": "ServiceTemplateView-DLtuNN1K.js",
       "kb": 92.8,
       "tipo": "js"
     },
@@ -50,12 +50,12 @@
       "tipo": "js"
     },
     {
-      "archivo": "SystemConfigurationView-CGmm9kVM.js",
-      "kb": 52.8,
+      "archivo": "SystemConfigurationView-BvWROSPC.js",
+      "kb": 52.9,
       "tipo": "js"
     },
     {
-      "archivo": "FuecFormView-BZeonusp.js",
+      "archivo": "FuecFormView-Crm7KCuF.js",
       "kb": 48.1,
       "tipo": "js"
     },
@@ -65,8 +65,8 @@
       "tipo": "js"
     },
     {
-      "archivo": "VehicleDocumentsFormView-Cbnua3Uz.js",
-      "kb": 37.1,
+      "archivo": "VehicleDocumentsFormView-Bdah3_4D.js",
+      "kb": 37.2,
       "tipo": "js"
     }
   ]
