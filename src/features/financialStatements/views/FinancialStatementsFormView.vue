@@ -20,13 +20,13 @@
                         <input type="hidden" v-if="!isSuperAdmin" v-model="formData.company_uuid" />
                         <div class="col-12 col-sm-6 col-md-4 col-lg-3" v-if="isSuperAdmin">
                             <label class="form-label required" for="company_uuid">Empresa</label>
-                            <select ref="companySelect" v-model="formData.company_uuid" class="form-control select2-input w-100"
+                            <select id="f-company_uuid" :aria-invalid="!!validationErrors['company_uuid']" :aria-describedby="validationErrors['company_uuid'] ? 'f-company_uuid-error' : undefined" ref="companySelect" v-model="formData.company_uuid" class="form-control select2-input w-100"
                                 :class="{ 'is-invalid': validationErrors.company_uuid }">
                                 <option value="">Seleccione...</option>
                                 <option v-for="comp in store.catalogs.companies" :key="comp.uuid" :value="comp.uuid">{{
                                     comp.business_name }}</option>
                             </select>
-                            <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block">{{
+                            <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block" id="f-company_uuid-error" role="alert">{{
                                 validationErrors.company_uuid }}</div>
                         </div>
                         <div class="col-12 col-sm-6 col-md-4 col-lg-3">
@@ -34,7 +34,7 @@
                             <input id="fiscal_year" v-model="formData.fiscal_year" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.fiscal_year }" type="number" autocomplete="off"
                                 placeholder="Ej: 2025" />
-                            <div v-if="validationErrors.fiscal_year" class="invalid-feedback d-block">{{
+                            <div v-if="validationErrors.fiscal_year" class="invalid-feedback d-block" id="f-fiscal_year-error" role="alert">{{
                                 validationErrors.fiscal_year }}</div>
                         </div>
                         <div class="col-12 col-sm-6 col-md-4 col-lg-3">
@@ -89,7 +89,7 @@
                         <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                             <label class="form-label" for="equity">Patrimonio total (Calculado)</label>
                             <input type="number" step="0.01" class="form-control bg-light" v-model="formData.equity"
-                                id="equity" readonly tabindex="-1" autocomplete="off" placeholder="0.00" />
+                                id="equity" readonly aria-readonly="true" tabindex="-1" autocomplete="off" placeholder="0.00" />
                         </div>
                         <!-- ========== RESULTADOS ========== -->
                         <div class="col-12">
@@ -234,10 +234,12 @@ watch(
     }
 );
 
+const isEmpty = (v) => v === null || v === undefined || (typeof v === 'string' ? v.trim() === '' : !v);
+
 const validateForm = () => {
     Object.keys(validationErrors).forEach(key => delete validationErrors[key]);
 
-    if (!formData.company_uuid) validationErrors.company_uuid = 'Debe seleccionar una empresa';
+    if (isEmpty(formData.company_uuid)) validationErrors.company_uuid = 'Debe seleccionar una empresa';
     if (!formData.fiscal_year || formData.fiscal_year === '') validationErrors.fiscal_year = 'El año fiscal es obligatorio';
 
     return Object.keys(validationErrors).length === 0;
@@ -250,8 +252,13 @@ const handleSubmit = async () => {
 
     if (!validateForm()) {
         applyAllValidations(selectConfigs.value);
-        const firstError = document.querySelector('.is-invalid, .is-invalid-select2');
-        if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        await nextTick();
+        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+        if (firstError) {
+            if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(firstError.tagName)) firstError.setAttribute('tabindex', '-1');
+            firstError.focus({ preventScroll: true });
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return toast('Atención', 'Revisa los campos obligatorios', 'warning');
     }
 

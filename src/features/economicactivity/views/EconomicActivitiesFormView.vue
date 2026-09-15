@@ -34,7 +34,7 @@
                                     {{ opt.business_name }}
                                 </option>
                             </select>
-                            <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block" id="f-company_uuid-error" role="alert">
                                 {{ validationErrors.company_uuid }}
                             </div>
                         </div>
@@ -50,7 +50,7 @@
                                     {{ opt.code }} — {{ opt.description }}
                                 </option>
                             </select>
-                            <div v-if="validationErrors.activity_code" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.activity_code" class="invalid-feedback d-block" id="f-activity_code-error" role="alert">
                                 {{ validationErrors.activity_code }}
                             </div>
                         </div>
@@ -63,7 +63,7 @@
                                 <option value="0">No — Actividad secundaria</option>
                                 <option value="1">Sí — Actividad principal</option>
                             </select>
-                            <div v-if="validationErrors.is_main_activity" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.is_main_activity" class="invalid-feedback d-block" id="f-is_main_activity-error" role="alert">
                                 {{ validationErrors.is_main_activity }}
                             </div>
                         </div>
@@ -77,7 +77,7 @@
                                 class="form-control" :class="{ 'is-invalid': validationErrors.activity_description }"
                                 rows="3" maxlength="255"
                                 placeholder="Describe detalladamente la actividad económica..."></textarea>
-                            <div v-if="validationErrors.activity_description" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.activity_description" class="invalid-feedback d-block" id="f-activity_description-error" role="alert">
                                 {{ validationErrors.activity_description }}
                             </div>
                         </div>
@@ -214,8 +214,13 @@ const handleSubmit = async () => {
 
     if (!validateForm()) {
         applyAllValidations(selectConfigs.value);
-        const firstError = document.querySelector('.is-invalid, .is-invalid-select2');
-        if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        await nextTick();
+        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+        if (firstError) {
+            if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(firstError.tagName)) firstError.setAttribute('tabindex', '-1');
+            firstError.focus({ preventScroll: true });
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return toast('Atención', 'Revisa los campos obligatorios', 'warning');
     }
 

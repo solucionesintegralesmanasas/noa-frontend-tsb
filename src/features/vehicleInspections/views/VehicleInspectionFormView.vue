@@ -31,7 +31,7 @@
                                         {{ opt.vehicle_license_plate }}{{ opt.uuid === primaryVehicleUuid ? ' (Principal)' : '' }}
                                     </option>
                                 </select>
-                                <div v-if="validationErrors.vehicle_uuid" class="invalid-feedback d-block">
+                                <div v-if="validationErrors.vehicle_uuid" class="invalid-feedback d-block" id="f-vehicle_uuid-error" role="alert">
                                     {{ validationErrors.vehicle_uuid }}
                                 </div>
                                 <div v-if="isConductor && assignedVehiclesLoaded && !filteredVehicles.length" class="form-text text-warning small">
@@ -47,7 +47,7 @@
                                 <label class="form-label required" for="inspection_date">Fecha de Inspección</label>
                                 <input id="inspection_date" v-model="formData.inspection_date" class="form-control"
                                     :class="{ 'is-invalid': validationErrors.inspection_date }" type="date" />
-                                <div v-if="validationErrors.inspection_date" class="invalid-feedback d-block">
+                                <div v-if="validationErrors.inspection_date" class="invalid-feedback d-block" id="f-inspection_date-error" role="alert">
                                     {{ validationErrors.inspection_date }}
                                 </div>
                             </div>
@@ -58,7 +58,7 @@
                                 <input id="mileage" v-model.number="formData.mileage" class="form-control"
                                     :class="{ 'is-invalid': validationErrors.mileage }" type="number" autocomplete="off"
                                     placeholder="Ingresa el kilometraje" />
-                                <div v-if="validationErrors.mileage" class="invalid-feedback d-block">
+                                <div v-if="validationErrors.mileage" class="invalid-feedback d-block" id="f-mileage-error" role="alert">
                                     {{ validationErrors.mileage }}
                                 </div>
                             </div>
@@ -67,7 +67,7 @@
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label">Km Recorridos</label>
                                 <input class="form-control" :value="kmTraveled + ' km'" disabled readonly
-                                    tabindex="-1" />
+                                    tabindex="-1" aria-hidden="true" />
                             </div>
 
                             <input type="hidden" v-if="!isSuperAdmin" v-model="formData.company_uuid" />
@@ -82,7 +82,7 @@
                                         {{ opt.business_name || opt.name }}
                                     </option>
                                 </select>
-                                <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block">
+                                <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block" id="f-company_uuid-error" role="alert">
                                     {{ validationErrors.company_uuid }}
                                 </div>
                             </div>
@@ -104,7 +104,7 @@
                                         {{ opt.first_name }} {{ opt.last_name }}
                                     </option>
                                 </select>
-                                <div v-if="validationErrors.driver_uuid" class="invalid-feedback d-block">
+                                <div v-if="validationErrors.driver_uuid" class="invalid-feedback d-block" id="f-driver_uuid-error" role="alert">
                                     {{ validationErrors.driver_uuid }}
                                 </div>
                             </div>
@@ -510,12 +510,14 @@ watch(() => formData.company_uuid, (newVal, oldVal) => {
 });
 
 // ── Validación ──────────────────────────────────────────────────────────────
+const isEmpty = (v) => v === null || v === undefined || (typeof v === 'string' ? v.trim() === '' : !v);
+
 const validateForm = () => {
     Object.keys(validationErrors).forEach(key => delete validationErrors[key]);
 
-    if (!formData.company_uuid) validationErrors.company_uuid = 'Este campo es obligatorio';
-    if (!formData.vehicle_uuid) validationErrors.vehicle_uuid = 'Este campo es obligatorio';
-    if (!formData.inspection_date) validationErrors.inspection_date = 'Este campo es obligatorio';
+    if (isEmpty(formData.company_uuid)) validationErrors.company_uuid = 'Este campo es obligatorio';
+    if (isEmpty(formData.vehicle_uuid)) validationErrors.vehicle_uuid = 'Este campo es obligatorio';
+    if (isEmpty(formData.inspection_date)) validationErrors.inspection_date = 'Este campo es obligatorio';
     if (formData.mileage === '' || formData.mileage === null || formData.mileage === undefined || formData.mileage <= 0) {
         validationErrors.mileage = 'Ingresa un kilometraje válido';
     }
@@ -561,8 +563,13 @@ const handleSubmit = async () => {
 
     if (!validateForm()) {
         applyAllValidations(selectConfigs.value);
-        const firstError = document.querySelector('.is-invalid, .is-invalid-select2, .invalid-feedback');
-        if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        await nextTick();
+        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+        if (firstError) {
+            if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(firstError.tagName)) firstError.setAttribute('tabindex', '-1');
+            firstError.focus({ preventScroll: true });
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return toast('Atención', 'Revisa los campos obligatorios', 'warning');
     }
 

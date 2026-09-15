@@ -35,7 +35,7 @@
                                     {{ opt.business_name }}
                                 </option>
                             </select>
-                            <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block" id="f-company_uuid-error" role="alert">
                                 {{ validationErrors.company_uuid }}
                             </div>
                         </div>
@@ -45,7 +45,7 @@
                             <input id="name" v-model="formData.name" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.name }" type="text" autocomplete="off"
                                 placeholder="Ej: Sucursal Norte, Oficina Principal..." />
-                            <div v-if="validationErrors.name" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.name" class="invalid-feedback d-block" id="f-name-error" role="alert">
                                 {{ validationErrors.name }}
                             </div>
                         </div>
@@ -56,7 +56,7 @@
                                 <option value="0">No</option>
                                 <option value="1">Sí</option>
                             </select>
-                            <div v-if="validationErrors.is_primary" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.is_primary" class="invalid-feedback d-block" id="f-is_primary-error" role="alert">
                                 {{ validationErrors.is_primary }}
                             </div>
                         </div>
@@ -72,7 +72,7 @@
                             <input id="address" v-model="formData.address" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.address }" type="text" autocomplete="off"
                                 placeholder="Ej: Calle 45 # 12-34" />
-                            <div v-if="validationErrors.address" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.address" class="invalid-feedback d-block" id="f-address-error" role="alert">
                                 {{ validationErrors.address }}
                             </div>
                         </div>
@@ -85,7 +85,7 @@
                                     {{ opt.name }}
                                 </option>
                             </select>
-                            <div v-if="validationErrors.municipality_uuid" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.municipality_uuid" class="invalid-feedback d-block" id="f-municipality_uuid-error" role="alert">
                                 {{ validationErrors.municipality_uuid }}
                             </div>
                         </div>
@@ -96,7 +96,7 @@
                                 <option value="1">Activo</option>
                                 <option value="0">Inactivo</option>
                             </select>
-                            <div v-if="validationErrors.status" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.status" class="invalid-feedback d-block" id="f-status-error" role="alert">
                                 {{ validationErrors.status }}
                             </div>
                         </div>
@@ -210,6 +210,8 @@ const setSelect2ValuesTrigger = () => setSelect2Values(selectConfigs.value);
 const initSelect2Trigger = () => initSelect2(selectConfigs.value);
 
 // --- VALIDACION Y SUBMIT ---
+const isEmpty = (v) => v === null || v === undefined || (typeof v === 'string' ? v.trim() === '' : !v);
+
 const validateForm = () => {
     Object.keys(validationErrors).forEach(key => delete validationErrors[key]);
 
@@ -219,7 +221,7 @@ const validateForm = () => {
     }
 
     requiredFields.forEach(field => {
-        if (!formData[field]) validationErrors[field] = 'Este campo es obligatorio';
+        if (isEmpty(formData[field])) validationErrors[field] = 'Este campo es obligatorio';
     });
 
     if (formData.status === '' || formData.status === null || formData.status === undefined) {
@@ -236,8 +238,13 @@ const handleSubmit = async () => {
 
     if (!validateForm()) {
         applyAllValidations(selectConfigs.value);
-        const firstError = document.querySelector('.is-invalid, .is-invalid-select2');
-        if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        await nextTick();
+        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+        if (firstError) {
+            if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(firstError.tagName)) firstError.setAttribute('tabindex', '-1');
+            firstError.focus({ preventScroll: true });
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return toast('Atención', 'Revisa los campos obligatorios', 'warning');
     }
 

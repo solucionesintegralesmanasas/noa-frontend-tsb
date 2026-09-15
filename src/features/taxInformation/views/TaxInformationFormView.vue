@@ -34,7 +34,7 @@
                                     {{ opt.business_name || opt.name || opt.uuid }}
                                 </option>
                             </select>
-                            <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block" id="f-company_uuid-error" role="alert">
                                 {{ validationErrors.company_uuid }}
                             </div>
                         </div>
@@ -50,7 +50,7 @@
                                 <option value="0">No — Agente de retención</option>
                             </select>
                             <div v-if="validationErrors.is_withholding_agent_exempt"
-                                class="invalid-feedback d-block">
+                                class="invalid-feedback d-block" id="f-is_withholding_agent_exempt-error" role="alert">
                                 {{ validationErrors.is_withholding_agent_exempt }}
                             </div>
                         </div>
@@ -63,7 +63,7 @@
                                 class="form-control" :class="{ 'is-invalid': validationErrors.tax_special_regime }"
                                 type="text" autocomplete="off" maxlength="255"
                                 placeholder="Ej: Régimen Especial de las ONG, Ley 1819 de 2016..." />
-                            <div v-if="validationErrors.tax_special_regime" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.tax_special_regime" class="invalid-feedback d-block" id="f-tax_special_regime-error" role="alert">
                                 {{ validationErrors.tax_special_regime }}
                             </div>
                         </div>
@@ -80,7 +80,7 @@
                                 <option value="mediana">Mediana empresa</option>
                                 <option value="grande">Gran empresa</option>
                             </select>
-                            <div v-if="validationErrors.company_size" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.company_size" class="invalid-feedback d-block" id="f-company_size-error" role="alert">
                                 {{ validationErrors.company_size }}
                             </div>
                         </div>
@@ -92,7 +92,7 @@
                             <textarea id="remarks" v-model="formData.remarks" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.remarks }" rows="4"
                                 placeholder="Observaciones generales de carácter tributario, notas sobre declaraciones especiales, etc."></textarea>
-                            <div v-if="validationErrors.remarks" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.remarks" class="invalid-feedback d-block" id="f-remarks-error" role="alert">
                                 {{ validationErrors.remarks }}
                             </div>
                         </div>
@@ -225,8 +225,13 @@ const handleSubmit = async () => {
 
     if (!validateForm()) {
         applyAllValidations(selectConfigs.value);
-        const firstError = document.querySelector('.is-invalid, .is-invalid-select2');
-        if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        await nextTick();
+        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+        if (firstError) {
+            if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(firstError.tagName)) firstError.setAttribute('tabindex', '-1');
+            firstError.focus({ preventScroll: true });
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return toast('Atención', 'Revisa los campos obligatorios', 'warning');
     }
 

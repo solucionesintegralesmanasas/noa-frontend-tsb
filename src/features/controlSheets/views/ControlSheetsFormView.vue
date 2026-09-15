@@ -36,7 +36,7 @@
                                 <option v-for="opt in store.catalogs.companies" :key="opt.uuid" :value="opt.uuid">{{
                                     opt.business_name }}</option>
                             </select>
-                            <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block">{{
+                            <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block" id="f-company_uuid-error" role="alert">{{
                                 validationErrors.company_uuid }}</div>
                         </div>
 
@@ -47,7 +47,7 @@
                                 <option v-for="opt in store.catalogs.vehicles" :key="opt.uuid" :value="opt.uuid">{{
                                     opt.vehicle_license_plate }}</option>
                             </select>
-                            <div v-if="validationErrors.vehicle_uuid" class="invalid-feedback d-block">{{
+                            <div v-if="validationErrors.vehicle_uuid" class="invalid-feedback d-block" id="f-vehicle_uuid-error" role="alert">{{
                                 validationErrors.vehicle_uuid }}</div>
                         </div>
                         <!-- Estado Checkbox/Select -->
@@ -57,7 +57,7 @@
                                 <option value="1">Activo</option>
                                 <option value="0">Inactivo</option>
                             </select>
-                            <div v-if="validationErrors.is_active" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.is_active" class="invalid-feedback d-block" id="f-is_active-error" role="alert">
                                 {{ validationErrors.is_active }}
                             </div>
                         </div>
@@ -67,7 +67,7 @@
                             <textarea id="observations" v-model="formData.observations" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.observations }" rows="3"
                                 placeholder="Ingrese observaciones adicionales"></textarea>
-                            <div v-if="validationErrors.observations" class="invalid-feedback d-block">{{
+                            <div v-if="validationErrors.observations" class="invalid-feedback d-block" id="f-observations-error" role="alert">{{
                                 validationErrors.observations }}</div>
                         </div>
 
@@ -82,7 +82,7 @@
             <div class="card border-0 shadow-sm mt-3 fade-in-up" style="animation-delay: 0.15s;">
                 <div class="card-header bg-light py-2 px-3 border-bottom">
                     <div class="d-flex align-items-center gap-2">
-                        <i class="fad fa-file-pdf text-danger"></i>
+                        <i class="fad fa-file-pdf text-danger" aria-hidden="true"></i>
                         <h5 class="mb-0 fw-medium">Documentos PDF Asociados</h5>
                     </div>
                 </div>
@@ -96,7 +96,7 @@
                                     multiple @change="handleFilesChange" />
                                 <button v-if="isEditMode" class="btn btn-primary px-3" type="button"
                                     :disabled="selectedFiles.length === 0 || submitting" @click="uploadSelectedFiles">
-                                    <i class="fad fa-cloud-upload-alt me-1"></i> Subir
+                                    <i class="fad fa-cloud-upload-alt me-1" aria-hidden="true"></i> Subir
                                 </button>
                             </div>
                             <small class="text-muted d-block mt-1">
@@ -320,13 +320,15 @@ const selectConfigs = computed(() => [
 
 const { initSelect2, setValues: setSelect2Values, syncFromSelect2, destroySelect2, applyAllValidations } = useSelect2(formData, validationErrors);
 
+const isEmpty = (v) => v === null || v === undefined || (typeof v === 'string' ? v.trim() === '' : !v);
+
 const validateForm = () => {
     Object.keys(validationErrors).forEach(key => delete validationErrors[key]);
 
     if (isSuperAdmin.value && !formData.company_uuid) {
         validationErrors.company_uuid = 'Este campo es obligatorio';
     }
-    if (!formData.vehicle_uuid) validationErrors.vehicle_uuid = 'Este campo es obligatorio';
+    if (isEmpty(formData.vehicle_uuid)) validationErrors.vehicle_uuid = 'Este campo es obligatorio';
     if (formData.is_active === '' || formData.is_active === null) validationErrors.is_active = 'Este campo es obligatorio';
 
     return Object.keys(validationErrors).length === 0;
@@ -339,8 +341,13 @@ const handleSubmit = async () => {
 
     if (!validateForm()) {
         applyAllValidations(selectConfigs.value);
-        const firstError = document.querySelector('.is-invalid, .is-invalid-select2');
-        if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        await nextTick();
+        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+        if (firstError) {
+            if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(firstError.tagName)) firstError.setAttribute('tabindex', '-1');
+            firstError.focus({ preventScroll: true });
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return toast('Atención', 'Revisa los campos obligatorios', 'warning');
     }
 

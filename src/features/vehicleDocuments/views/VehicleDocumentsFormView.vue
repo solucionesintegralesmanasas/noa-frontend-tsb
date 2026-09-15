@@ -39,31 +39,31 @@
 
 
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">N° de Póliza
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-policy_number_rce">N° de Póliza
                                     RCE</label>
-                                <input type="text" autocomplete="off" placeholder="Ingrese N° de póliza RCE"
+                                <input id="f-policy_number_rce" :aria-invalid="!!validationErrors['policy_number_rce']" :aria-describedby="validationErrors['policy_number_rce'] ? 'f-policy_number_rce-error' : undefined" type="text" autocomplete="off" placeholder="Ingrese N° de póliza RCE"
                                     class="form-control" v-model="formData.policy_number_rce" required
                                     :class="fieldClass('policy_number_rce')"
                                     @blur="markAsTouched('policy_number_rce')" />
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">N° de Póliza
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-policy_number_rcc">N° de Póliza
                                     RCC</label>
-                                <input type="text" autocomplete="off" placeholder="Ingrese N° de póliza RCC"
+                                <input id="f-policy_number_rcc" :aria-invalid="!!validationErrors['policy_number_rcc']" :aria-describedby="validationErrors['policy_number_rcc'] ? 'f-policy_number_rcc-error' : undefined" type="text" autocomplete="off" placeholder="Ingrese N° de póliza RCC"
                                     class="form-control" v-model="formData.policy_number_rcc" required
                                     :class="fieldClass('policy_number_rcc')"
                                     @blur="markAsTouched('policy_number_rcc')" />
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Tomador</label>
-                                <input type="text" autocomplete="off" placeholder="Ingrese tomador" class="form-control"
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-taker">Tomador</label>
+                                <input id="f-taker" :aria-invalid="!!validationErrors['taker']" :aria-describedby="validationErrors['taker'] ? 'f-taker-error' : undefined" type="text" autocomplete="off" placeholder="Ingrese tomador" class="form-control"
                                     v-model="formData.taker" required :class="fieldClass('taker')"
                                     @blur="markAsTouched('taker')" />
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Entidad
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-issuing_entity">Entidad
                                     Emisora</label>
-                                <input type="text" autocomplete="off" placeholder="Ingrese entidad emisora"
+                                <input id="f-issuing_entity" :aria-invalid="!!validationErrors['issuing_entity']" :aria-describedby="validationErrors['issuing_entity'] ? 'f-issuing_entity-error' : undefined" type="text" autocomplete="off" placeholder="Ingrese entidad emisora"
                                     class="form-control" v-model="formData.issuing_entity"
                                     :class="fieldClass('issuing_entity')" @blur="markAsTouched('issuing_entity')" />
                             </div>
@@ -78,28 +78,28 @@
 
 
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Fecha de
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-issue_date">Fecha de
                                     Expedición</label>
-                                <input type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control" v-model="formData.issue_date"
+                                <input id="f-issue_date" :aria-invalid="!!validationErrors['issue_date']" :aria-describedby="validationErrors['issue_date'] ? 'f-issue_date-error' : undefined" type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control" v-model="formData.issue_date"
                                     required :class="fieldClass('issue_date')" @blur="markAsTouched('issue_date')" />
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Fecha inicio
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-effective_date">Fecha inicio
                                     de vigencia</label>
-                                <input type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control"
+                                <input id="f-effective_date" :aria-invalid="!!validationErrors['effective_date']" :aria-describedby="validationErrors['effective_date'] ? 'f-effective_date-error' : undefined" type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control"
                                     v-model="formData.effective_date" required :class="fieldClass('effective_date')"
                                     @blur="markAsTouched('effective_date')" />
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Fecha de
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-expiry_date">Fecha de
                                     Vencimiento</label>
-                                <input type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control"
+                                <input id="f-expiry_date" :aria-invalid="!!validationErrors['expiry_date']" :aria-describedby="validationErrors['expiry_date'] ? 'f-expiry_date-error' : undefined" type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control"
                                     v-model="formData.expiry_date" required :class="fieldClass('expiry_date')"
                                     @blur="markAsTouched('expiry_date')" />
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Vehículo</label>
-                                <select ref="vehicleSelect" v-model="formData.vehicle_uuid" class="form-control w-100" :disabled="!!wizardUuid"
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-vehicle_uuid">Vehículo</label>
+                                <select id="f-vehicle_uuid" :aria-invalid="!!validationErrors['vehicle_uuid']" :aria-describedby="validationErrors['vehicle_uuid'] ? 'f-vehicle_uuid-error' : undefined" ref="vehicleSelect" v-model="formData.vehicle_uuid" class="form-control w-100" :disabled="!!wizardUuid"
                                     :class="fieldClass('vehicle_uuid')" @blur="markAsTouched('vehicle_uuid')" required>
                                     <option value="">Seleccionar vehículo</option>
                                     <option v-for="vehicle in store.catalogs.vehicles" :key="vehicle.uuid"
@@ -109,8 +109,8 @@
                                 </select>
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3" v-if="isSuperAdmin">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Empresa</label>
-                                <select ref="companySelect" v-model="formData.company_uuid" class="form-control w-100"
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-company_uuid">Empresa</label>
+                                <select id="f-company_uuid" :aria-invalid="!!validationErrors['company_uuid']" :aria-describedby="validationErrors['company_uuid'] ? 'f-company_uuid-error' : undefined" ref="companySelect" v-model="formData.company_uuid" class="form-control w-100"
                                     :class="fieldClass('company_uuid')" @blur="markAsTouched('company_uuid')" required>
                                     <option value="">Seleccionar empresa</option>
                                     <option v-for="company in store.catalogs.companies" :key="company.uuid"
@@ -133,33 +133,33 @@
                             </div>
 
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">N° de Póliza RCE</label>
-                                <input type="text" autocomplete="off" placeholder="Ingrese N° de póliza RCE"
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-policy_number_rce">N° de Póliza RCE</label>
+                                <input id="f-policy_number_rce" :aria-invalid="!!validationErrors['policy_number_rce']" :aria-describedby="validationErrors['policy_number_rce'] ? 'f-policy_number_rce-error' : undefined" type="text" autocomplete="off" placeholder="Ingrese N° de póliza RCE"
                                     class="form-control" v-model="formData.policy_number_rce" required
                                     :class="fieldClass('policy_number_rce')" @blur="markAsTouched('policy_number_rce')" />
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">N° de Póliza RCC</label>
-                                <input type="text" autocomplete="off" placeholder="Ingrese N° de póliza RCC"
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-policy_number_rcc">N° de Póliza RCC</label>
+                                <input id="f-policy_number_rcc" :aria-invalid="!!validationErrors['policy_number_rcc']" :aria-describedby="validationErrors['policy_number_rcc'] ? 'f-policy_number_rcc-error' : undefined" type="text" autocomplete="off" placeholder="Ingrese N° de póliza RCC"
                                     class="form-control" v-model="formData.policy_number_rcc" required
                                     :class="fieldClass('policy_number_rcc')" @blur="markAsTouched('policy_number_rcc')" />
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Tomador</label>
-                                <input type="text" autocomplete="off" placeholder="Ingrese tomador" class="form-control"
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-taker">Tomador</label>
+                                <input id="f-taker" :aria-invalid="!!validationErrors['taker']" :aria-describedby="validationErrors['taker'] ? 'f-taker-error' : undefined" type="text" autocomplete="off" placeholder="Ingrese tomador" class="form-control"
                                     v-model="formData.taker" required :class="fieldClass('taker')"
                                     @blur="markAsTouched('taker')" />
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Entidad
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-issuing_entity">Entidad
                                     Emisora</label>
-                                <input type="text" autocomplete="off" placeholder="Ingrese entidad emisora"
+                                <input id="f-issuing_entity" :aria-invalid="!!validationErrors['issuing_entity']" :aria-describedby="validationErrors['issuing_entity'] ? 'f-issuing_entity-error' : undefined" type="text" autocomplete="off" placeholder="Ingrese entidad emisora"
                                     class="form-control" v-model="formData.issuing_entity"
                                     :class="fieldClass('issuing_entity')" @blur="markAsTouched('issuing_entity')" />
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3" v-if="isSuperAdmin">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Empresa</label>
-                                <select ref="companySelect" v-model="formData.company_uuid" class="form-control w-100"
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-company_uuid">Empresa</label>
+                                <select id="f-company_uuid" :aria-invalid="!!validationErrors['company_uuid']" :aria-describedby="validationErrors['company_uuid'] ? 'f-company_uuid-error' : undefined" ref="companySelect" v-model="formData.company_uuid" class="form-control w-100"
                                     :class="fieldClass('company_uuid')" @blur="markAsTouched('company_uuid')" required>
                                     <option value="">Seleccionar empresa</option>
                                     <option v-for="company in store.catalogs.companies" :key="company.uuid"
@@ -180,28 +180,28 @@
 
 
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Fecha de
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-issue_date">Fecha de
                                     Expedición</label>
-                                <input type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control" v-model="formData.issue_date"
+                                <input id="f-issue_date" :aria-invalid="!!validationErrors['issue_date']" :aria-describedby="validationErrors['issue_date'] ? 'f-issue_date-error' : undefined" type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control" v-model="formData.issue_date"
                                     required :class="fieldClass('issue_date')" @blur="markAsTouched('issue_date')" />
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Fecha inicio
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-effective_date">Fecha inicio
                                     de vigencia</label>
-                                <input type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control"
+                                <input id="f-effective_date" :aria-invalid="!!validationErrors['effective_date']" :aria-describedby="validationErrors['effective_date'] ? 'f-effective_date-error' : undefined" type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control"
                                     v-model="formData.effective_date" required :class="fieldClass('effective_date')"
                                     @blur="markAsTouched('effective_date')" />
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Fecha de
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-expiry_date">Fecha de
                                     Vencimiento</label>
-                                <input type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control"
+                                <input id="f-expiry_date" :aria-invalid="!!validationErrors['expiry_date']" :aria-describedby="validationErrors['expiry_date'] ? 'f-expiry_date-error' : undefined" type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control"
                                     v-model="formData.expiry_date" required :class="fieldClass('expiry_date')"
                                     @blur="markAsTouched('expiry_date')" />
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Estado</label>
-                                <select ref="statusSelect" v-model="formData.status" class="form-control w-100"
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-status">Estado</label>
+                                <select id="f-status" :aria-invalid="!!validationErrors['status']" :aria-describedby="validationErrors['status'] ? 'f-status-error' : undefined" ref="statusSelect" v-model="formData.status" class="form-control w-100"
                                     :class="fieldClass('status')" @blur="markAsTouched('status')" required>
                                     <option value="">Seleccione un estado</option>
                                     <option value="VIGENTE">VIGENTE</option>
@@ -219,8 +219,8 @@
 
 
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Vehículo</label>
-                                <select ref="vehicleSelect" v-model="formData.vehicle_uuid" class="form-control w-100" :disabled="!!wizardUuid"
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-vehicle_uuid">Vehículo</label>
+                                <select id="f-vehicle_uuid" :aria-invalid="!!validationErrors['vehicle_uuid']" :aria-describedby="validationErrors['vehicle_uuid'] ? 'f-vehicle_uuid-error' : undefined" ref="vehicleSelect" v-model="formData.vehicle_uuid" class="form-control w-100" :disabled="!!wizardUuid"
                                     :class="fieldClass('vehicle_uuid')" @blur="markAsTouched('vehicle_uuid')" required>
                                     <option value="">Seleccionar vehículo</option>
                                     <option v-for="vehicle in store.catalogs.vehicles" :key="vehicle.uuid"
@@ -245,27 +245,27 @@
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label fw-medium" style="font-size: 0.9rem;" for="soat_number">Número
                                     de SOAT</label>
-                                <input type="text" autocomplete="off" placeholder="Ingrese número de SOAT"
+                                <input id="f-policy_number" :aria-invalid="!!validationErrors['policy_number']" :aria-describedby="validationErrors['policy_number'] ? 'f-policy_number-error' : undefined" type="text" autocomplete="off" placeholder="Ingrese número de SOAT"
                                     class="form-control" v-model="formData.policy_number" required
                                     :class="fieldClass('policy_number')" @blur="markAsTouched('policy_number')" />
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Fecha de
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-issue_date">Fecha de
                                     Expedición</label>
-                                <input type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control" v-model="formData.issue_date"
+                                <input id="f-issue_date" :aria-invalid="!!validationErrors['issue_date']" :aria-describedby="validationErrors['issue_date'] ? 'f-issue_date-error' : undefined" type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control" v-model="formData.issue_date"
                                     required :class="fieldClass('issue_date')" @blur="markAsTouched('issue_date')" />
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Fecha inicio
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-effective_date">Fecha inicio
                                     de vigencia</label>
-                                <input type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control"
+                                <input id="f-effective_date" :aria-invalid="!!validationErrors['effective_date']" :aria-describedby="validationErrors['effective_date'] ? 'f-effective_date-error' : undefined" type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control"
                                     v-model="formData.effective_date" required :class="fieldClass('effective_date')"
                                     @blur="markAsTouched('effective_date')" />
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Fecha de
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-expiry_date">Fecha de
                                     Vencimiento</label>
-                                <input type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control"
+                                <input id="f-expiry_date" :aria-invalid="!!validationErrors['expiry_date']" :aria-describedby="validationErrors['expiry_date'] ? 'f-expiry_date-error' : undefined" type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control"
                                     v-model="formData.expiry_date" required :class="fieldClass('expiry_date')"
                                     @blur="markAsTouched('expiry_date')" />
                             </div>
@@ -280,15 +280,15 @@
 
 
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Entidad
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-issuing_entity">Entidad
                                     Emisora</label>
-                                <input type="text" autocomplete="off" placeholder="Ingrese entidad emisora"
+                                <input id="f-issuing_entity" :aria-invalid="!!validationErrors['issuing_entity']" :aria-describedby="validationErrors['issuing_entity'] ? 'f-issuing_entity-error' : undefined" type="text" autocomplete="off" placeholder="Ingrese entidad emisora"
                                     class="form-control" v-model="formData.issuing_entity"
                                     :class="fieldClass('issuing_entity')" @blur="markAsTouched('issuing_entity')" />
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Estado</label>
-                                <select ref="statusSelect" v-model="formData.status" class="form-control w-100"
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-status">Estado</label>
+                                <select id="f-status" :aria-invalid="!!validationErrors['status']" :aria-describedby="validationErrors['status'] ? 'f-status-error' : undefined" ref="statusSelect" v-model="formData.status" class="form-control w-100"
                                     :class="fieldClass('status')" @blur="markAsTouched('status')" required>
                                     <option value="">Seleccione un estado</option>
                                     <option value="VIGENTE">VIGENTE</option>
@@ -296,15 +296,15 @@
                                 </select>
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Código
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-tariff_code">Código
                                     tarifa</label>
-                                <input type="text" autocomplete="off" placeholder="Ingrese código tarifa"
+                                <input id="f-tariff_code" :aria-invalid="!!validationErrors['tariff_code']" :aria-describedby="validationErrors['tariff_code'] ? 'f-tariff_code-error' : undefined" type="text" autocomplete="off" placeholder="Ingrese código tarifa"
                                     class="form-control" v-model="formData.tariff_code"
                                     :class="fieldClass('tariff_code')" @blur="markAsTouched('tariff_code')" />
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Vehículo</label>
-                                <select ref="vehicleSelect" v-model="formData.vehicle_uuid" class="form-control w-100" :disabled="!!wizardUuid"
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-vehicle_uuid">Vehículo</label>
+                                <select id="f-vehicle_uuid" :aria-invalid="!!validationErrors['vehicle_uuid']" :aria-describedby="validationErrors['vehicle_uuid'] ? 'f-vehicle_uuid-error' : undefined" ref="vehicleSelect" v-model="formData.vehicle_uuid" class="form-control w-100" :disabled="!!wizardUuid"
                                     :class="fieldClass('vehicle_uuid')" @blur="markAsTouched('vehicle_uuid')" required>
                                     <option value="">Seleccionar vehículo</option>
                                     <option v-for="vehicle in store.catalogs.vehicles" :key="vehicle.uuid"
@@ -314,8 +314,8 @@
                                 </select>
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3" v-if="isSuperAdmin">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Empresa</label>
-                                <select ref="companySelect" v-model="formData.company_uuid" class="form-control w-100"
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-company_uuid">Empresa</label>
+                                <select id="f-company_uuid" :aria-invalid="!!validationErrors['company_uuid']" :aria-describedby="validationErrors['company_uuid'] ? 'f-company_uuid-error' : undefined" ref="companySelect" v-model="formData.company_uuid" class="form-control w-100"
                                     :class="fieldClass('company_uuid')" @blur="markAsTouched('company_uuid')" required>
                                     <option value="">Seleccionar empresa</option>
                                     <option v-for="company in store.catalogs.companies" :key="company.uuid"
@@ -333,20 +333,20 @@
                             <div class="col-12 col-sm-6 col-md-4 col-lg-4">
                                 <label class="form-label required fw-medium" style="font-size: 0.9rem;"
                                     for="tecnomecanica_number">Número de tecnomecánica</label>
-                                <input type="text" autocomplete="off" placeholder="Ingrese número de tecnomecánica"
+                                <input id="f-policy_number" :aria-invalid="!!validationErrors['policy_number']" :aria-describedby="validationErrors['policy_number'] ? 'f-policy_number-error' : undefined" type="text" autocomplete="off" placeholder="Ingrese número de tecnomecánica"
                                     class="form-control" v-model="formData.policy_number" required
                                     :class="fieldClass('policy_number')" @blur="markAsTouched('policy_number')" />
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-4">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Fecha de
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-issue_date">Fecha de
                                     Expedición</label>
-                                <input type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control" v-model="formData.issue_date"
+                                <input id="f-issue_date" :aria-invalid="!!validationErrors['issue_date']" :aria-describedby="validationErrors['issue_date'] ? 'f-issue_date-error' : undefined" type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control" v-model="formData.issue_date"
                                     required :class="fieldClass('issue_date')" @blur="markAsTouched('issue_date')" />
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-4">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Fecha de
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-expiry_date">Fecha de
                                     Vencimiento</label>
-                                <input type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control"
+                                <input id="f-expiry_date" :aria-invalid="!!validationErrors['expiry_date']" :aria-describedby="validationErrors['expiry_date'] ? 'f-expiry_date-error' : undefined" type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control"
                                     v-model="formData.expiry_date" required :class="fieldClass('expiry_date')"
                                     @blur="markAsTouched('expiry_date')" />
                             </div>
@@ -361,15 +361,15 @@
 
 
                             <div class="col-12 col-sm-6 col-md-4 col-lg-6">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">CDA expide
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-issuing_entity">CDA expide
                                     RTM</label>
-                                <input type="text" autocomplete="off" placeholder="Ingrese CDA que expide RTM"
+                                <input id="f-issuing_entity" :aria-invalid="!!validationErrors['issuing_entity']" :aria-describedby="validationErrors['issuing_entity'] ? 'f-issuing_entity-error' : undefined" type="text" autocomplete="off" placeholder="Ingrese CDA que expide RTM"
                                     class="form-control" v-model="formData.issuing_entity"
                                     :class="fieldClass('issuing_entity')" @blur="markAsTouched('issuing_entity')" />
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3" v-if="isSuperAdmin">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Empresa</label>
-                                <select ref="companySelect" v-model="formData.company_uuid" class="form-control w-100"
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-company_uuid">Empresa</label>
+                                <select id="f-company_uuid" :aria-invalid="!!validationErrors['company_uuid']" :aria-describedby="validationErrors['company_uuid'] ? 'f-company_uuid-error' : undefined" ref="companySelect" v-model="formData.company_uuid" class="form-control w-100"
                                     :class="fieldClass('company_uuid')" @blur="markAsTouched('company_uuid')" required>
                                     <option value="">Seleccionar empresa</option>
                                     <option v-for="company in store.catalogs.companies" :key="company.uuid"
@@ -380,8 +380,8 @@
                             </div>
                             <input type="hidden" v-else v-model="formData.company_uuid" />
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Estado</label>
-                                <select ref="statusSelect" v-model="formData.status" class="form-control w-100"
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-status">Estado</label>
+                                <select id="f-status" :aria-invalid="!!validationErrors['status']" :aria-describedby="validationErrors['status'] ? 'f-status-error' : undefined" ref="statusSelect" v-model="formData.status" class="form-control w-100"
                                     :class="fieldClass('status')" @blur="markAsTouched('status')" required>
                                     <option value="">Seleccione un estado</option>
                                     <option value="SI">Si</option>
@@ -389,8 +389,8 @@
                                 </select>
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Vehículo</label>
-                                <select ref="vehicleSelect" v-model="formData.vehicle_uuid" class="form-control w-100" :disabled="!!wizardUuid"
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-vehicle_uuid">Vehículo</label>
+                                <select id="f-vehicle_uuid" :aria-invalid="!!validationErrors['vehicle_uuid']" :aria-describedby="validationErrors['vehicle_uuid'] ? 'f-vehicle_uuid-error' : undefined" ref="vehicleSelect" v-model="formData.vehicle_uuid" class="form-control w-100" :disabled="!!wizardUuid"
                                     :class="fieldClass('vehicle_uuid')" @blur="markAsTouched('vehicle_uuid')" required>
                                     <option value="">Seleccionar vehículo</option>
                                     <option v-for="vehicle in store.catalogs.vehicles" :key="vehicle.uuid"
@@ -672,47 +672,49 @@ watch(() => route.params.documentType, async (to, from) => {
     await initCreateStep();
 });
 
+const isEmpty = (v) => v === null || v === undefined || (typeof v === 'string' ? v.trim() === '' : !v);
+
 const validateForm = () => {
     Object.keys(validationErrors).forEach(key => delete validationErrors[key]);
 
     if (route.params.documentType === 'poliza' && !isEditMode.value) {
-        if (!formData.policy_number_rce) validationErrors.policy_number_rce = 'Obligatorio';
-        if (!formData.policy_number_rcc) validationErrors.policy_number_rcc = 'Obligatorio';
-        if (!formData.taker) validationErrors.taker = 'Obligatorio';
-        if (!formData.issuing_entity) validationErrors.issuing_entity = 'Obligatorio';
-        if (!formData.issue_date) validationErrors.issue_date = 'Obligatorio';
-        if (!formData.effective_date) validationErrors.effective_date = 'Obligatorio';
-        if (!formData.expiry_date) validationErrors.expiry_date = 'Obligatorio';
-        if (!formData.vehicle_uuid) validationErrors.vehicle_uuid = 'Obligatorio';
+        if (isEmpty(formData.policy_number_rce)) validationErrors.policy_number_rce = 'Obligatorio';
+        if (isEmpty(formData.policy_number_rcc)) validationErrors.policy_number_rcc = 'Obligatorio';
+        if (isEmpty(formData.taker)) validationErrors.taker = 'Obligatorio';
+        if (isEmpty(formData.issuing_entity)) validationErrors.issuing_entity = 'Obligatorio';
+        if (isEmpty(formData.issue_date)) validationErrors.issue_date = 'Obligatorio';
+        if (isEmpty(formData.effective_date)) validationErrors.effective_date = 'Obligatorio';
+        if (isEmpty(formData.expiry_date)) validationErrors.expiry_date = 'Obligatorio';
+        if (isEmpty(formData.vehicle_uuid)) validationErrors.vehicle_uuid = 'Obligatorio';
     } else if (route.params.documentType === 'poliza' && isEditMode.value) {
-        if (!formData.policy_number_rce) validationErrors.policy_number_rce = 'Obligatorio';
-        if (!formData.policy_number_rcc) validationErrors.policy_number_rcc = 'Obligatorio';
-        if (!formData.taker) validationErrors.taker = 'Obligatorio';
-        if (!formData.issuing_entity) validationErrors.issuing_entity = 'Obligatorio';
-        if (!formData.issue_date) validationErrors.issue_date = 'Obligatorio';
-        if (!formData.effective_date) validationErrors.effective_date = 'Obligatorio';
-        if (!formData.expiry_date) validationErrors.expiry_date = 'Obligatorio';
-        if (!formData.status) validationErrors.status = 'Obligatorio';
-        if (!formData.vehicle_uuid) validationErrors.vehicle_uuid = 'Obligatorio';
+        if (isEmpty(formData.policy_number_rce)) validationErrors.policy_number_rce = 'Obligatorio';
+        if (isEmpty(formData.policy_number_rcc)) validationErrors.policy_number_rcc = 'Obligatorio';
+        if (isEmpty(formData.taker)) validationErrors.taker = 'Obligatorio';
+        if (isEmpty(formData.issuing_entity)) validationErrors.issuing_entity = 'Obligatorio';
+        if (isEmpty(formData.issue_date)) validationErrors.issue_date = 'Obligatorio';
+        if (isEmpty(formData.effective_date)) validationErrors.effective_date = 'Obligatorio';
+        if (isEmpty(formData.expiry_date)) validationErrors.expiry_date = 'Obligatorio';
+        if (isEmpty(formData.status)) validationErrors.status = 'Obligatorio';
+        if (isEmpty(formData.vehicle_uuid)) validationErrors.vehicle_uuid = 'Obligatorio';
     } else if (route.params.documentType === 'soat') {
-        if (!formData.policy_number) validationErrors.policy_number = 'Obligatorio';
-        if (!formData.issue_date) validationErrors.issue_date = 'Obligatorio';
-        if (!formData.effective_date) validationErrors.effective_date = 'Obligatorio';
-        if (!formData.expiry_date) validationErrors.expiry_date = 'Obligatorio';
-        if (!formData.issuing_entity) validationErrors.issuing_entity = 'Obligatorio';
-        if (!formData.status) validationErrors.status = 'Obligatorio';
-        if (!formData.tariff_code) validationErrors.tariff_code = 'Obligatorio';
-        if (!formData.vehicle_uuid) validationErrors.vehicle_uuid = 'Obligatorio';
+        if (isEmpty(formData.policy_number)) validationErrors.policy_number = 'Obligatorio';
+        if (isEmpty(formData.issue_date)) validationErrors.issue_date = 'Obligatorio';
+        if (isEmpty(formData.effective_date)) validationErrors.effective_date = 'Obligatorio';
+        if (isEmpty(formData.expiry_date)) validationErrors.expiry_date = 'Obligatorio';
+        if (isEmpty(formData.issuing_entity)) validationErrors.issuing_entity = 'Obligatorio';
+        if (isEmpty(formData.status)) validationErrors.status = 'Obligatorio';
+        if (isEmpty(formData.tariff_code)) validationErrors.tariff_code = 'Obligatorio';
+        if (isEmpty(formData.vehicle_uuid)) validationErrors.vehicle_uuid = 'Obligatorio';
     } else if (route.params.documentType === 'tecnomecanica') {
-        if (!formData.policy_number) validationErrors.policy_number = 'Obligatorio';
-        if (!formData.issue_date) validationErrors.issue_date = 'Obligatorio';
-        if (!formData.expiry_date) validationErrors.expiry_date = 'Obligatorio';
-        if (!formData.issuing_entity) validationErrors.issuing_entity = 'Obligatorio';
-        if (!formData.status) validationErrors.status = 'Obligatorio';
-        if (!formData.vehicle_uuid) validationErrors.vehicle_uuid = 'Obligatorio';
+        if (isEmpty(formData.policy_number)) validationErrors.policy_number = 'Obligatorio';
+        if (isEmpty(formData.issue_date)) validationErrors.issue_date = 'Obligatorio';
+        if (isEmpty(formData.expiry_date)) validationErrors.expiry_date = 'Obligatorio';
+        if (isEmpty(formData.issuing_entity)) validationErrors.issuing_entity = 'Obligatorio';
+        if (isEmpty(formData.status)) validationErrors.status = 'Obligatorio';
+        if (isEmpty(formData.vehicle_uuid)) validationErrors.vehicle_uuid = 'Obligatorio';
     }
 
-    if (!formData.company_uuid) validationErrors.company_uuid = 'Obligatorio';
+    if (isEmpty(formData.company_uuid)) validationErrors.company_uuid = 'Obligatorio';
 
     return Object.keys(validationErrors).length === 0;
 };
@@ -735,8 +737,13 @@ const handleSubmit = async () => {
 
     if (!validateForm()) {
         applyAllValidations(selectConfigs.value);
-        const firstError = document.querySelector('.is-invalid, .is-invalid-select2');
-        if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        await nextTick();
+        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+        if (firstError) {
+            if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(firstError.tagName)) firstError.setAttribute('tabindex', '-1');
+            firstError.focus({ preventScroll: true });
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return toast('Atención', 'Revisa los campos obligatorios', 'warning');
     }
 

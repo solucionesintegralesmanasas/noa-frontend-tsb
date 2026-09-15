@@ -31,7 +31,7 @@
                                 <input id="fiscal_year" v-model="formData.fiscal_year" class="form-control"
                                     :class="{ 'is-invalid': validationErrors.fiscal_year }" type="number"
                                     placeholder="Ingresa el año gravable" />
-                                <div v-if="validationErrors.fiscal_year" class="invalid-feedback d-block">
+                                <div v-if="validationErrors.fiscal_year" class="invalid-feedback d-block" id="f-fiscal_year-error" role="alert">
                                     {{ validationErrors.fiscal_year }}
                                 </div>
                             </div>
@@ -40,7 +40,7 @@
                                 <input id="gross_assets" v-model="formData.gross_assets" class="form-control"
                                     :class="{ 'is-invalid': validationErrors.gross_assets }" type="number" step="0.01"
                                     placeholder="Ingresa el patrimonio bruto" />
-                                <div v-if="validationErrors.gross_assets" class="invalid-feedback d-block">
+                                <div v-if="validationErrors.gross_assets" class="invalid-feedback d-block" id="f-gross_assets-error" role="alert">
                                     {{ validationErrors.gross_assets }}
                                 </div>
                             </div>
@@ -49,7 +49,7 @@
                                 <input id="net_assets" v-model="formData.net_assets" class="form-control"
                                     :class="{ 'is-invalid': validationErrors.net_assets }" type="number" step="0.01"
                                     placeholder="Ingresa el patrimonio líquido" />
-                                <div v-if="validationErrors.net_assets" class="invalid-feedback d-block">
+                                <div v-if="validationErrors.net_assets" class="invalid-feedback d-block" id="f-net_assets-error" role="alert">
                                     {{ validationErrors.net_assets }}
                                 </div>
                             </div>
@@ -58,7 +58,7 @@
                                 <input id="total_gross_income" v-model="formData.total_gross_income"
                                     class="form-control" :class="{ 'is-invalid': validationErrors.total_gross_income }"
                                     type="number" step="0.01" placeholder="Ingresa el total de ingresos brutos" />
-                                <div v-if="validationErrors.total_gross_income" class="invalid-feedback d-block">
+                                <div v-if="validationErrors.total_gross_income" class="invalid-feedback d-block" id="f-total_gross_income-error" role="alert">
                                     {{ validationErrors.total_gross_income }}
                                 </div>
                             </div>
@@ -70,7 +70,7 @@
                                 <input id="ordinary_net_income" v-model="formData.ordinary_net_income"
                                     class="form-control" :class="{ 'is-invalid': validationErrors.ordinary_net_income }"
                                     type="number" step="0.01" placeholder="Ingresa la renta líquida ordinaria" />
-                                <div v-if="validationErrors.ordinary_net_income" class="invalid-feedback d-block">
+                                <div v-if="validationErrors.ordinary_net_income" class="invalid-feedback d-block" id="f-ordinary_net_income-error" role="alert">
                                     {{ validationErrors.ordinary_net_income }}
                                 </div>
                             </div>
@@ -81,7 +81,7 @@
                                     class="form-control" :class="{ 'is-invalid': validationErrors.pre_tax_net_profit }"
                                     type="number" step="0.01"
                                     placeholder="Ingresa la utilidad neta antes de impuestos" />
-                                <div v-if="validationErrors.pre_tax_net_profit" class="invalid-feedback d-block">
+                                <div v-if="validationErrors.pre_tax_net_profit" class="invalid-feedback d-block" id="f-pre_tax_net_profit-error" role="alert">
                                     {{ validationErrors.pre_tax_net_profit }}
                                 </div>
                             </div>
@@ -94,7 +94,7 @@
                                     type="number" step="0.01"
                                     placeholder="Ingresa el total de ingresos operacionales y no operacionales" />
                                 <div v-if="validationErrors.total_operating_non_operating_income"
-                                    class="invalid-feedback d-block">
+                                    class="invalid-feedback d-block" id="f-total_operating_non_operating_income-error" role="alert">
                                     {{ validationErrors.total_operating_non_operating_income }}
                                 </div>
                             </div>
@@ -104,25 +104,25 @@
                             <input type="hidden" v-if="!isSuperAdmin" v-model="formData.company_uuid" />
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3" v-if="isSuperAdmin">
                                 <label class="form-label required" for="company_uuid">Empresa</label>
-                                <select ref="companySelect" v-model="formData.company_uuid" class="form-control select2-input w-100"
+                                <select id="f-company_uuid" :aria-invalid="!!validationErrors['company_uuid']" :aria-describedby="validationErrors['company_uuid'] ? 'f-company_uuid-error' : undefined" ref="companySelect" v-model="formData.company_uuid" class="form-control select2-input w-100"
                                     :class="{ 'is-invalid': validationErrors.company_uuid }">
                                     <option value="">Seleccione...</option>
                                     <option v-for="opt in store.catalogs.companies" :key="opt.uuid" :value="opt.uuid">
                                         {{ opt.business_name }}
                                     </option>
                                 </select>
-                                <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block">
+                                <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block" id="f-company_uuid-error" role="alert">
                                     {{ validationErrors.company_uuid }}
                                 </div>
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label required" for="statusSelect">Estado</label>
-                                <select ref="statusSelect" v-model="formData.status" class="form-control select2-input w-100"
+                                <select id="f-status" :aria-invalid="!!validationErrors['status']" :aria-describedby="validationErrors['status'] ? 'f-status-error' : undefined" ref="statusSelect" v-model="formData.status" class="form-control select2-input w-100"
                                     :class="{ 'is-invalid': validationErrors.status }">
                                     <option value="BORRADOR">Borrador</option>
                                     <option value="PRESENTADO">Presentado</option>
                                 </select>
-                                <div v-if="validationErrors.status" class="invalid-feedback d-block">
+                                <div v-if="validationErrors.status" class="invalid-feedback d-block" id="f-status-error" role="alert">
                                     {{ validationErrors.status }}
                                 </div>
                             </div>
@@ -134,7 +134,7 @@
                                 <textarea id="remarks" v-model="formData.remarks" class="form-control"
                                     :class="{ 'is-invalid': validationErrors.remarks }" rows="3"
                                     placeholder="Ingresa observaciones generales"></textarea>
-                                <div v-if="validationErrors.remarks" class="invalid-feedback d-block">
+                                <div v-if="validationErrors.remarks" class="invalid-feedback d-block" id="f-remarks-error" role="alert">
                                     {{ validationErrors.remarks }}
                                 </div>
                             </div>
@@ -246,12 +246,14 @@ const { initSelect2, setValues: setSelect2Values, syncFromSelect2, destroySelect
  * Valida el formulario.
  * @returns {boolean} Verdadero si el formulario es válido.
  */
+const isEmpty = (v) => v === null || v === undefined || (typeof v === 'string' ? v.trim() === '' : !v);
+
 const validateForm = () => {
     Object.keys(validationErrors).forEach(key => delete validationErrors[key]);
 
-    if (!formData.company_uuid) validationErrors.company_uuid = 'La empresa es obligatoria';
-    if (!formData.fiscal_year) validationErrors.fiscal_year = 'El año gravable es obligatorio';
-    if (!formData.status) validationErrors.status = 'El estado es obligatorio';
+    if (isEmpty(formData.company_uuid)) validationErrors.company_uuid = 'La empresa es obligatoria';
+    if (isEmpty(formData.fiscal_year)) validationErrors.fiscal_year = 'El año gravable es obligatorio';
+    if (isEmpty(formData.status)) validationErrors.status = 'El estado es obligatorio';
 
     return Object.keys(validationErrors).length === 0;
 };
@@ -269,8 +271,13 @@ const handleSubmit = async () => {
 
     if (!validateForm()) {
         applyAllValidations(selectConfigs.value);
-        const firstError = document.querySelector('.is-invalid, .is-invalid-select2');
-        if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        await nextTick();
+        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+        if (firstError) {
+            if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(firstError.tagName)) firstError.setAttribute('tabindex', '-1');
+            firstError.focus({ preventScroll: true });
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return toast('Atención', 'Revisa los campos obligatorios', 'warning');
     }
 

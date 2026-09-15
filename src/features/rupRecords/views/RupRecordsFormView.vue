@@ -27,13 +27,13 @@
             <input type="hidden" v-if="!isSuperAdmin" v-model="formData.company_uuid" />
             <div class="col-12 col-sm-6 col-md-4 col-lg-3" v-if="isSuperAdmin">
               <label class="form-label required" for="company_uuid">Empresa</label>
-              <select ref="companySelect" v-model="formData.company_uuid" class="form-control select2-input w-100"
+              <select id="f-company_uuid" :aria-invalid="!!validationErrors['company_uuid']" :aria-describedby="validationErrors['company_uuid'] ? 'f-company_uuid-error' : undefined" ref="companySelect" v-model="formData.company_uuid" class="form-control select2-input w-100"
                 :class="{ 'is-invalid': validationErrors.company_uuid }">
                 <option value="">Seleccione...</option>
                 <option v-for="opt in store.catalogs.companies" :key="opt.uuid" :value="opt.uuid">{{ opt.business_name
                 }}</option>
               </select>
-              <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block">{{
+              <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block" id="f-company_uuid-error" role="alert">{{
                 validationErrors.company_uuid }}</div>
             </div>
 
@@ -42,7 +42,7 @@
               <input id="registration_number" v-model="formData.registration_number" class="form-control"
                 :class="{ 'is-invalid': validationErrors.registration_number }" type="text" autocomplete="off"
                 placeholder="Ingresa el número de inscripción" />
-              <div v-if="validationErrors.registration_number" class="invalid-feedback d-block">{{
+              <div v-if="validationErrors.registration_number" class="invalid-feedback d-block" id="f-registration_number-error" role="alert">{{
                 validationErrors.registration_number }}</div>
             </div>
 
@@ -50,14 +50,14 @@
               <label class="form-label" for="issue_date">Fecha de Expedición</label>
               <input id="issue_date" v-model="formData.issue_date" class="form-control"
                 :class="{ 'is-invalid': validationErrors.issue_date }" type="date" />
-              <div v-if="validationErrors.issue_date" class="invalid-feedback d-block">{{ validationErrors.issue_date }}</div>
+              <div v-if="validationErrors.issue_date" class="invalid-feedback d-block" id="f-issue_date-error" role="alert">{{ validationErrors.issue_date }}</div>
             </div>
 
             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
               <label class="form-label" for="expiration_date">Fecha de Vencimiento</label>
               <input id="expiration_date" v-model="formData.expiration_date" class="form-control"
                 :class="{ 'is-invalid': validationErrors.expiration_date }" type="date" />
-              <div v-if="validationErrors.expiration_date" class="invalid-feedback d-block">{{ validationErrors.expiration_date
+              <div v-if="validationErrors.expiration_date" class="invalid-feedback d-block" id="f-expiration_date-error" role="alert">{{ validationErrors.expiration_date
               }}</div>
             </div>
 
@@ -66,7 +66,7 @@
               <input id="legal_capacity_score" v-model="formData.legal_capacity_score" class="form-control"
                 :class="{ 'is-invalid': validationErrors.legal_capacity_score }" type="number" step="0.01"
                 placeholder="0.00" autocomplete="off" />
-              <div v-if="validationErrors.legal_capacity_score" class="invalid-feedback d-block">{{
+              <div v-if="validationErrors.legal_capacity_score" class="invalid-feedback d-block" id="f-legal_capacity_score-error" role="alert">{{
                 validationErrors.legal_capacity_score }}</div>
             </div>
 
@@ -75,7 +75,7 @@
               <input id="financial_capacity_score" v-model="formData.financial_capacity_score" class="form-control"
                 :class="{ 'is-invalid': validationErrors.financial_capacity_score }" type="number" step="0.01"
                 placeholder="0.00" autocomplete="off" />
-              <div v-if="validationErrors.financial_capacity_score" class="invalid-feedback d-block">{{
+              <div v-if="validationErrors.financial_capacity_score" class="invalid-feedback d-block" id="f-financial_capacity_score-error" role="alert">{{
                 validationErrors.financial_capacity_score }}</div>
             </div>
 
@@ -84,7 +84,7 @@
               <input id="organizational_capacity_score" v-model="formData.organizational_capacity_score"
                 class="form-control" :class="{ 'is-invalid': validationErrors.organizational_capacity_score }"
                 type="number" step="0.01" placeholder="0.00" autocomplete="off" />
-              <div v-if="validationErrors.organizational_capacity_score" class="invalid-feedback d-block">{{
+              <div v-if="validationErrors.organizational_capacity_score" class="invalid-feedback d-block" id="f-organizational_capacity_score-error" role="alert">{{
                 validationErrors.organizational_capacity_score }}</div>
             </div>
 
@@ -93,7 +93,7 @@
               <input id="contracting_capacity_score" v-model="formData.contracting_capacity_score" class="form-control"
                 :class="{ 'is-invalid': validationErrors.contracting_capacity_score }" type="number" step="0.01"
                 placeholder="0.00" autocomplete="off" />
-              <div v-if="validationErrors.contracting_capacity_score" class="invalid-feedback d-block">{{
+              <div v-if="validationErrors.contracting_capacity_score" class="invalid-feedback d-block" id="f-contracting_capacity_score-error" role="alert">{{
                 validationErrors.contracting_capacity_score }}</div>
             </div>
 
@@ -103,14 +103,14 @@
                 @change="e => onFileChange(e, 'rup_certificate_path')" />
               <div v-if="filePreviews.rup_certificate_path" class="mt-2">
                 <a :href="filePreviews.rup_certificate_path" target="_blank" class="btn btn-sm btn-outline-primary">
-                  <i class="fad fa-file-pdf me-1"></i> Ver archivo actual
+                  <i class="fad fa-file-pdf me-1" aria-hidden="true"></i> Ver archivo actual
                 </a>
               </div>
             </div>
 
             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-              <label class="form-label required" for="statusSelect">Estado</label>
-              <select ref="statusSelect" v-model="formData.status" class="form-control select2-input w-100"
+              <label class="form-label required" for="f-status">Estado</label>
+              <select id="f-status" :aria-invalid="!!validationErrors['status']" :aria-describedby="validationErrors['status'] ? 'f-status-error' : undefined" ref="statusSelect" v-model="formData.status" class="form-control select2-input w-100"
                 :class="{ 'is-invalid': validationErrors.status }">
                 <option value="VIGENTE">Vigente</option>
                 <option value="VENCIDO">Vencido</option>
@@ -119,7 +119,7 @@
                 <option value="SUSPENDIDO">Suspendido</option>
                 <option value="NO_INSCRITO">No Inscrito</option>
               </select>
-              <div v-if="validationErrors.status" class="invalid-feedback d-block">
+              <div v-if="validationErrors.status" class="invalid-feedback d-block" id="f-status-error" role="alert">
                 {{ validationErrors.status }}
               </div>
             </div>
@@ -129,7 +129,7 @@
               <textarea id="remarks" v-model="formData.remarks" class="form-control"
                 :class="{ 'is-invalid': validationErrors.remarks }" rows="3"
                 placeholder="Ingrese observaciones adicionales..."></textarea>
-              <div v-if="validationErrors.remarks" class="invalid-feedback d-block">{{ validationErrors.remarks }}</div>
+              <div v-if="validationErrors.remarks" class="invalid-feedback d-block" id="f-remarks-error" role="alert">{{ validationErrors.remarks }}</div>
             </div>
 
             <div class="col-12">
@@ -225,12 +225,14 @@ const selectConfigs = computed(() => [
 
 const { initSelect2, setValues: setSelect2Values, syncFromSelect2, destroySelect2, applyAllValidations } = useSelect2(formData, validationErrors);
 
+const isEmpty = (v) => v === null || v === undefined || (typeof v === 'string' ? v.trim() === '' : !v);
+
 const validateForm = () => {
   Object.keys(validationErrors).forEach(key => delete validationErrors[key]);
 
-  if (!formData.company_uuid) validationErrors.company_uuid = 'Este campo es obligatorio';
-  if (!formData.registration_number) validationErrors.registration_number = 'Este campo es obligatorio';
-  if (!formData.status) validationErrors.status = 'Este campo es obligatorio';
+  if (isEmpty(formData.company_uuid)) validationErrors.company_uuid = 'Este campo es obligatorio';
+  if (isEmpty(formData.registration_number)) validationErrors.registration_number = 'Este campo es obligatorio';
+  if (isEmpty(formData.status)) validationErrors.status = 'Este campo es obligatorio';
 
   return Object.keys(validationErrors).length === 0;
 };
@@ -255,8 +257,13 @@ const handleSubmit = async () => {
 
   if (!validateForm()) {
     applyAllValidations(selectConfigs.value);
-    const firstError = document.querySelector('.is-invalid, .is-invalid-select2');
-    if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    await nextTick();
+    const firstError = document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+    if (firstError) {
+        if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(firstError.tagName)) firstError.setAttribute('tabindex', '-1');
+        firstError.focus({ preventScroll: true });
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
     return toast('Atención', 'Revisa los campos obligatorios', 'warning');
   }
 

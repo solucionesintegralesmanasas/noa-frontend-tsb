@@ -31,7 +31,7 @@
                                     {{ opt.business_name }}
                                 </option>
                             </select>
-                            <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block" id="f-company_uuid-error" role="alert">
                                 {{ validationErrors.company_uuid }}
                             </div>
                         </div>
@@ -40,7 +40,7 @@
                             <input id="bank_name" v-model="formData.bank_name" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.bank_name }" type="text" autocomplete="off"
                                 maxlength="100" placeholder="Ej: Bancolombia, BBVA, etc." />
-                            <div v-if="validationErrors.bank_name" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.bank_name" class="invalid-feedback d-block" id="f-bank_name-error" role="alert">
                                 {{ validationErrors.bank_name }}
                             </div>
                         </div>
@@ -49,7 +49,7 @@
                             <input id="branch_office" v-model="formData.branch_office" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.branch_office }" type="text" autocomplete="off"
                                 maxlength="100" placeholder="Ej: Sucursal Centro" />
-                            <div v-if="validationErrors.branch_office" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.branch_office" class="invalid-feedback d-block" id="f-branch_office-error" role="alert">
                                 {{ validationErrors.branch_office }}
                             </div>
                         </div>
@@ -67,7 +67,7 @@
                                 <option value="fiduciaria">Fiduciaria</option>
                                 <option value="nomina">Nómina</option>
                             </select>
-                            <div v-if="validationErrors.account_type" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.account_type" class="invalid-feedback d-block" id="f-account_type-error" role="alert">
                                 {{ validationErrors.account_type }}
                             </div>
                         </div>
@@ -76,7 +76,7 @@
                             <input id="account_number" v-model="formData.account_number" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.account_number }" type="text"
                                 autocomplete="off" maxlength="50" placeholder="Ej: 12345678901" />
-                            <div v-if="validationErrors.account_number" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.account_number" class="invalid-feedback d-block" id="f-account_number-error" role="alert">
                                 {{ validationErrors.account_number }}
                             </div>
                         </div>
@@ -85,7 +85,7 @@
                             <input id="account_holder" v-model="formData.account_holder" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.account_holder }" type="text"
                                 autocomplete="off" maxlength="255" placeholder="Nombre completo del titular" />
-                            <div v-if="validationErrors.account_holder" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.account_holder" class="invalid-feedback d-block" id="f-account_holder-error" role="alert">
                                 {{ validationErrors.account_holder }}
                             </div>
                         </div>
@@ -97,7 +97,7 @@
                                 <option value="1">Activo</option>
                                 <option value="0">Inactivo</option>
                             </select>
-                            <div v-if="validationErrors.is_active" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.is_active" class="invalid-feedback d-block" id="f-is_active-error" role="alert">
                                 {{ validationErrors.is_active }}
                             </div>
                         </div>
@@ -222,8 +222,13 @@ const handleSubmit = async () => {
 
     if (!validateForm()) {
         applyAllValidations(selectConfigs.value);
-        const firstError = document.querySelector('.is-invalid, .is-invalid-select2');
-        if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        await nextTick();
+        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+        if (firstError) {
+            if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(firstError.tagName)) firstError.setAttribute('tabindex', '-1');
+            firstError.focus({ preventScroll: true });
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return toast('Atención', 'Revisa los campos obligatorios', 'warning');
     }
 

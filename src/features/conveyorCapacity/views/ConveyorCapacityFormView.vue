@@ -28,7 +28,7 @@
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label required" for="enabling_resolution_uuid">Resolución
                                     Habilitante</label>
-                                <select ref="resolutionSelect" v-model="formData.enabling_resolution_uuid" class="form-control select2-input w-100"
+                                <select id="f-enabling_resolution_uuid" :aria-invalid="!!validationErrors['enabling_resolution_uuid']" :aria-describedby="validationErrors['enabling_resolution_uuid'] ? 'f-enabling_resolution_uuid-error' : undefined" ref="resolutionSelect" v-model="formData.enabling_resolution_uuid" class="form-control select2-input w-100"
                                     :class="{ 'is-invalid': validationErrors.enabling_resolution_uuid }">
                                     <option value="">Seleccione una resolución...</option>
                                     <option v-for="opt in store.catalogs.enabling_resolutions" :key="opt.uuid"
@@ -36,7 +36,7 @@
                                         {{ opt.resolution_number }}
                                     </option>
                                 </select>
-                                <div v-if="validationErrors.enabling_resolution_uuid" class="invalid-feedback d-block">
+                                <div v-if="validationErrors.enabling_resolution_uuid" class="invalid-feedback d-block" id="f-enabling_resolution_uuid-error" role="alert">
                                     {{ validationErrors.enabling_resolution_uuid }}
                                 </div>
                             </div>
@@ -47,7 +47,7 @@
                                 <input id="vehicle_type" v-model="formData.vehicle_type" class="form-control"
                                     :class="{ 'is-invalid': validationErrors.vehicle_type }" type="text" autocomplete="off"
                                     placeholder="Ej: Camión Doble Troque" maxlength="20" />
-                                <div v-if="validationErrors.vehicle_type" class="invalid-feedback d-block">
+                                <div v-if="validationErrors.vehicle_type" class="invalid-feedback d-block" id="f-vehicle_type-error" role="alert">
                                     {{ validationErrors.vehicle_type }}
                                 </div>
                             </div>
@@ -55,12 +55,12 @@
                                 <label class="form-label required" for="statusSelect">
                                     Estado de Habilitación
                                 </label>
-                                <select ref="statusSelect" v-model="formData.status" class="form-control select2-input w-100"
+                                <select id="f-status" :aria-invalid="!!validationErrors['status']" :aria-describedby="validationErrors['status'] ? 'f-status-error' : undefined" ref="statusSelect" v-model="formData.status" class="form-control select2-input w-100"
                                     :class="{ 'is-invalid': validationErrors.status }">
                                     <option value="1">Habilitado</option>
                                     <option value="0">Deshabilitado</option>
                                 </select>
-                                <div v-if="validationErrors.status" class="invalid-feedback d-block">
+                                <div v-if="validationErrors.status" class="invalid-feedback d-block" id="f-status-error" role="alert">
                                     {{ validationErrors.status }}
                                 </div>
                             </div>
@@ -74,7 +74,7 @@
                                 <input id="authorized_capacity" v-model.number="formData.authorized_capacity"
                                     class="form-control" :class="{ 'is-invalid': validationErrors.authorized_capacity }"
                                     type="number" placeholder="0" min="0" />
-                                <div v-if="validationErrors.authorized_capacity" class="invalid-feedback d-block">
+                                <div v-if="validationErrors.authorized_capacity" class="invalid-feedback d-block" id="f-authorized_capacity-error" role="alert">
                                     {{ validationErrors.authorized_capacity }}
                                 </div>
                             </div>
@@ -85,7 +85,7 @@
                                 <input id="current_capacity" v-model.number="formData.current_capacity"
                                     class="form-control" :class="{ 'is-invalid': validationErrors.current_capacity }"
                                     type="number" placeholder="0" min="0" />
-                                <div v-if="validationErrors.current_capacity" class="invalid-feedback d-block">
+                                <div v-if="validationErrors.current_capacity" class="invalid-feedback d-block" id="f-current_capacity-error" role="alert">
                                     {{ validationErrors.current_capacity }}
                                 </div>
                             </div>
@@ -97,7 +97,7 @@
                                     class="form-control"
                                     :class="{ 'is-invalid': validationErrors.minimum_own_capacity }" type="number"
                                     placeholder="0" min="0" />
-                                <div v-if="validationErrors.minimum_own_capacity" class="invalid-feedback d-block">
+                                <div v-if="validationErrors.minimum_own_capacity" class="invalid-feedback d-block" id="f-minimum_own_capacity-error" role="alert">
                                     {{ validationErrors.minimum_own_capacity }}
                                 </div>
                             </div>
@@ -293,8 +293,13 @@ const handleSubmit = async () => {
 
     if (!validateForm()) {
         applyAllValidations(selectConfigs.value);
-        const firstError = document.querySelector('.is-invalid, .is-invalid-select2');
-        if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        await nextTick();
+        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+        if (firstError) {
+            if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(firstError.tagName)) firstError.setAttribute('tabindex', '-1');
+            firstError.focus({ preventScroll: true });
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return toast('Atención', 'Revisa los campos obligatorios', 'warning');
     }
 

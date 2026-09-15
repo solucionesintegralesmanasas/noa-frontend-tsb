@@ -34,7 +34,7 @@
                                     {{ opt.business_name }}
                                 </option>
                             </select>
-                            <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block" id="f-company_uuid-error" role="alert">
                                 {{ validationErrors.company_uuid }}
                             </div>
                         </div>
@@ -46,7 +46,7 @@
                             <input id="resolution_number" v-model="formData.resolution_number" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.resolution_number }" type="text" autocomplete="off"
                                 placeholder="Ej: RES-2026-001" maxlength="20" />
-                            <div v-if="validationErrors.resolution_number" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.resolution_number" class="invalid-feedback d-block" id="f-resolution_number-error" role="alert">
                                 {{ validationErrors.resolution_number }}
                             </div>
                         </div>
@@ -58,7 +58,7 @@
                             <input id="number_fuec" v-model="formData.number_fuec" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.number_fuec }" type="text" autocomplete="off"
                                 placeholder="Ej: FUEC-2026-0001" maxlength="20" />
-                            <div v-if="validationErrors.number_fuec" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.number_fuec" class="invalid-feedback d-block" id="f-number_fuec-error" role="alert">
                                 {{ validationErrors.number_fuec }}
                             </div>
                         </div>
@@ -70,7 +70,7 @@
                             <input id="territorial_code" v-model="formData.territorial_code" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.territorial_code }" type="text" autocomplete="off"
                                 placeholder="Ej: CT-001" maxlength="20" />
-                            <div v-if="validationErrors.territorial_code" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.territorial_code" class="invalid-feedback d-block" id="f-territorial_code-error" role="alert">
                                 {{ validationErrors.territorial_code }}
                             </div>
                         </div>
@@ -81,7 +81,7 @@
                             </label>
                             <input id="resolution_date" v-model="formData.resolution_date" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.resolution_date }" type="date" />
-                            <div v-if="validationErrors.resolution_date" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.resolution_date" class="invalid-feedback d-block" id="f-resolution_date-error" role="alert">
                                 {{ validationErrors.resolution_date }}
                             </div>
                         </div>
@@ -94,7 +94,7 @@
                                 <option value="1">Vigente</option>
                                 <option value="0">No Vigente</option>
                             </select>
-                            <div v-if="validationErrors.status" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.status" class="invalid-feedback d-block" id="f-status-error" role="alert">
                                 {{ validationErrors.status }}
                             </div>
                         </div>
@@ -277,8 +277,13 @@ const handleSubmit = async () => {
 
     if (!validateForm()) {
         applyAllValidations(selectConfigs.value);
-        const firstError = document.querySelector('.is-invalid, .is-invalid-select2');
-        if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        await nextTick();
+        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+        if (firstError) {
+            if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(firstError.tagName)) firstError.setAttribute('tabindex', '-1');
+            firstError.focus({ preventScroll: true });
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return toast('Atención', 'Revisa los campos obligatorios', 'warning');
     }
 

@@ -28,7 +28,7 @@
                                     {{ opt.business_name }}
                                 </option>
                             </select>
-                            <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block" id="f-company_uuid-error" role="alert">
                                 {{ validationErrors.company_uuid }}
                             </div>
                         </div>
@@ -39,7 +39,7 @@
                             <input id="customer_name" v-model="formData.customer_name" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.customer_name }" type="text" autocomplete="off"
                                 placeholder="Razón social o nombre del cliente" maxlength="255" />
-                            <div v-if="validationErrors.customer_name" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.customer_name" class="invalid-feedback d-block" id="f-customer_name-error" role="alert">
                                 {{ validationErrors.customer_name }}
                             </div>
                         </div>
@@ -53,7 +53,7 @@
                                     class="form-control" :class="{ 'is-invalid': validationErrors.value_before_tax }"
                                     type="number" placeholder="0.00" step="0.01" min="0" />
                             </div>
-                            <div v-if="validationErrors.value_before_tax" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.value_before_tax" class="invalid-feedback d-block" id="f-value_before_tax-error" role="alert">
                                 {{ validationErrors.value_before_tax }}
                             </div>
                         </div>
@@ -62,7 +62,7 @@
                             <input id="currency" v-model="formData.currency" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.currency }" type="text" autocomplete="off"
                                 placeholder="COP" maxlength="10" />
-                            <div v-if="validationErrors.currency" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.currency" class="invalid-feedback d-block" id="f-currency-error" role="alert">
                                 {{ validationErrors.currency }}
                             </div>
                         </div>
@@ -70,7 +70,7 @@
                             <label class="form-label" for="start_date">Fecha de Inicio</label>
                             <input id="start_date" v-model="formData.start_date" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.start_date }" type="date" />
-                            <div v-if="validationErrors.start_date" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.start_date" class="invalid-feedback d-block" id="f-start_date-error" role="alert">
                                 {{ validationErrors.start_date }}
                             </div>
                         </div>
@@ -78,7 +78,7 @@
                             <label class="form-label" for="end_date">Fecha de Fin</label>
                             <input id="end_date" v-model="formData.end_date" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.end_date }" type="date" />
-                            <div v-if="validationErrors.end_date" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.end_date" class="invalid-feedback d-block" id="f-end_date-error" role="alert">
                                 {{ validationErrors.end_date }}
                             </div>
                         </div>
@@ -88,7 +88,7 @@
                             </label>
                             <input id="is_ongoing" v-model="formData.is_ongoing" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.is_ongoing }" type="date" />
-                            <div v-if="validationErrors.is_ongoing" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.is_ongoing" class="invalid-feedback d-block" id="f-is_ongoing-error" role="alert">
                                 {{ validationErrors.is_ongoing }}
                             </div>
                         </div>
@@ -97,7 +97,7 @@
                             <textarea id="remarks" v-model="formData.remarks" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.remarks }" rows="4"
                                 placeholder="Detalles sobre alcance, cumplimiento o desempeño..."></textarea>
-                            <div v-if="validationErrors.remarks" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.remarks" class="invalid-feedback d-block" id="f-remarks-error" role="alert">
                                 {{ validationErrors.remarks }}
                             </div>
                         </div>
@@ -281,8 +281,13 @@ const handleSubmit = async () => {
 
     if (!validateForm()) {
         applyAllValidations(selectConfigs.value);
-        const firstError = document.querySelector('.is-invalid, .is-invalid-select2');
-        if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        await nextTick();
+        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+        if (firstError) {
+            if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(firstError.tagName)) firstError.setAttribute('tabindex', '-1');
+            firstError.focus({ preventScroll: true });
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return toast('Atención', 'Revisa los campos obligatorios', 'warning');
     }
 

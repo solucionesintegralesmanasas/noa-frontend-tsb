@@ -30,9 +30,9 @@
 
                         <input type="hidden" v-if="!isSuperAdmin" v-model="formData.company_uuid" />
                         <div class="col-12 col-sm-6 col-md-4 col-lg-3" v-if="isSuperAdmin">
-                            <label class="form-label required fw-medium" style="font-size: 0.9rem;">Empresa
+                            <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-company_uuid">Empresa
                                 Propietaria/Asignada</label>
-                            <select ref="companySelect" v-model="formData.company_uuid" class="form-control w-100"
+                            <select id="f-company_uuid" :aria-invalid="!!validationErrors['company_uuid']" :aria-describedby="validationErrors['company_uuid'] ? 'f-company_uuid-error' : undefined" ref="companySelect" v-model="formData.company_uuid" class="form-control w-100"
                                 :class="{ 'is-invalid': validationErrors.company_uuid }">
                                 <option value="">Seleccionar empresa</option>
                                 <option v-for="opt in store.catalogs?.companies || []" :key="opt.uuid"
@@ -40,34 +40,34 @@
                                     {{ opt.business_name || opt.name || opt.company_name }}
                                 </option>
                             </select>
-                            <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block">{{
+                            <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block" id="f-company_uuid-error" role="alert">{{
                                 validationErrors.company_uuid }}</div>
                         </div>
                         <div class="col-12 col-sm-6 col-md-4 col-lg-6">
-                            <label class="form-label required fw-medium" style="font-size: 0.9rem;">Empresa
+                            <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-affiliated_company">Empresa
                                 Afiliada</label>
-                            <input type="text" autocomplete="off" class="form-control"
+                            <input id="f-affiliated_company" :aria-invalid="!!validationErrors['affiliated_company']" :aria-describedby="validationErrors['affiliated_company'] ? 'f-affiliated_company-error' : undefined" type="text" autocomplete="off" class="form-control"
                                 v-model="formData.affiliated_company" placeholder="Ingrese empresa afiliada"
                                 :class="{ 'is-invalid': validationErrors.affiliated_company }" />
-                            <div v-if="validationErrors.affiliated_company" class="invalid-feedback d-block">{{
+                            <div v-if="validationErrors.affiliated_company" class="invalid-feedback d-block" id="f-affiliated_company-error" role="alert">{{
                                 validationErrors.affiliated_company }}</div>
                         </div>
                         <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                            <label class="form-label required fw-medium" style="font-size: 0.9rem;">Radio de
+                            <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-area_of_coverage">Radio de
                                 Acción</label>
-                            <input type="text" autocomplete="off" class="form-control bg-light"
+                            <input id="f-area_of_coverage" :aria-invalid="!!validationErrors['area_of_coverage']" :aria-describedby="validationErrors['area_of_coverage'] ? 'f-area_of_coverage-error' : undefined" type="text" autocomplete="off" class="form-control bg-light"
                                 v-model="formData.area_of_coverage" placeholder="Ingrese radio de acción"
-                                :readonly="true" :class="{ 'is-invalid': validationErrors.area_of_coverage }" />
-                            <div v-if="validationErrors.area_of_coverage" class="invalid-feedback d-block">{{
+                                :readonly="true" aria-readonly="true" :class="{ 'is-invalid': validationErrors.area_of_coverage }" />
+                            <div v-if="validationErrors.area_of_coverage" class="invalid-feedback d-block" id="f-area_of_coverage-error" role="alert">{{
                                 validationErrors.area_of_coverage }}</div>
                         </div>
                         <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                            <label class="form-label required fw-medium" style="font-size: 0.9rem;">Modalidad de
+                            <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-service_type">Modalidad de
                                 Servicio</label>
-                            <input type="text" autocomplete="off" class="form-control bg-light"
+                            <input id="f-service_type" :aria-invalid="!!validationErrors['service_type']" :aria-describedby="validationErrors['service_type'] ? 'f-service_type-error' : undefined" type="text" autocomplete="off" class="form-control bg-light"
                                 v-model="formData.service_type" placeholder="Ingrese modalidad de servicio"
-                                :readonly="true" :class="{ 'is-invalid': validationErrors.service_type }" />
-                            <div v-if="validationErrors.service_type" class="invalid-feedback d-block">{{
+                                :readonly="true" aria-readonly="true" :class="{ 'is-invalid': validationErrors.service_type }" />
+                            <div v-if="validationErrors.service_type" class="invalid-feedback d-block" id="f-service_type-error" role="alert">{{
                                 validationErrors.service_type }}</div>
                         </div>
 
@@ -78,38 +78,38 @@
                         </div>
 
                         <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                            <label class="form-label required fw-medium" style="font-size: 0.9rem;">Modalidad de
+                            <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-transport_mode">Modalidad de
                                 Transporte</label>
-                            <input type="text" autocomplete="off" class="form-control bg-light"
+                            <input id="f-transport_mode" :aria-invalid="!!validationErrors['transport_mode']" :aria-describedby="validationErrors['transport_mode'] ? 'f-transport_mode-error' : undefined" type="text" autocomplete="off" class="form-control bg-light"
                                 v-model="formData.transport_mode" placeholder="Ingrese modalidad de transporte"
-                                :readonly="true" :class="{ 'is-invalid': validationErrors.transport_mode }" />
-                            <div v-if="validationErrors.transport_mode" class="invalid-feedback d-block">{{
+                                :readonly="true" aria-readonly="true" :class="{ 'is-invalid': validationErrors.transport_mode }" />
+                            <div v-if="validationErrors.transport_mode" class="invalid-feedback d-block" id="f-transport_mode-error" role="alert">{{
                                 validationErrors.transport_mode }}</div>
                         </div>
                         <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                            <label class="form-label required fw-medium" style="font-size: 0.9rem;">Fecha de
+                            <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-issue_date">Fecha de
                                 Expedición</label>
-                            <input type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control" v-model="formData.issue_date"
+                            <input id="f-issue_date" :aria-invalid="!!validationErrors['issue_date']" :aria-describedby="validationErrors['issue_date'] ? 'f-issue_date-error' : undefined" type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control" v-model="formData.issue_date"
                                 :class="{ 'is-invalid': validationErrors.issue_date }" />
-                            <div v-if="validationErrors.issue_date" class="invalid-feedback d-block">{{
+                            <div v-if="validationErrors.issue_date" class="invalid-feedback d-block" id="f-issue_date-error" role="alert">{{
                                 validationErrors.issue_date }}</div>
                         </div>
                         <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                            <label class="form-label required fw-medium" style="font-size: 0.9rem;">Fecha de
+                            <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-expiration_date">Fecha de
                                 Expiración</label>
-                            <input type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control"
+                            <input id="f-expiration_date" :aria-invalid="!!validationErrors['expiration_date']" :aria-describedby="validationErrors['expiration_date'] ? 'f-expiration_date-error' : undefined" type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control"
                                 v-model="formData.expiration_date"
                                 :class="{ 'is-invalid': validationErrors.expiration_date }" />
-                            <div v-if="validationErrors.expiration_date" class="invalid-feedback d-block">{{
+                            <div v-if="validationErrors.expiration_date" class="invalid-feedback d-block" id="f-expiration_date-error" role="alert">{{
                                 validationErrors.expiration_date }}</div>
                         </div>
                         <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                            <label class="form-label required fw-medium" style="font-size: 0.9rem;">N°
+                            <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-operating_card_number">N°
                                 Tarjeta</label>
-                            <input type="text" autocomplete="off" class="form-control"
+                            <input id="f-operating_card_number" :aria-invalid="!!validationErrors['operating_card_number']" :aria-describedby="validationErrors['operating_card_number'] ? 'f-operating_card_number-error' : undefined" type="text" autocomplete="off" class="form-control"
                                 v-model="formData.operating_card_number" placeholder="Ej: 12345678"
                                 :class="{ 'is-invalid': validationErrors.operating_card_number }" />
-                            <div v-if="validationErrors.operating_card_number" class="invalid-feedback d-block">{{
+                            <div v-if="validationErrors.operating_card_number" class="invalid-feedback d-block" id="f-operating_card_number-error" role="alert">{{
                                 validationErrors.operating_card_number }}</div>
                         </div>
 
@@ -120,40 +120,40 @@
                         </div>
 
                         <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                            <label class="form-label required fw-medium" style="font-size: 0.9rem;">Vehículo</label>
-                            <select ref="vehicleSelect" v-model="formData.vehicle_uuid" class="form-control w-100" :disabled="!!wizardUuid"
+                            <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-vehicle_uuid">Vehículo</label>
+                            <select id="f-vehicle_uuid" :aria-invalid="!!validationErrors['vehicle_uuid']" :aria-describedby="validationErrors['vehicle_uuid'] ? 'f-vehicle_uuid-error' : undefined" ref="vehicleSelect" v-model="formData.vehicle_uuid" class="form-control w-100" :disabled="!!wizardUuid"
                                 :class="{ 'is-invalid': validationErrors.vehicle_uuid }">
                                 <option value="">Seleccionar vehículo</option>
                                 <option v-for="opt in uniqueVehicles" :key="opt.uuid" :value="opt.uuid">
                                     {{ opt.vehicle_license_plate }}
                                 </option>
                             </select>
-                            <div v-if="validationErrors.vehicle_uuid" class="invalid-feedback d-block">{{
+                            <div v-if="validationErrors.vehicle_uuid" class="invalid-feedback d-block" id="f-vehicle_uuid-error" role="alert">{{
                                 validationErrors.vehicle_uuid }}</div>
                         </div>
 
                         <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                            <label class="form-label required fw-medium" style="font-size: 0.9rem;">N° Interno del
+                            <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="internal_number">N° Interno del
                                 Vehículo</label>
                             <input type="text" autocomplete="off" class="form-control" id="internal_number"
                                 v-model="formData.internal_number" placeholder="Ej: 001"
                                 :class="{ 'is-invalid': validationErrors.internal_number }" />
-                            <div v-if="validationErrors.internal_number" class="invalid-feedback d-block">{{
+                            <div v-if="validationErrors.internal_number" class="invalid-feedback d-block" id="f-internal_number-error" role="alert">{{
                                 validationErrors.internal_number }}</div>
-                            <div v-if="hasAgreements" class="text-warning small mb-0 mt-1 d-flex align-items-center gap-1">
+                            <div v-if="hasAgreements" class="small mb-0 mt-1 d-flex align-items-center gap-1" style="color: #8a5a00;">
                                 <i class="fad fa-exclamation-triangle"></i>
                                 <span>Vehículo con convenio. Auto-asignación inactiva.</span>
                             </div>
                         </div>
 
                         <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                            <label class="form-label required fw-medium" style="font-size: 0.9rem;">Estado</label>
-                            <select ref="statusSelect" v-model="formData.status" class="form-select w-100"
+                            <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-status">Estado</label>
+                            <select id="f-status" :aria-invalid="!!validationErrors['status']" :aria-describedby="validationErrors['status'] ? 'f-status-error' : undefined" ref="statusSelect" v-model="formData.status" class="form-select w-100"
                                 :class="{ 'is-invalid': validationErrors.status }">
                                 <option value="1">Activo</option>
                                 <option value="0">Inactivo</option>
                             </select>
-                            <div v-if="validationErrors.status" class="invalid-feedback d-block">{{
+                            <div v-if="validationErrors.status" class="invalid-feedback d-block" id="f-status-error" role="alert">{{
                                 validationErrors.status }}</div>
                         </div>
 
@@ -314,20 +314,22 @@ const { initSelect2, setValues: setSelect2Values, syncFromSelect2, destroySelect
 const cardFormRef = ref(null);
 useNoAutocomplete(cardFormRef, { except: ['internal_number'] });
 
+const isEmpty = (v) => v === null || v === undefined || (typeof v === 'string' ? v.trim() === '' : !v);
+
 const validateForm = () => {
     Object.keys(validationErrors).forEach(key => delete validationErrors[key]);
 
     // Validar requeridos según el JSON
-    if (!formData.company_uuid) validationErrors.company_uuid = 'Este campo es obligatorio';
-    if (!formData.vehicle_uuid) validationErrors.vehicle_uuid = 'Este campo es obligatorio';
-    if (!formData.affiliated_company) validationErrors.affiliated_company = 'Este campo es obligatorio';
-    if (!formData.area_of_coverage) validationErrors.area_of_coverage = 'Este campo es obligatorio';
-    if (!formData.service_type) validationErrors.service_type = 'Este campo es obligatorio';
-    if (!formData.transport_mode) validationErrors.transport_mode = 'Este campo es obligatorio';
-    if (!formData.issue_date) validationErrors.issue_date = 'Este campo es obligatorio';
-    if (!formData.expiration_date) validationErrors.expiration_date = 'Este campo es obligatorio';
-    if (!formData.operating_card_number) validationErrors.operating_card_number = 'Este campo es obligatorio';
-    if (!formData.status) validationErrors.status = 'Este campo es obligatorio';
+    if (isEmpty(formData.company_uuid)) validationErrors.company_uuid = 'Este campo es obligatorio';
+    if (isEmpty(formData.vehicle_uuid)) validationErrors.vehicle_uuid = 'Este campo es obligatorio';
+    if (isEmpty(formData.affiliated_company)) validationErrors.affiliated_company = 'Este campo es obligatorio';
+    if (isEmpty(formData.area_of_coverage)) validationErrors.area_of_coverage = 'Este campo es obligatorio';
+    if (isEmpty(formData.service_type)) validationErrors.service_type = 'Este campo es obligatorio';
+    if (isEmpty(formData.transport_mode)) validationErrors.transport_mode = 'Este campo es obligatorio';
+    if (isEmpty(formData.issue_date)) validationErrors.issue_date = 'Este campo es obligatorio';
+    if (isEmpty(formData.expiration_date)) validationErrors.expiration_date = 'Este campo es obligatorio';
+    if (isEmpty(formData.operating_card_number)) validationErrors.operating_card_number = 'Este campo es obligatorio';
+    if (isEmpty(formData.status)) validationErrors.status = 'Este campo es obligatorio';
 
     return Object.keys(validationErrors).length === 0;
 };
@@ -350,8 +352,13 @@ const handleSubmit = async () => {
 
     if (!validateForm()) {
         applyAllValidations(selectConfigs.value);
-        const firstError = document.querySelector('.is-invalid, .is-invalid-select2');
-        if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        await nextTick();
+        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+        if (firstError) {
+            if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(firstError.tagName)) firstError.setAttribute('tabindex', '-1');
+            firstError.focus({ preventScroll: true });
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return toast('Atención', 'Revisa los campos obligatorios', 'warning');
     }
 

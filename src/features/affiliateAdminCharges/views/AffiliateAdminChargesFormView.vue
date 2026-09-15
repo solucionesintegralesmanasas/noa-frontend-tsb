@@ -78,26 +78,26 @@
               <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3" v-if="isSuperAdmin">
                 <label class="form-label required fw-medium" for="company_uuid"
                   style="font-size: 0.9rem;">Empresa</label>
-                <select ref="companySelect" v-model="formData.company_uuid" class="form-control select2-input w-100"
+                <select id="f-company_uuid" :aria-invalid="!!validationErrors['company_uuid']" :aria-describedby="validationErrors['company_uuid'] ? 'f-company_uuid-error' : undefined" ref="companySelect" v-model="formData.company_uuid" class="form-control select2-input w-100"
                   :class="{ 'is-invalid': validationErrors.company_uuid }">
                   <option value="">Seleccione...</option>
                   <option v-for="opt in store.catalogs.companies" :key="opt.uuid" :value="opt.uuid">{{ opt.business_name
                   }}</option>
                 </select>
-                <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block">{{
+                <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block" id="f-company_uuid-error" role="alert">{{
                   validationErrors.company_uuid }}</div>
               </div>
 
               <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
                 <label class="form-label required fw-medium" for="vehicle_uuid"
                   style="font-size: 0.9rem;">Vehículo</label>
-                <select ref="vehicleSelect" v-model="formData.vehicle_uuid" class="form-control select2-input w-100"
+                <select id="f-vehicle_uuid" :aria-invalid="!!validationErrors['vehicle_uuid']" :aria-describedby="validationErrors['vehicle_uuid'] ? 'f-vehicle_uuid-error' : undefined" ref="vehicleSelect" v-model="formData.vehicle_uuid" class="form-control select2-input w-100"
                   :class="{ 'is-invalid': validationErrors.vehicle_uuid }">
                   <option value="">Seleccionar vehículo</option>
                   <option v-for="item in store.catalogs.vehicles" :key="item.uuid" :value="item.uuid">{{
                     item.vehicle_license_plate }}</option>
                 </select>
-                <div v-if="validationErrors.vehicle_uuid" class="invalid-feedback d-block">{{
+                <div v-if="validationErrors.vehicle_uuid" class="invalid-feedback d-block" id="f-vehicle_uuid-error" role="alert">{{
                   validationErrors.vehicle_uuid }}</div>
               </div>
 
@@ -110,31 +110,33 @@
                   :placeholder="formData.charge_type === 'CUOTA_ADMINISTRACION' ? 'Ej: 26061112463045' : 'Se heredará del vehículo'"
                   :disabled="formData.charge_type !== 'CUOTA_ADMINISTRACION' && !!formData.charge_type"
                   :class="{ 'is-invalid': validationErrors.payment_reference }" />
-                <div v-if="validationErrors.payment_reference" class="invalid-feedback d-block">{{
+                <div v-if="validationErrors.payment_reference" class="invalid-feedback d-block" id="f-payment_reference-error" role="alert">{{
                   validationErrors.payment_reference }}</div>
               </div>
 
               <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
                 <label class="form-label required fw-medium" for="charge_type" style="font-size: 0.9rem;">Tipo de
                   Cobro</label>
-                <select ref="chargeTypeSelect" v-model="formData.charge_type" class="form-control select2-input w-100"
+                <select id="f-charge_type" :aria-invalid="!!validationErrors['charge_type']" :aria-describedby="validationErrors['charge_type'] ? 'f-charge_type-error' : undefined" ref="chargeTypeSelect" v-model="formData.charge_type" class="form-control select2-input w-100"
                   :class="{ 'is-invalid': validationErrors.charge_type }">
                   <option value="">Seleccione...</option>
                   <option value="CUOTA_ADMINISTRACION">Cuota de Administración</option>
                   <option value="PAGO_MENSUALIDAD">Pago Mensualidad</option>
                   <option value="PAGO_CUPO">Pago de Cupo</option>
                 </select>
-                <div v-if="validationErrors.charge_type" class="invalid-feedback d-block">{{
+                <div v-if="validationErrors.charge_type" class="invalid-feedback d-block" id="f-charge_type-error" role="alert">{{
                   validationErrors.charge_type }}</div>
               </div>
 
               <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
                 <label class="form-label required fw-medium" for="amount" style="font-size: 0.9rem;">Monto</label>
                 <div class="input-group">
-                  <span class="input-group-text bg-light"><i class="fad fa-dollar-sign"></i></span>
+                  <span class="input-group-text bg-light" aria-hidden="true"><i class="fad fa-dollar-sign"></i></span>
                   <input id="amount" type="number" step="0.01" class="form-control" v-model.number="formData.amount"
-                    placeholder="0.00" :class="{ 'is-invalid': validationErrors.amount }" />
-                  <div v-if="validationErrors.amount" class="invalid-feedback d-block mt-1 w-100">{{
+                    placeholder="0.00" :class="{ 'is-invalid': validationErrors.amount }"
+                    :aria-invalid="!!validationErrors.amount"
+                    :aria-describedby="validationErrors.amount ? 'f-amount-error' : undefined" />
+                  <div v-if="validationErrors.amount" class="invalid-feedback d-block mt-1 w-100" id="f-amount-error" role="alert">{{
                     validationErrors.amount }}</div>
                 </div>
                 <div v-if="tariffCalculated" class="text-success small mt-1">
@@ -156,7 +158,7 @@
                 <textarea id="concept" class="form-control" v-model="formData.concept"
                   placeholder="Ej: Cuota Abril 2024" rows="2"
                   :class="{ 'is-invalid': validationErrors.concept }"></textarea>
-                <div v-if="validationErrors.concept" class="invalid-feedback d-block">{{ validationErrors.concept }}</div>
+                <div v-if="validationErrors.concept" class="invalid-feedback d-block" id="f-concept-error" role="alert">{{ validationErrors.concept }}</div>
               </div>
 
               <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
@@ -164,7 +166,7 @@
                   Período</label>
                 <input id="period_date" type="date" placeholder="YYYY-MM-DD" class="form-control" v-model="formData.period_date"
                   @change="handleDateChange('period_date')" :class="{ 'is-invalid': validationErrors.period_date }" />
-                <div v-if="validationErrors.period_date" class="invalid-feedback d-block">{{ validationErrors.period_date }}
+                <div v-if="validationErrors.period_date" class="invalid-feedback d-block" id="f-period_date-error" role="alert">{{ validationErrors.period_date }}
                 </div>
               </div>
 
@@ -173,7 +175,7 @@
                   Vencimiento</label>
                 <input id="due_date" type="date" placeholder="YYYY-MM-DD" class="form-control" v-model="formData.due_date"
                   @change="handleDateChange('due_date')" :class="{ 'is-invalid': validationErrors.due_date }" />
-                <div v-if="validationErrors.due_date" class="invalid-feedback d-block">{{ validationErrors.due_date }}</div>
+                <div v-if="validationErrors.due_date" class="invalid-feedback d-block" id="f-due_date-error" role="alert">{{ validationErrors.due_date }}</div>
               </div>
 
               <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
@@ -182,7 +184,7 @@
                 <input id="next_payment_date" type="date" placeholder="YYYY-MM-DD" class="form-control" v-model="formData.next_payment_date"
                   @change="handleDateChange('next_payment_date')"
                   :class="{ 'is-invalid': validationErrors.next_payment_date }" />
-                <div v-if="validationErrors.next_payment_date" class="invalid-feedback d-block">{{
+                <div v-if="validationErrors.next_payment_date" class="invalid-feedback d-block" id="f-next_payment_date-error" role="alert">{{
                   validationErrors.next_payment_date }}</div>
               </div>
 
@@ -210,7 +212,7 @@
             <div class="row g-3">
               <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
                 <label class="form-label required fw-medium" for="status" style="font-size: 0.9rem;">Estado</label>
-                <select ref="statusSelect" v-model="formData.status" class="form-control select2-input w-100"
+                <select id="f-status" :aria-invalid="!!validationErrors['status']" :aria-describedby="validationErrors['status'] ? 'f-status-error' : undefined" ref="statusSelect" v-model="formData.status" class="form-control select2-input w-100"
                   :class="{ 'is-invalid': validationErrors.status }">
                   <option value="PENDIENTE">Pendiente</option>
                   <option value="PAGADO">Pagado</option>
@@ -218,7 +220,7 @@
                   <option value="EN_MORA">En Mora</option>
                   <option value="ANULADO">Anulado</option>
                 </select>
-                <div v-if="validationErrors.status" class="invalid-feedback d-block">{{ validationErrors.status }}</div>
+                <div v-if="validationErrors.status" class="invalid-feedback d-block" id="f-status-error" role="alert">{{ validationErrors.status }}</div>
               </div>
 
               <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
@@ -233,7 +235,7 @@
                   <option value="CORTESIA">Cortesía</option>
                   <option value="OTRO">Otro</option>
                 </select>
-                <div v-if="validationErrors.payment_method" class="invalid-feedback d-block">{{ validationErrors.payment_method }}</div>
+                <div v-if="validationErrors.payment_method" class="invalid-feedback d-block" id="f-payment_method-error" role="alert">{{ validationErrors.payment_method }}</div>
               </div>
 
               <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3" v-if="formData.status === 'PAGADO'">
@@ -241,7 +243,7 @@
                   Pago</label>
                 <input id="payment_date" type="date" placeholder="YYYY-MM-DD" class="form-control" v-model="formData.payment_date"
                   :class="{ 'is-invalid': validationErrors.payment_date }" />
-                <div v-if="validationErrors.payment_date" class="invalid-feedback d-block">{{ validationErrors.payment_date }}
+                <div v-if="validationErrors.payment_date" class="invalid-feedback d-block" id="f-payment_date-error" role="alert">{{ validationErrors.payment_date }}
                 </div>
               </div>
 
@@ -251,7 +253,7 @@
                 <input id="bank_reference" type="text" autocomplete="off" class="form-control" v-model="formData.bank_reference"
                   placeholder="Ej: Transacción # o Ref. Banco"
                   :class="{ 'is-invalid': validationErrors.bank_reference }" />
-                <div v-if="validationErrors.bank_reference" class="invalid-feedback d-block">{{ validationErrors.bank_reference
+                <div v-if="validationErrors.bank_reference" class="invalid-feedback d-block" id="f-bank_reference-error" role="alert">{{ validationErrors.bank_reference
                 }}</div>
               </div>
             </div>
@@ -268,7 +270,7 @@
                 <label class="form-label fw-medium" for="notes" style="font-size: 0.9rem;">Notas / Observaciones</label>
                 <textarea id="notes" class="form-control" v-model="formData.notes" rows="3"
                   placeholder="Comentarios opcionales..." :class="{ 'is-invalid': validationErrors.notes }"></textarea>
-                <div v-if="validationErrors.notes" class="invalid-feedback d-block">{{ validationErrors.notes }}</div>
+                <div v-if="validationErrors.notes" class="invalid-feedback d-block" id="f-notes-error" role="alert">{{ validationErrors.notes }}</div>
               </div>
             </div>
 
@@ -277,13 +279,15 @@
               <div class="d-flex flex-column-reverse flex-sm-row justify-content-sm-end gap-2">
                 <button type="button" class="btn btn-outline-secondary rounded-pill px-3 w-100 w-sm-auto order-1 order-sm-0" @click="goBack"
                   :disabled="submitting">
-                  <i class="fas fa-times me-1"></i> Cancelar
+                  <i class="fas fa-times me-1" aria-hidden="true"></i> Cancelar
                 </button>
-                <button type="submit" class="btn btn-success rounded-pill px-4 shadow-sm w-100 w-sm-auto order-0 order-sm-1" :disabled="submitting">
-                  <span v-show="submitting" class="spinner-border spinner-border-sm me-1" role="status"></span>
-                  <i v-show="!submitting" class="fas fa-check me-1"></i>
-                  <span v-show="submitting">{{ isEditMode ? 'Actualizando...' : 'Guardando...' }}</span>
-                  <span v-show="!submitting">{{ isEditMode ? 'Actualizar Cobro' : 'Guardar Cobro' }}</span>
+                <button type="submit" class="btn btn-success rounded-pill px-4 shadow-sm w-100 w-sm-auto order-0 order-sm-1" :disabled="submitting" :aria-busy="submitting">
+                  <span v-show="submitting" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                  <i v-show="!submitting" class="fas fa-check me-1" aria-hidden="true"></i>
+                  <span aria-live="polite">
+                    <span v-show="submitting">{{ isEditMode ? 'Actualizando...' : 'Guardando...' }}</span>
+                    <span v-show="!submitting">{{ isEditMode ? 'Actualizar Cobro' : 'Guardar Cobro' }}</span>
+                  </span>
                 </button>
               </div>
             </div>
@@ -505,6 +509,8 @@ watch(() => formData.company_uuid, async (newCompanyUuid) => {
 });
 
 
+const isEmpty = (v) => v === null || v === undefined || (typeof v === 'string' ? v.trim() === '' : !v);
+
 const validateForm = () => {
   Object.keys(validationErrors).forEach(key => delete validationErrors[key]);
 
@@ -514,14 +520,14 @@ const validateForm = () => {
     validationErrors.payment_reference = 'Este campo es obligatorio para cuotas iniciales';
   }
 
-  if (!formData.vehicle_uuid) validationErrors.vehicle_uuid = 'Este campo es obligatorio';
-  if (!formData.charge_type) validationErrors.charge_type = 'Este campo es obligatorio';
-  if (!formData.concept) validationErrors.concept = 'Este campo es obligatorio';
+  if (isEmpty(formData.vehicle_uuid)) validationErrors.vehicle_uuid = 'Este campo es obligatorio';
+  if (isEmpty(formData.charge_type)) validationErrors.charge_type = 'Este campo es obligatorio';
+  if (isEmpty(formData.concept)) validationErrors.concept = 'Este campo es obligatorio';
   if (formData.amount === '' || formData.amount === null || formData.amount === undefined || formData.amount <= 0) validationErrors.amount = 'El monto debe ser mayor a 0';
-  if (!formData.period_date) validationErrors.period_date = 'Este campo es obligatorio';
-  if (!formData.due_date) validationErrors.due_date = 'Este campo es obligatorio';
-  if (!formData.next_payment_date) validationErrors.next_payment_date = 'Este campo es obligatorio';
-  if (!formData.status) validationErrors.status = 'Este campo es obligatorio';
+  if (isEmpty(formData.period_date)) validationErrors.period_date = 'Este campo es obligatorio';
+  if (isEmpty(formData.due_date)) validationErrors.due_date = 'Este campo es obligatorio';
+  if (isEmpty(formData.next_payment_date)) validationErrors.next_payment_date = 'Este campo es obligatorio';
+  if (isEmpty(formData.status)) validationErrors.status = 'Este campo es obligatorio';
   if (formData.status === 'PAGADO' && !formData.payment_date) validationErrors.payment_date = 'Este campo es obligatorio';
 
   return Object.keys(validationErrors).length === 0;
@@ -534,8 +540,13 @@ const handleSubmit = async () => {
 
   if (!validateForm()) {
     applyAllValidations(selectConfigs.value);
-    const firstError = document.querySelector('.is-invalid, .is-invalid-select2');
-    if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    await nextTick();
+    const firstError = document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+    if (firstError) {
+        if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(firstError.tagName)) firstError.setAttribute('tabindex', '-1');
+        firstError.focus({ preventScroll: true });
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
     return toast('Atención', 'Revisa los campos obligatorios marcados en rojo', 'warning');
   }
 
