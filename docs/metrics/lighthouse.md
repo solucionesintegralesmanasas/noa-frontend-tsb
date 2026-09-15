@@ -14,8 +14,9 @@ Checklist para medir antes/después en Chrome (modo incógnito, sin extensiones)
 
 | Fecha | Fase | Página | Performance | Accessibility | LCP | TBT | Notas |
 |---|---|---|---|---|---|---|---|
-| 2026-09-15 | base (fases 1+2) | login | | | | | |
-| 2026-09-15 | base (fases 1+2) | dashboard | | | | | |
+| 2026-09-15 | base (fases 1-3) | login | 57 | 100 | navigation desktop, incógnito |
+| 2026-09-15 | base (fases 1-3) | dashboard | 55 | 94 | navigation desktop, incógnito; a11y pendiente: button-name, contraste |
+| 2026-09-16 | lote L dashboard | dashboard | 55 | 100 | navigation desktop; heading-order, button-name y contraste corregidos |
 
 ## Reportes automáticos
 

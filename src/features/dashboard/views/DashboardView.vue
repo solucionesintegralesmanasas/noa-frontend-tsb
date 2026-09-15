@@ -15,22 +15,22 @@
                             <i :class="greetingIcon.icon"></i>
                         </div>
                         <div>
-                            <h6 class="text-primary fs--1 mb-0">{{ greeting }}, {{ userName }}</h6>
-                            <h4 class="text-primary fw-bold mb-0">Resumen Operativo <span class="text-info fw-medium">—
-                                    {{ currentTenantName }}</span></h4>
+                            <p class="text-primary fs--1 mb-0">{{ greeting }}, {{ userName }}</p>
+                            <h1 class="text-primary fw-bold mb-0 h4">Resumen Operativo <span class="text-info fw-medium">—
+                                    {{ currentTenantName }}</span></h1>
                         </div>
                     </div>
                     <div class="d-flex align-items-center gap-2 mt-2 mt-md-0">
-                        <span class="fs--1 text-700 fw-semi-bold me-2">Periodo:</span>
-                        <select v-model="selectedPeriod" class="form-select form-select-sm" style="width: 150px"
+                        <label class="fs--1 text-700 fw-semi-bold me-2" for="f-periodo">Periodo:</label>
+                        <select id="f-periodo" v-model="selectedPeriod" class="form-select form-select-sm" style="width: 150px"
                             @change="refreshData">
                             <option value="7">Últimos 7 días</option>
                             <option value="30">Últimos 30 días</option>
                             <option value="90">Últimos 3 meses</option>
                             <option value="365">Este año</option>
                         </select>
-                        <button class="btn btn-primary btn-sm ms-2" @click="refreshData" title="Actualizar datos">
-                            <i class="fas fa-sync-alt" :class="{ 'fa-spin': isRefreshing }"></i>
+                        <button class="btn btn-primary btn-sm ms-2" @click="refreshData" title="Actualizar datos" aria-label="Actualizar datos">
+                            <i class="fas fa-sync-alt" :class="{ 'fa-spin': isRefreshing }" aria-hidden="true"></i>
                         </button>
                     </div>
                 </div>
@@ -53,7 +53,7 @@
                                         :style="`background-color: ${stat.color}15; color: ${stat.color}`">
                                         <span class="fs-11" :class="stat.icon"></span>
                                     </div>
-                                    <h6 class="mb-0">{{ stat.label }}</h6>
+                                    <h2 class="mb-0 h6">{{ stat.label }}</h2>
                                 </div>
                             </div>
                             <div class="d-flex">
@@ -79,19 +79,20 @@
         <div class="col-xxl-8 col-lg-7">
             <div class="card h-100 border-0 shadow-sm">
                 <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
-                    <h6 class="mb-0">FUEC & Contratos Recientes</h6>
+                    <h2 class="mb-0 h6">FUEC & Contratos Recientes</h2>
                     <button class="btn btn-link btn-sm text-600 text-decoration-none">Ver todo</button>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive scrollbar">
                         <table class="table table-sm table-hover fs--1 mb-0 overflow-hidden">
+                            <caption class="visually-hidden">FUEC y contratos recientes</caption>
                             <thead class="bg-200 text-900">
                                 <tr>
-                                    <th class="ps-3 border-bottom-0" style="min-width: 120px;">Referencia</th>
-                                    <th class="border-bottom-0">Cliente</th>
-                                    <th class="border-bottom-0 text-center">Vehículo</th>
-                                    <th class="border-bottom-0 text-center">Estado</th>
-                                    <th class="pe-3 border-bottom-0 text-end">Acciones</th>
+                                    <th scope="col" class="ps-3 border-bottom-0" style="min-width: 120px;">Referencia</th>
+                                    <th scope="col" class="border-bottom-0">Cliente</th>
+                                    <th scope="col" class="border-bottom-0 text-center">Vehículo</th>
+                                    <th scope="col" class="border-bottom-0 text-center">Estado</th>
+                                    <th scope="col" class="pe-3 border-bottom-0 text-end">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -107,7 +108,7 @@
                                     <td>
                                         <div class="d-flex align-items-center">
                                             <div class="ms-2">
-                                                <h6 class="mb-0 text-800">{{ item.client }}</h6>
+                                                <h3 class="mb-0 text-800 h6">{{ item.client }}</h3>
                                                 <p class="mb-0 fs--2 text-500">{{ item.clientDoc }}</p>
                                             </div>
                                         </div>
@@ -125,8 +126,8 @@
                                         <div class="dropdown font-sans-serif position-static">
                                             <button class="btn btn-link text-600 btn-sm dropdown-toggle btn-reveal"
                                                 type="button" data-bs-toggle="dropdown" data-boundary="window"
-                                                aria-haspopup="true" aria-expanded="false">
-                                                <span class="fas fa-ellipsis-h fs--1"></span>
+                                                aria-haspopup="true" aria-expanded="false" aria-label="Opciones del registro">
+                                                <span class="fas fa-ellipsis-h fs--1" aria-hidden="true"></span>
                                             </button>
                                             <div class="dropdown-menu dropdown-menu-end border py-0">
                                                 <div class="py-2">
@@ -148,7 +149,7 @@
         <div class="col-xxl-4 col-lg-5">
             <div class="card h-100 border-0 shadow-sm">
                 <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
-                    <h6 class="mb-0">Alertas de Documentación</h6>
+                    <h2 class="mb-0 h6">Alertas de Documentación</h2>
                     <span class="badge badge-soft-warning px-2 py-1">{{ alerts.length }} Pendientes</span>
                 </div>
                 <div class="card-body p-0 scrollbar" style="max-height: 400px; overflow-y: auto;">
@@ -165,10 +166,10 @@
                                         :class="alert.severity === 'high' ? 'fa-exclamation-circle' : 'fa-exclamation-triangle'"></i>
                                 </div>
                                 <div class="flex-1">
-                                    <h6 class="mb-1 text-800 d-flex justify-content-between">
+                                    <h3 class="mb-1 text-800 d-flex justify-content-between h6">
                                         {{ alert.title }}
                                         <span class="badge bg-200 text-600">{{ alert.tag }}</span>
-                                    </h6>
+                                    </h3>
                                     <p class="mb-0 fs--1 text-500">{{ alert.desc }}</p>
                                 </div>
                             </div>
@@ -186,7 +187,7 @@
             <div class="card h-100 border-0 shadow-sm overflow-hidden">
                 <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
                     <div class="d-flex align-items-center gap-2">
-                        <h6 class="mb-0 fw-bold text-900">Monitoreo de Flota en Vivo</h6>
+                        <h2 class="mb-0 fw-bold text-900 h6">Monitoreo de Flota en Vivo</h2>
                         <span class="badge rounded-pill bg-danger text-white">
                             <span class="pulse-indicator-dot bg-white me-1"></span>
                             LIVE
@@ -225,7 +226,7 @@
                         <div class="icon-item icon-item-sm bg-soft-success text-success me-2 rounded-circle">
                             <span class="fas fa-tools fs--1"></span>
                         </div>
-                        <h6 class="mb-0 text-900 fw-bold">Mantenimientos Preventivos</h6>
+                        <h2 class="mb-0 text-900 fw-bold h6">Mantenimientos Preventivos</h2>
                     </div>
                     <span class="badge badge-soft-success rounded-pill px-2.5 py-1 fs--2 fw-semi-bold">
                         <i class="fas fa-check-circle me-1"></i>{{ activities.length }} Recientes
@@ -236,7 +237,7 @@
                         <div class="avatar avatar-3xl mx-auto mb-3 bg-soft-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
                             <i class="fas fa-clipboard-check fs-2 text-400"></i>
                         </div>
-                        <h6 class="fw-bold text-700">Sin mantenimientos recientes</h6>
+                        <p class="fw-bold text-700 mb-1">Sin mantenimientos recientes</p>
                         <p class="fs--1 text-500 mb-0">No se han registrado mantenimientos en el período.</p>
                     </div>
                     <div v-else class="d-flex flex-column gap-2.5">
@@ -456,11 +457,11 @@ onBeforeUnmount(() => {
 }
 
 .text-500 {
-    color: #748194 !important;
+    color: #5e6e82 !important;
 }
 
 .text-400 {
-    color: #9da9bb !important;
+    color: #5e6e82 !important;
 }
 
 .bg-light {
@@ -834,7 +835,7 @@ onBeforeUnmount(() => {
 }
 
 .btn-reveal {
-    color: #9da9bb;
+    color: #5e6e82;
     background: transparent;
     border: none;
 }
@@ -909,7 +910,7 @@ onBeforeUnmount(() => {
 
 .badge-soft-success {
     background-color: #ccf6e4;
-    color: #00864e;
+    color: #006e40;
 }
 
 .badge-soft-danger {
@@ -919,7 +920,7 @@ onBeforeUnmount(() => {
 
 .badge-soft-warning {
     background-color: #fdf0e6;
-    color: #a15428;
+    color: #8a441f;
 }
 
 .badge-soft-secondary {

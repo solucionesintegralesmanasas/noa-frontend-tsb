@@ -19,15 +19,15 @@
                                     <div class="min-w-0">
                                         <div class="d-flex align-items-center gap-1 gap-sm-2 flex-wrap mb-1">
                                             <span class="badge bg-warning text-dark fw-bold px-2 py-1 fs-11">
-                                                <i class="fas fa-steering-wheel me-1"></i> ROL CONDUCTOR
+                                                <i class="fas fa-steering-wheel me-1" aria-hidden="true"></i> ROL CONDUCTOR
                                             </span>
                                             <span v-if="licenseInfo" class="badge bg-subtle-success text-success fw-semibold fs-11">
-                                                <i class="fas fa-id-card me-1"></i> Licencia Cat. {{ licenseInfo.category || 'C2' }} · {{ licenseInfo.status || 'ACTIVA' }}
+                                                <i class="fas fa-id-card me-1" aria-hidden="true"></i> Licencia Cat. {{ licenseInfo.category || 'C2' }} · {{ licenseInfo.status || 'ACTIVA' }}
                                             </span>
                                         </div>
-                                        <h4 class="text-900 fw-bold mb-1 fs-18 fs-sm-20 text-truncate">
+                                        <h1 class="text-900 fw-bold mb-1 fs-18 fs-sm-20 text-truncate h4">
                                             {{ greeting }}, <span class="text-primary">Sr. {{ conductorFirstName }}</span>
-                                        </h4>
+                                        </h1>
                                         <p class="text-600 mb-0 fs-11 text-truncate">
                                             <span class="fw-semi-bold">{{ companyName }}</span>
                                             <span v-if="conductorDocument" class="text-400 mx-1">|</span>
@@ -43,8 +43,9 @@
                             <div class="col-12 col-lg-5 text-lg-end">
                                 <div class="d-flex align-items-center justify-content-between justify-content-lg-end gap-2 flex-nowrap">
                                     <div class="d-flex align-items-center gap-1 bg-white border rounded px-2 py-1 shadow-xs flex-grow-1 flex-lg-grow-0">
-                                        <i class="far fa-calendar-alt text-primary fs-11"></i>
-                                        <select v-model="selectedPeriod" class="form-select form-select-sm border-0 py-0 ps-1 pe-4 shadow-none fs-11 w-100"
+                                        <i class="far fa-calendar-alt text-primary fs-11" aria-hidden="true"></i>
+                                        <label class="visually-hidden" for="f-periodo-conductor">Periodo</label>
+                                        <select id="f-periodo-conductor" v-model="selectedPeriod" class="form-select form-select-sm border-0 py-0 ps-1 pe-4 shadow-none fs-11 w-100"
                                             style="cursor: pointer;" @change="loadData">
                                             <option value="7">Últimos 7 días</option>
                                             <option value="15">Últimos 15 días</option>
@@ -55,8 +56,8 @@
                                     </div>
 
                                     <button class="btn btn-primary btn-sm px-3 shadow-xs d-inline-flex align-items-center justify-content-center gap-1 flex-shrink-0"
-                                        :disabled="isLoading" @click="loadData" title="Actualizar datos del dashboard">
-                                        <i class="fas fa-sync-alt" :class="{ 'fa-spin': isLoading }"></i>
+                                        :disabled="isLoading" @click="loadData" title="Actualizar datos del dashboard" aria-label="Actualizar datos del dashboard">
+                                        <i class="fas fa-sync-alt" :class="{ 'fa-spin': isLoading }" aria-hidden="true"></i>
                                         <span>Actualizar</span>
                                     </button>
                                 </div>
@@ -433,12 +434,13 @@
                     <div class="card-body p-0">
                         <div class="table-responsive scrollbar">
                             <table class="table table-sm table-hover mb-0 fs-11 text-nowrap align-middle">
+                                <caption class="visually-hidden">Inspecciones recientes del conductor</caption>
                                 <thead class="bg-200 text-700">
                                     <tr>
-                                        <th class="ps-3 py-2">Fecha</th>
-                                        <th class="py-2">Vehículo</th>
-                                        <th class="text-end py-2">Km Reportado</th>
-                                        <th class="pe-3 text-end py-2">Acción</th>
+                                        <th scope="col" class="ps-3 py-2">Fecha</th>
+                                        <th scope="col" class="py-2">Vehículo</th>
+                                        <th scope="col" class="text-end py-2">Km Reportado</th>
+                                        <th scope="col" class="pe-3 text-end py-2">Acción</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -460,8 +462,8 @@
                                             {{ formatNumber(item.mileage) }} km
                                         </td>
                                         <td class="pe-3 text-end">
-                                            <router-link :to="`/inspeccion-vehiculos`" class="btn btn-falcon-default btn-xs p-1" title="Ver detalle">
-                                                <i class="fas fa-eye text-primary"></i>
+                                            <router-link :to="`/inspeccion-vehiculos`" class="btn btn-falcon-default btn-xs p-1" title="Ver detalle" aria-label="Ver detalle de inspección">
+                                                <i class="fas fa-eye text-primary" aria-hidden="true"></i>
                                             </router-link>
                                         </td>
                                     </tr>
@@ -487,12 +489,13 @@
                     <div class="card-body p-0">
                         <div class="table-responsive scrollbar">
                             <table class="table table-sm table-hover mb-0 fs-11 text-nowrap align-middle">
+                                <caption class="visually-hidden">FUECs y contratos asignados al conductor</caption>
                                 <thead class="bg-200 text-700">
                                     <tr>
-                                        <th class="ps-3 py-2">N° FUEC</th>
-                                        <th class="py-2">Vehículo</th>
-                                        <th class="py-2">Contratante</th>
-                                        <th class="pe-3 text-end py-2">Estado</th>
+                                        <th scope="col" class="ps-3 py-2">N° FUEC</th>
+                                        <th scope="col" class="py-2">Vehículo</th>
+                                        <th scope="col" class="py-2">Contratante</th>
+                                        <th scope="col" class="pe-3 text-end py-2">Estado</th>
                                     </tr>
                                 </thead>
                                 <tbody>
