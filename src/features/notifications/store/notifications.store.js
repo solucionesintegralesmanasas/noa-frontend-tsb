@@ -6,6 +6,25 @@ import { tokenManager } from '@/services/security/token-manager.js';
 import env from '@/utils/env.js';
 import { Preferences } from '@capacitor/preferences';
 
+// Tiempo que una alerta permanece visible antes de agruparse junto a la campana.
+const EXPIRY_TOAST_VISIBLE_MS = 7000;
+// Máximo de alertas visibles al mismo tiempo; el resto se agrupa de inmediato.
+const EXPIRY_TOAST_MAX_VISIBLE = 3;
+
+// Duración del resaltado azul sobre las alertas realmente nuevas.
+const NOTIFICATION_HIGHLIGHT_MS = 1000;
+
+// Temporizadores por alerta (fuera del estado para no persistirlos en el store).
+const expiryToastTimers = new Map();
+let notificationHighlightTimeout = null;
+
+function clearExpiryToastTimer(id) {
+    const entry = expiryToastTimers.get(id);
+    if (!entry) return;
+    clearTimeout(entry.timeout);
+    expiryToastTimers.delete(id);
+}
+
 export const useNotificationsStore = defineStore('notifications', {
     state: () => ({
         notifications: [],
@@ -18,6 +37,8 @@ export const useNotificationsStore = defineStore('notifications', {
         sseMaxRetries: 10,
         sseReconnectTimeout: null,
         activeExpiryToasts: [],
+        dockedExpiryToasts: [],
+        highlightedNotificationUuids: [],
         expiryAlertInterval: null,
     }),
 
@@ -384,7 +405,8 @@ export const useNotificationsStore = defineStore('notifications', {
                 return;
             }
 
-            if (this.activeExpiryToasts.some(t => t.uuid === notification.uuid)) {
+            if (this.activeExpiryToasts.some(t => t.uuid === notification.uuid)
+                || this.dockedExpiryToasts.some(t => t.uuid === notification.uuid)) {
                 return;
             }
 
@@ -400,16 +422,91 @@ export const useNotificationsStore = defineStore('notifications', {
                 created_at: timeStr,
             };
 
-            this.activeExpiryToasts.push(newToast);
+            this.activeExpiryToasts.unshift(newToast);
             await Preferences.set({ key: storageKey, value: now.toString() });
 
-            setTimeout(() => {
-                this.dismissExpiryToast(id);
-            }, 180000);
+            this.scheduleExpiryToastDock(id);
+
+            // Si hay demasiadas alertas visibles, las más antiguas se agrupan
+            // de inmediato para no tapar la pantalla.
+            while (this.activeExpiryToasts.length > EXPIRY_TOAST_MAX_VISIBLE) {
+                const overflow = this.activeExpiryToasts[this.activeExpiryToasts.length - 1];
+                this.dockExpiryToast(overflow.id);
+            }
         },
 
+        scheduleExpiryToastDock(id, delay = EXPIRY_TOAST_VISIBLE_MS) {
+            clearExpiryToastTimer(id);
+            const timeout = setTimeout(() => {
+                expiryToastTimers.delete(id);
+                this.dockExpiryToast(id);
+            }, delay);
+            expiryToastTimers.set(id, { timeout, remaining: delay, startedAt: Date.now() });
+        },
+
+        pauseExpiryToastTimer(id) {
+            const entry = expiryToastTimers.get(id);
+            if (!entry) return;
+            clearTimeout(entry.timeout);
+            entry.remaining = Math.max(0, entry.remaining - (Date.now() - entry.startedAt));
+            expiryToastTimers.set(id, entry);
+        },
+
+        resumeExpiryToastTimer(id) {
+            const entry = expiryToastTimers.get(id);
+            if (!entry) return;
+            const timeout = setTimeout(() => {
+                expiryToastTimers.delete(id);
+                this.dockExpiryToast(id);
+            }, entry.remaining);
+            entry.timeout = timeout;
+            entry.startedAt = Date.now();
+            expiryToastTimers.set(id, entry);
+        },
+
+        // Retira la alerta visible y la acopla al grupo junto a la campana.
+        dockExpiryToast(id) {
+            clearExpiryToastTimer(id);
+            const index = this.activeExpiryToasts.findIndex(t => t.id === id);
+            if (index === -1) return;
+            const [toast] = this.activeExpiryToasts.splice(index, 1);
+            if (!this.dockedExpiryToasts.some(t => t.id === toast.id)) {
+                this.dockedExpiryToasts.unshift(toast);
+            }
+        },
+
+        // Cierra la alerta por completo del área flotante. La notificación
+        // sigue disponible en la campana y en el módulo de notificaciones.
         dismissExpiryToast(id) {
+            clearExpiryToastTimer(id);
             this.activeExpiryToasts = this.activeExpiryToasts.filter(t => t.id !== id);
+            this.dockedExpiryToasts = this.dockedExpiryToasts.filter(t => t.id !== id);
+        },
+
+        clearDockedExpiryToasts() {
+            this.dockedExpiryToasts.forEach(t => clearExpiryToastTimer(t.id));
+            this.dockedExpiryToasts = [];
+        },
+
+        // Resalta por un instante las alertas que originaron el clump y lo vacía.
+        // Se usa cuando el usuario abre las notificaciones desde el resumen.
+        highlightDockedExpiryToasts() {
+            const uuids = this.dockedExpiryToasts.map(t => t.uuid);
+
+            if (notificationHighlightTimeout) {
+                clearTimeout(notificationHighlightTimeout);
+                notificationHighlightTimeout = null;
+            }
+
+            this.clearDockedExpiryToasts();
+            this.highlightedNotificationUuids = uuids;
+
+            if (uuids.length === 0) return;
+
+            notificationHighlightTimeout = setTimeout(() => {
+                this.highlightedNotificationUuids = [];
+                notificationHighlightTimeout = null;
+            }, NOTIFICATION_HIGHLIGHT_MS);
         }
     }
 });

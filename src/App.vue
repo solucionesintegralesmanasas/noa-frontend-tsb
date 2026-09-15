@@ -43,6 +43,9 @@ watch(() => route.path, (newPath, oldPath) => {
   if (newPath === '/dashboard') {
     configStore.setLoading(false);
   }
+  if (newPath === '/notificaciones') {
+    notificationsStore.clearDockedExpiryToasts();
+  }
 
   const fromForm = FORM_ROUTES.some(seg => oldPath?.includes(seg));
   const toNonForm = !FORM_ROUTES.some(seg => newPath?.includes(seg));
@@ -97,11 +100,16 @@ const getInitialsLabel = (type) => {
   </component>
   <router-view v-else />
 
-  <!-- Contenedor flotante de Alertas que vencen Hoy (tipo Facebook) -->
-  <div class="expiry-toasts-container" role="status" aria-live="polite" aria-label="Alertas de vencimiento">
-    <TransitionGroup name="toast-fade">
-      <div v-for="toast in notificationsStore.activeExpiryToasts" :key="toast.id" 
-        class="expiry-toast-item shadow-lg p-3 rounded bg-white border d-flex align-items-start mb-2">
+  <!-- Alertas temporales; el resumen vive junto a la campana en Navbar.vue -->
+  <div class="expiry-notifications-hub">
+    <!-- Alertas visibles por unos segundos -->
+    <TransitionGroup name="toast-fade" tag="div" class="expiry-toast-stack">
+      <div v-for="toast in notificationsStore.activeExpiryToasts" :key="toast.id"
+        class="expiry-toast-item shadow-lg p-3 rounded bg-white border d-flex align-items-start"
+        @mouseenter="notificationsStore.pauseExpiryToastTimer(toast.id)"
+        @mouseleave="notificationsStore.resumeExpiryToastTimer(toast.id)"
+        @focusin="notificationsStore.pauseExpiryToastTimer(toast.id)"
+        @focusout="notificationsStore.resumeExpiryToastTimer(toast.id)">
         <div class="toast-avatar me-3">
           <div class="avatar avatar-xl">
             <div class="avatar-name rounded-circle d-flex align-items-center justify-content-center fw-bold fs-11"
@@ -123,10 +131,10 @@ const getInitialsLabel = (type) => {
             {{ toast.message }}
           </p>
           <small class="text-500 fs-11 mt-1 d-block">
-            <i class="far fa-clock me-1"></i>{{ toast.created_at }}
+            <i class="far fa-clock me-1" aria-hidden="true"></i>{{ toast.created_at }}
           </small>
         </div>
-        <button type="button" class="btn-close ms-2 fs-11 text-500 flex-shrink-0" aria-label="Cerrar notificación" 
+        <button type="button" class="btn-close ms-2 fs-11 text-500 flex-shrink-0" aria-label="Cerrar notificación"
           @click="notificationsStore.dismissExpiryToast(toast.id)"></button>
       </div>
     </TransitionGroup>
@@ -134,32 +142,52 @@ const getInitialsLabel = (type) => {
 </template>
 
 <style>
-/* Contenedor Flotante en la esquina inferior derecha */
-.expiry-toasts-container {
+/* Centro de alertas: se ancla arriba a la derecha, junto a la campana */
+.expiry-notifications-hub {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
+  top: 68px;
+  right: 16px;
   z-index: 1080;
   display: flex;
   flex-direction: column;
+  align-items: flex-end;
   gap: 10px;
-  max-width: 320px;
-  width: calc(100% - 40px);
-  pointer-events: none; /* Dejar pasar clics si es transparente */
+  width: min(340px, calc(100vw - 32px));
+  pointer-events: none; /* Solo los hijos capturan clics */
+}
+
+.expiry-notifications-hub > * {
+  pointer-events: auto;
+}
+
+.expiry-toast-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
 }
 
 .expiry-toast-item {
+  width: 100%;
   pointer-events: auto; /* Permitir interacciones dentro del toast */
   background-color: #ffffff;
-  border-left: 4px solid var(--bs-danger) !important;
+  border-left: 2px solid var(--bs-danger) !important;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
-  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dark .expiry-toast-item {
   background-color: #1b1e22 !important;
   border-color: #2c3238 !important;
   border-left-color: var(--bs-danger) !important;
+}
+
+@media (max-width: 576px) {
+  .expiry-notifications-hub {
+    top: 60px;
+    right: 12px;
+    width: calc(100vw - 24px);
+  }
 }
 
 /* Animaciones y Transiciones de Vue */
@@ -215,6 +243,7 @@ const getInitialsLabel = (type) => {
 
 @media (prefers-reduced-motion: reduce) {
   .toast-fade-enter-active,
+  .toast-fade-leave-active,
   .animate-pulse,
   .toast-slide-in,
   .toast-slide-out,

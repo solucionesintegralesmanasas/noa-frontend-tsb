@@ -18,13 +18,34 @@
         </router-link>
 
         <ul class="navbar-nav navbar-nav-icons ms-auto flex-row align-items-center">
+            <!-- Resumen temporal de alertas, junto a la campana -->
+            <Transition name="dock-fade">
+                <li v-if="store.dockedExpiryToasts.length" class="nav-item notification-dock-item">
+                    <button
+                        type="button"
+                        class="notification-dock-toggle"
+                        :class="{ 'is-activating': isDockActivating }"
+                        :disabled="isDockActivating"
+                        aria-label="Abrir las alertas nuevas en la campana"
+                        @click="openNotificationsMenu"
+                    >
+                        <span class="fas fa-layer-group" aria-hidden="true"></span>
+                        <span class="notification-dock-count">{{ store.dockedExpiryToasts.length }}</span>
+                        <span class="notification-dock-label">
+                            {{ store.dockedExpiryToasts.length === 1 ? 'alerta nueva' : 'alertas nuevas' }}
+                        </span>
+                        <span class="fas fa-arrow-up-right" aria-hidden="true"></span>
+                    </button>
+                </li>
+            </Transition>
+
             <!-- Campana de Notificaciones (SSE) -->
             <li class="nav-item dropdown">
                 <button class="nav-link px-0 bg-transparent border-0"
                     :class="{ 'notification-indicator notification-indicator-primary': store.unreadCount > 0 }"
                     id="navbarDropdownNotification" type="button" aria-label="Notificaciones" data-bs-toggle="dropdown" aria-haspopup="true"
-                    aria-expanded="false">
-                    <span class="fas fa-bell" style="font-size: 33px;" aria-hidden="true"></span>
+                    aria-expanded="false" @click="store.clearDockedExpiryToasts">
+                    <span class="fas fa-bell" :class="{ 'is-attention': isBellAttention }" style="font-size: 33px;" aria-hidden="true"></span>
                 </button>
                 <div class="dropdown-menu dropdown-caret dropdown-menu-end dropdown-menu-card dropdown-menu-notification dropdown-caret-bg"
                     aria-labelledby="navbarDropdownNotification">
@@ -50,7 +71,10 @@
                                         :key="notification.uuid" class="list-group-item p-0">
                                         <router-link
                                             class="notification-item-link d-flex align-items-start p-3 border-bottom text-decoration-none"
-                                            :class="{ 'unread-item': notification.status !== 'LEIDA' }"
+                                            :class="{
+                                                'unread-item': notification.status !== 'LEIDA',
+                                                'notification-item--highlight': store.highlightedNotificationUuids.includes(notification.uuid)
+                                            }"
                                             to="/notificaciones">
                                             <div class="avatar avatar-xl me-3 flex-shrink-0">
                                                 <div class="avatar-name rounded-circle d-flex align-items-center justify-content-center fw-bold text-uppercase fs-11"
@@ -166,11 +190,55 @@ const configStore = useConfigStore()
 const store = useNotificationsStore()
 const isLoggingOut = ref(false)
 
+// Animación de transición entre el clump y la campana.
+const isDockActivating = ref(false)
+const isBellAttention = ref(false)
+const DOCK_ACTIVATION_MS = 180
+const BELL_ATTENTION_MS = 600
+let dockActivationTimeout = null
+let bellAttentionTimeout = null
+
+const showNotificationsDropdown = () => {
+    const trigger = document.getElementById('navbarDropdownNotification')
+    if (!trigger) return
+
+    if (window.bootstrap?.Dropdown) {
+        window.bootstrap.Dropdown.getOrCreateInstance(trigger).show()
+        return
+    }
+
+    // Respaldo para entornos donde Bootstrap todavía no expuso su API global.
+    trigger.click()
+}
+
+const openNotificationsMenu = () => {
+    if (isDockActivating.value) return
+    isDockActivating.value = true
+
+    // Deja que el clump se encoja antes de replegarse, y luego abre la campana
+    // resaltando únicamente las alertas que lo originaron.
+    dockActivationTimeout = setTimeout(() => {
+        dockActivationTimeout = null
+        isDockActivating.value = false
+
+        store.highlightDockedExpiryToasts()
+        showNotificationsDropdown()
+
+        isBellAttention.value = true
+        bellAttentionTimeout = setTimeout(() => {
+            isBellAttention.value = false
+            bellAttentionTimeout = null
+        }, BELL_ATTENTION_MS)
+    }, DOCK_ACTIVATION_MS)
+}
+
 onMounted(() => {
     store.connectSSE()
 })
 
 onUnmounted(() => {
+    if (dockActivationTimeout) clearTimeout(dockActivationTimeout)
+    if (bellAttentionTimeout) clearTimeout(bellAttentionTimeout)
     store.disconnectSSE()
 })
 
@@ -309,6 +377,164 @@ async function handleLogout() {
     border-radius: 4px;
 }
 
+.notification-dock-item {
+    display: flex;
+    align-items: center;
+    margin-right: 0.75rem;
+}
+
+.notification-dock-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    max-width: 190px;
+    padding: 0.38rem 0.65rem;
+    border: 1px solid #bcd6f7;
+    border-radius: 999px;
+    background: #e8f1fd;
+    color: #1257b8;
+    font-size: 0.7rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transform-origin: right center;
+    transition: background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.notification-dock-toggle:hover {
+    background: #d8e8fc;
+    border-color: #93bdf3;
+}
+
+.notification-dock-toggle:focus-visible {
+    outline: 2px solid #1257b8;
+    outline-offset: 2px;
+}
+
+.notification-dock-toggle:disabled {
+    cursor: default;
+}
+
+.notification-dock-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.15rem;
+    height: 1.15rem;
+    padding: 0 0.25rem;
+    border-radius: 999px;
+    background: #1257b8;
+    color: #fff;
+    font-size: 0.65rem;
+    line-height: 1;
+}
+
+.notification-dock-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dark .notification-dock-toggle {
+    border-color: rgba(44, 123, 229, 0.45);
+    background: rgba(44, 123, 229, 0.18);
+    color: #9ec5fe;
+}
+
+.dark .notification-dock-toggle:hover {
+    background: rgba(44, 123, 229, 0.28);
+    border-color: rgba(44, 123, 229, 0.65);
+}
+
+.dark .notification-dock-toggle:focus-visible {
+    outline-color: #9ec5fe;
+}
+
+.dark .notification-dock-count {
+    background: #2c7be5;
+    color: #fff;
+}
+
+/* Transición del clump: se encoge y se repliega hacia la campana */
+.notification-dock-toggle.is-activating {
+    animation: dock-confirm 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dock-confirm {
+    0% {
+        transform: scale(1);
+    }
+    45% {
+        transform: scale(0.94);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.dock-fade-leave-active {
+    transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.dock-fade-leave-to {
+    opacity: 0;
+    transform: translateX(10px) scale(0.96);
+}
+
+.dock-fade-enter-active {
+    transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.dock-fade-enter-from {
+    opacity: 0;
+    transform: translateX(10px) scale(0.96);
+}
+
+/* La campana responde para guiar la mirada del clump a las notificaciones */
+.fas.fa-bell.is-attention {
+    animation: bell-attention 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    transform-origin: top center;
+}
+
+@keyframes bell-attention {
+    0%,
+    100% {
+        transform: rotate(0deg) scale(1);
+    }
+    30% {
+        transform: rotate(-8deg) scale(1.08);
+    }
+    60% {
+        transform: rotate(6deg) scale(1.04);
+    }
+}
+
+/* Resaltado breve de las alertas realmente nuevas */
+.notification-item--highlight {
+    animation: notification-highlight 1s ease-out;
+}
+
+@keyframes notification-highlight {
+    0% {
+        background-color: rgba(var(--bs-primary-rgb), 0.28);
+    }
+    100% {
+        background-color: transparent;
+    }
+}
+
+.dark .notification-item--highlight {
+    animation-name: notification-highlight-dark;
+}
+
+@keyframes notification-highlight-dark {
+    0% {
+        background-color: rgba(44, 123, 229, 0.4);
+    }
+    100% {
+        background-color: transparent;
+    }
+}
+
 .dark .notification-list-container::-webkit-scrollbar-thumb {
     background-color: rgba(255, 255, 255, 0.15);
 }
@@ -328,7 +554,7 @@ async function handleLogout() {
 
 .unread-item {
     background-color: rgba(var(--bs-primary-rgb), 0.05);
-    border-left: 3px solid var(--bs-primary);
+    border-left: 1px solid var(--bs-primary);
 }
 
 .unread-item:hover {
@@ -352,9 +578,45 @@ async function handleLogout() {
 }
 
 @media (max-width: 576px) {
+    .notification-dock-item {
+        margin-right: 0.4rem;
+    }
+
+    .notification-dock-label {
+        display: none;
+    }
+
+    .notification-dock-toggle {
+        padding: 0.4rem 0.55rem;
+    }
+
     .navbar-brand-logo {
         height: 25px;
         max-height: 25px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .notification-dock-toggle.is-activating,
+    .fas.fa-bell.is-attention,
+    .notification-item--highlight,
+    .dark .notification-item--highlight {
+        animation: none;
+    }
+
+    .notification-item--highlight,
+    .dark .notification-item--highlight {
+        background-color: rgba(var(--bs-primary-rgb), 0.18);
+    }
+
+    .dock-fade-leave-active,
+    .dock-fade-enter-active {
+        transition: opacity 0.15s ease;
+    }
+
+    .dock-fade-leave-to,
+    .dock-fade-enter-from {
+        transform: none;
     }
 }
 </style>
