@@ -98,7 +98,7 @@ const getInitialsLabel = (type) => {
   <router-view v-else />
 
   <!-- Contenedor flotante de Alertas que vencen Hoy (tipo Facebook) -->
-  <div class="expiry-toasts-container">
+  <div class="expiry-toasts-container" role="status" aria-live="polite" aria-label="Alertas de vencimiento">
     <TransitionGroup name="toast-fade">
       <div v-for="toast in notificationsStore.activeExpiryToasts" :key="toast.id" 
         class="expiry-toast-item shadow-lg p-3 rounded bg-white border d-flex align-items-start mb-2">
@@ -126,7 +126,7 @@ const getInitialsLabel = (type) => {
             <i class="far fa-clock me-1"></i>{{ toast.created_at }}
           </small>
         </div>
-        <button type="button" class="btn-close ms-2 fs-11 text-500 flex-shrink-0" aria-label="Close" 
+        <button type="button" class="btn-close ms-2 fs-11 text-500 flex-shrink-0" aria-label="Cerrar notificación" 
           @click="notificationsStore.dismissExpiryToast(toast.id)"></button>
       </div>
     </TransitionGroup>
@@ -211,6 +211,18 @@ const getInitialsLabel = (type) => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast-fade-enter-active,
+  .animate-pulse,
+  .toast-slide-in,
+  .toast-slide-out,
+  .fade-enter-active,
+  .fade-leave-active {
+    animation: none;
+    transition: none;
+  }
 }
 
 /* ────────────────────────────────────────────────────────

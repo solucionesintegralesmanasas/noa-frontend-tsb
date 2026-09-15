@@ -4,16 +4,18 @@
     <!-- Cancelar / Anterior — secundario, abajo en móvil, izquierda en desktop -->
     <button type="button" class="btn btn-outline-secondary rounded-pill px-3 w-100 w-sm-auto order-1 order-sm-0"
       :disabled="submitting" @click="$emit('cancel')">
-      <i :class="wizardMode ? 'fas fa-arrow-left me-1' : 'fas fa-times me-1'"></i> {{ wizardMode ? 'Anterior' : 'Cancelar' }}
+      <i :class="wizardMode ? 'fas fa-arrow-left me-1' : 'fas fa-times me-1'" aria-hidden="true"></i> {{ wizardMode ? 'Anterior' : 'Cancelar' }}
     </button>
 
     <!-- Guardar / Actualizar — primario, arriba en móvil, derecha en desktop -->
     <button type="submit" class="btn btn-success rounded-pill px-4 shadow-sm w-100 w-sm-auto order-0 order-sm-1"
-      :disabled="submitting">
+      :disabled="submitting" :aria-busy="submitting">
       <span v-show="submitting" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-      <i v-show="!submitting" class="fas fa-check me-1"></i>
-      <span v-show="submitting">Guardando...</span>
-      <span v-show="!submitting">{{ submitLabel }}</span>
+      <i v-show="!submitting" class="fas fa-check me-1" aria-hidden="true"></i>
+      <span aria-live="polite">
+        <span v-show="submitting">Guardando...</span>
+        <span v-show="!submitting">{{ submitLabel }}</span>
+      </span>
     </button>
 
   </div>
@@ -46,3 +48,10 @@ const submitLabel = computed(() => {
   return props.wizardMode ? 'Guardar y continuar' : 'Guardar';
 });
 </script>
+
+<style scoped>
+.btn:focus-visible {
+  outline: 2px solid #2c7be5;
+  outline-offset: 2px;
+}
+</style>

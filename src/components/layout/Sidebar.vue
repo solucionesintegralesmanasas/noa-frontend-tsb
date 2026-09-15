@@ -1,5 +1,5 @@
 <template>
-    <nav v-if="showSidebar" class="navbar navbar-light navbar-vertical navbar-expand-xl">
+    <nav v-if="showSidebar" class="navbar navbar-light navbar-vertical navbar-expand-xl" aria-label="Navegación principal">
         <div class="d-flex align-items-center">
             <router-link class="navbar-brand" to="/dashboard">
                 <div class="d-flex align-items-center py-2 gap-4">
@@ -16,7 +16,7 @@
                     <!-- DASHBOARD -->
                     <li class="nav-item">
                         <router-link class="nav-link" :class="{ 'active': isActiveLink('/dashboard') }" to="/dashboard"
-                            role="button">
+                           >
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon" v-once><span class="fas fa-chart-pie"></span></span>
                                 <span class="nav-link-text ps-1">Dashboard</span>
@@ -27,7 +27,7 @@
                     <!-- NOTIFICACIONES -->
                     <li class="nav-item">
                         <router-link class="nav-link" :class="{ 'active': isActiveLink('/notificaciones') }"
-                            to="/notificaciones" role="button">
+                            to="/notificaciones">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon" v-once><span class="fas fa-bell"></span></span>
                                 <span class="nav-link-text ps-1">Notificaciones</span>
@@ -38,7 +38,7 @@
                     <!-- ASISTENTE VIRTUAL -->
                     <!--  <li class="nav-item">
                         <router-link class="nav-link" :class="{ 'active': isActiveLink('/assistant') }" to="/assistant"
-                            role="button">
+                           >
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon" v-once><span class="fas fa-robot"></span></span>
                                 <span class="nav-link-text ps-1">NOA Assistant</span>
@@ -57,14 +57,14 @@
                         </div>
 
                         <!-- Informacion empresa -->
-                        <a class="nav-link dropdown-indicator" :aria-expanded="isOpen('company')" aria-controls="company" tabindex="0"
-                            @click.prevent="toggleCollapse('company')" @keydown.enter.space.prevent="toggleCollapse('company')" role="button"
+                        <button class="nav-link dropdown-indicator w-100 text-start bg-transparent border-0" :aria-expanded="isOpen('company')" aria-controls="company"
+                            @click="toggleCollapse('company')" type="button"
                             v-if="can('companies.index') || can('companies.profile') || can('branches.index') || can('economic_activities.index') || can('bank_details.index') || can('tax_information.index') || can('enabling_resolutions.index') || can('conveyor_capacity.index') || can('employee.index')">
                             <div class="d-flex align-items-center">
-                                <span class="nav-link-icon" v-once><span class="fas fa-building"></span></span>
+                                <span class="nav-link-icon" v-once><span class="fas fa-building" aria-hidden="true"></span></span>
                                 <span class="nav-link-text ps-1">Inf. de empresa</span>
                             </div>
-                        </a>
+                        </button>
                         <ul class="nav collapse" :class="{ show: isOpen('company') }" id="company"
                             v-if="can('companies.index') || can('companies.profile') || can('branches.index') || can('economic_activities.index') || can('bank_details.index') || can('tax_information.index') || can('enabling_resolutions.index') || can('conveyor_capacity.index') || can('employee.index')">
                             <li class="nav-item" v-if="can('companies.index')">
@@ -150,14 +150,14 @@
                         </ul>
 
                         <!-- Informacion Tecninca  -->
-                        <a class="nav-link dropdown-indicator" :aria-expanded="isOpen('informacion-tecnica')" aria-controls="informacion-tecnica" tabindex="0"
-                            @click.prevent="toggleCollapse('informacion-tecnica')" @keydown.enter.space.prevent="toggleCollapse('informacion-tecnica')" role="button"
+                        <button class="nav-link dropdown-indicator w-100 text-start bg-transparent border-0" :aria-expanded="isOpen('informacion-tecnica')" aria-controls="informacion-tecnica"
+                            @click="toggleCollapse('informacion-tecnica')" type="button"
                             v-if="can('experiences.index')">
                             <div class="d-flex align-items-center">
-                                <span class="nav-link-icon" v-once><span class="fas fa-tools"></span></span>
+                                <span class="nav-link-icon" v-once><span class="fas fa-tools" aria-hidden="true"></span></span>
                                 <span class="nav-link-text ps-1">Info. Técnica</span>
                             </div>
-                        </a>
+                        </button>
                         <ul class="nav collapse" :class="{ show: isOpen('informacion-tecnica') }"
                             id="informacion-tecnica">
                             <li class="nav-item" v-if="can('experiences.index')">
@@ -171,14 +171,14 @@
                             </li>
                         </ul>
                         <!-- Informacion Financiera -->
-                        <a class="nav-link dropdown-indicator" :aria-expanded="isOpen('informacion-financiera')" aria-controls="informacion-financiera" tabindex="0"
-                            @click.prevent="toggleCollapse('informacion-financiera')" @keydown.enter.space.prevent="toggleCollapse('informacion-financiera')" role="button"
+                        <button class="nav-link dropdown-indicator w-100 text-start bg-transparent border-0" :aria-expanded="isOpen('informacion-financiera')" aria-controls="informacion-financiera"
+                            @click="toggleCollapse('informacion-financiera')" type="button"
                             v-if="can('rup_records.index') || can('tax_declarations.index') || can('financial_statements.index')">
                             <div class="d-flex align-items-center">
-                                <span class="nav-link-icon" v-once><span class="fas fa-chart-line"></span></span>
+                                <span class="nav-link-icon" v-once><span class="fas fa-chart-line" aria-hidden="true"></span></span>
                                 <span class="nav-link-text ps-1">Info. Financiera</span>
                             </div>
-                        </a>
+                        </button>
                         <ul class="nav collapse" :class="{ show: isOpen('informacion-financiera') }"
                             id="informacion-financiera">
                             <li class="nav-item" v-if="can('rup_records.index')">
@@ -221,7 +221,7 @@
                         </div>
 
                         <router-link class="nav-link" :class="{ 'active': isActiveLink('/terceros/afiliados') }"
-                            to="/terceros/afiliados" role="button" v-if="can('affiliate.index')">
+                            to="/terceros/afiliados" v-if="can('affiliate.index')">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon">
                                     <span class="fas fa-handshake"></span>
@@ -229,7 +229,7 @@
                             </div>
                         </router-link>
                         <router-link class="nav-link" :class="{ 'active': isActiveLink('/terceros/conductores') }"
-                            to="/terceros/conductores" role="button" v-if="can('driver.index')">
+                            to="/terceros/conductores" v-if="can('driver.index')">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon">
                                     <span class="fas fa-id-card"></span>
@@ -237,7 +237,7 @@
                             </div>
                         </router-link>
                         <router-link class="nav-link" :class="{ 'active': isActiveLink('/terceros/proveedores') }"
-                            to="/terceros/proveedores" role="button" v-if="can('supplier.index')">
+                            to="/terceros/proveedores" v-if="can('supplier.index')">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon">
                                     <span class="fas fa-boxes"></span>
@@ -245,7 +245,7 @@
                             </div>
                         </router-link>
                         <router-link class="nav-link" :class="{ 'active': isActiveLink('/terceros/clientes') }"
-                            to="/terceros/clientes" role="button" v-if="can('customer.index')">
+                            to="/terceros/clientes" v-if="can('customer.index')">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon">
                                     <span class="fas fa-user-tie"></span>
@@ -255,7 +255,7 @@
 
                         <router-link class="nav-link"
                             :class="{ 'active': isActiveLink('/terceros', true) }"
-                            to="/terceros" role="button" v-if="can('third_parties.index')">
+                            to="/terceros" v-if="can('third_parties.index')">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon">
                                     <span class="fas fa-address-book"></span>
@@ -264,7 +264,7 @@
                         </router-link>
 
                         <router-link class="nav-link" :class="{ 'active': isActiveLink('/recursos-humanos/contratos-laborales/listas') }"
-                            to="/recursos-humanos/contratos-laborales/listas" role="button" v-if="can('employmentContracts.index')">
+                            to="/recursos-humanos/contratos-laborales/listas" v-if="can('employmentContracts.index')">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon">
                                     <span class="fas fa-file-contract"></span>
@@ -280,12 +280,12 @@
                             <div class="col-auto navbar-vertical-label">Seguridad</div>
                             <div class="col ps-0"><hr class="mb-0 navbar-vertical-divider" /></div>
                         </div>
-                        <router-link class="nav-link" :class="{ 'active': isActiveLink('/usuarios') }" to="/usuarios" role="button" v-if="can('users.index') || can('third_parties.index') || can('companies.index')">
+                        <router-link class="nav-link" :class="{ 'active': isActiveLink('/usuarios') }" to="/usuarios" v-if="can('users.index') || can('third_parties.index') || can('companies.index')">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon"><span class="fas fa-users"></span></span><span class="nav-link-text ps-1">Usuarios</span>
                             </div>
                         </router-link>
-                        <router-link class="nav-link" :class="{ 'active': isActiveLink('/roles-permissions') }" to="/roles-permissions" role="button" v-if="can('roles.index') || can('companies.index')">
+                        <router-link class="nav-link" :class="{ 'active': isActiveLink('/roles-permissions') }" to="/roles-permissions" v-if="can('roles.index') || can('companies.index')">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon"><span class="fas fa-shield-alt"></span></span><span class="nav-link-text ps-1">Roles y Permisos</span>
                             </div>
@@ -302,7 +302,7 @@
                         </div>
 
                         <router-link class="nav-link" :class="{ 'active': isActiveLink('/proyectos') }"
-                            to="/proyectos" role="button" v-if="can('projects.index')">
+                            to="/proyectos" v-if="can('projects.index')">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon">
                                     <span class="fas fa-briefcase"></span>
@@ -322,7 +322,7 @@
                         </div>
 
                         <router-link class="nav-link" :class="{ 'active': isActiveLink('/vehiculos') }" to="/vehiculos"
-                            role="button" v-if="can('vehicles.index')">
+                            v-if="can('vehicles.index')">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon">
                                     <span class="fas fa-truck-moving"></span>
@@ -330,7 +330,7 @@
                             </div>
                         </router-link>
                         <router-link class="nav-link" :class="{ 'active': isActiveLink('/convenios-colaboracion') }"
-                            to="/convenios-colaboracion" role="button"
+                            to="/convenios-colaboracion"
                             v-if="can('business_collaboration_agreements.index')">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon">
@@ -339,7 +339,7 @@
                             </div>
                         </router-link>
                         <router-link class="nav-link" :class="{ 'active': isActiveLink('/inspeccion-vehiculos') }"
-                            to="/inspeccion-vehiculos" role="button" v-if="can('vehicle_inspections.index')">
+                            to="/inspeccion-vehiculos" v-if="can('vehicle_inspections.index')">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon">
                                     <span class="fas fa-clipboard-check"></span>
@@ -348,7 +348,7 @@
                         </router-link>
 
                         <router-link class="nav-link" :class="{ 'active': isActiveLink('/mantenimiento') }"
-                            to="/mantenimiento" role="button" v-if="can('maintenance.index')">
+                            to="/mantenimiento" v-if="can('maintenance.index')">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon">
                                     <span class="fas fa-toolbox"></span>
@@ -357,7 +357,7 @@
                         </router-link>
 
                         <router-link class="nav-link" :class="{ 'active': isActiveLink('/mantenimiento/proyeccion') }"
-                            to="/mantenimiento/proyeccion" role="button" v-if="can('maintenance.forecast')">
+                            to="/mantenimiento/proyeccion" v-if="can('maintenance.forecast')">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon">
                                     <span class="fas fa-calendar-check"></span>
@@ -367,7 +367,7 @@
 
                         <router-link class="nav-link"
                             :class="{ 'active': isActiveLink('/planillas-de-control-de-servicios') }"
-                            to="/planillas-de-control-de-servicios" role="button" v-if="can('control_sheets.index')">
+                            to="/planillas-de-control-de-servicios" v-if="can('control_sheets.index')">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon">
                                     <span class="fas fa-clipboard-list"></span>
@@ -387,7 +387,7 @@
                         </div>
 
                         <router-link class="nav-link" :class="{ 'active': isActiveLink('/rastreo/mapa-en-vivo') }"
-                            to="/rastreo/mapa-en-vivo" role="button" v-if="can('locations.view')">
+                            to="/rastreo/mapa-en-vivo" v-if="can('locations.view')">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon"><span class="fas fa-map-marked-alt"></span></span><span
                                     class="nav-link-text ps-1">Mapa en Vivo</span>
@@ -395,7 +395,7 @@
                         </router-link>
 
                         <router-link class="nav-link" :class="{ 'active': isActiveLink('/rastreo') }" to="/rastreo"
-                            role="button" v-if="can('locations.view')">
+                            v-if="can('locations.view')">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon"><span class="fas fa-satellite-dish"></span></span><span
                                     class="nav-link-text ps-1">Rastreo de Conductores</span>
@@ -403,7 +403,7 @@
                         </router-link>
 
                         <router-link class="nav-link" :class="{ 'active': isActiveLink('/rastreo/geocercas') }"
-                            to="/rastreo/geocercas" role="button" v-if="can('locations.geofences')">
+                            to="/rastreo/geocercas" v-if="can('locations.geofences')">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon"><span class="fas fa-draw-polygon"></span></span><span
                                     class="nav-link-text ps-1">Geocercas</span>
@@ -422,7 +422,7 @@
                         </div>
 
                         <router-link class="nav-link" :class="{ 'active': isActiveLink('/extracto-de-contrato') }"
-                            to="/extracto-de-contrato" role="button" v-if="can('fuec.index')">
+                            to="/extracto-de-contrato" v-if="can('fuec.index')">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon">
                                     <span class="fas fa-file-contract"></span>
@@ -431,7 +431,7 @@
                         </router-link>
 
                         <router-link class="nav-link" :class="{ 'active': isActiveLink('/pagos-de-administracion') }"
-                            to="/pagos-de-administracion" role="button" v-if="can('affiliate_admin_charges.index')">
+                            to="/pagos-de-administracion" v-if="can('affiliate_admin_charges.index')">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon">
                                     <span class="fas fa-file-invoice-dollar"></span>
@@ -440,7 +440,7 @@
                         </router-link>
                         <router-link class="nav-link"
                             :class="{ 'active': isActiveLink('/planilla-de-control-de-prestacion-servicios') }"
-                            to="/planilla-de-control-de-prestacion-servicios" role="button"
+                            to="/planilla-de-control-de-prestacion-servicios"
                             v-if="can('service_delivery_control_sheets.index')">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon">

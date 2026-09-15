@@ -7,29 +7,30 @@
         <div class="card-body position-relative" :class="compact ? 'py-2' : 'py-3'">
 
             <!-- BREADCRUMB (Opcional) -->
-            <nav v-if="breadcrumbs.length > 0" aria-label="breadcrumb" class="mb-2">
+            <nav v-if="breadcrumbs.length > 0" aria-label="Migas de pan" class="mb-2">
                 <ol class="breadcrumb mb-0 fs-7">
                     <li class="breadcrumb-item">
                         <router-link to="/" class="text-decoration-none text-muted">
-                            <i class="fad fa-home me-1"></i> Inicio
+                            <i class="fad fa-home me-1" aria-hidden="true"></i> Inicio
                         </router-link>
                     </li>
                     <li v-for="(item, index) in breadcrumbs" :key="index"
                         class="breadcrumb-item"
-                        :class="{ active: index === breadcrumbs.length - 1 }">
+                        :class="{ active: index === breadcrumbs.length - 1 }"
+                        :aria-current="index === breadcrumbs.length - 1 ? 'page' : undefined">
                         <router-link
                             v-if="item.to && index !== breadcrumbs.length - 1"
                             :to="item.to"
                             class="text-decoration-none text-muted">
                             {{ item.label }}
                         </router-link>
-                        <a
+                        <button
                             v-else-if="item.click && index !== breadcrumbs.length - 1"
-                            href="javascript:void(0)"
-                            class="text-decoration-none text-muted"
+                            type="button"
+                            class="btn btn-link btn-sm p-0 text-decoration-none text-muted"
                             @click="item.click">
                             {{ item.label }}
-                        </a>
+                        </button>
                         <span v-else :class="index === breadcrumbs.length - 1 ? 'text-primary' : 'text-muted'">
                             {{ item.label }}
                         </span>
@@ -41,9 +42,9 @@
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
 
                 <!-- LEFT: Skeleton cargando -->
-                <div v-if="loading" class="w-100 w-sm-auto">
-                    <div class="skeleton-text mb-1" style="height: 12px; width: 140px;" />
-                    <div class="skeleton-text" style="height: 22px; width: 300px;" />
+                <div v-if="loading" class="w-100 w-sm-auto" role="status" aria-label="Cargando encabezado">
+                    <div class="skeleton-text mb-1" style="height: 12px; width: 140px;" aria-hidden="true" />
+                    <div class="skeleton-text" style="height: 22px; width: 300px;" aria-hidden="true" />
                 </div>
 
                 <!-- LEFT: Títulos e Información -->
@@ -60,14 +61,14 @@
                     </slot>
 
                     <!-- Título Principal -->
-                    <h4
-                        class="mb-0 fw-semibold text-dark d-flex align-items-center gap-2"
+                    <h1
+                        class="mb-0 fw-semibold text-dark d-flex align-items-center gap-2 h4"
                         :style="{ fontSize: compact ? '1.1rem' : '1.25rem' }">
-                        <i v-if="!topLabel && icon" :class="icon"></i>
+                        <i v-if="!topLabel && icon" :class="icon" aria-hidden="true"></i>
                         <slot name="title">{{ title }}</slot>
                         <!-- Espacio para Badges o Status -->
                         <slot name="title-after"></slot>
-                    </h4>
+                    </h1>
 
                     <!-- Subtítulo -->
                     <slot name="subtitle">
@@ -78,9 +79,9 @@
                 </div>
 
                 <!-- RIGHT: Skeleton acciones -->
-                <div v-if="loading" class="d-flex align-items-center gap-2">
-                    <div class="skeleton-icon" style="height: 32px; width: 32px; border-radius: 5px;" />
-                    <div class="skeleton-icon" style="height: 32px; width: 32px; border-radius: 5px;" />
+                <div v-if="loading" class="d-flex align-items-center gap-2" role="status" aria-label="Cargando acciones">
+                    <div class="skeleton-icon" style="height: 32px; width: 32px; border-radius: 5px;" aria-hidden="true" />
+                    <div class="skeleton-icon" style="height: 32px; width: 32px; border-radius: 5px;" aria-hidden="true" />
                 </div>
 
                 <!-- RIGHT: Acciones -->
@@ -93,8 +94,9 @@
                             class="btn btn-falcon-default btn-sm px-2 px-sm-3"
                             type="button"
                             title="Actualizar"
+                            aria-label="Actualizar"
                             @click="$emit('refresh')">
-                            <i class="fad fa-sync"></i>
+                            <i class="fad fa-sync" aria-hidden="true"></i>
                             <span class="d-none d-sm-inline ms-1">Actualizar</span>
                         </button>
 
@@ -104,8 +106,9 @@
                             class="btn btn-primary btn-sm px-2 px-sm-3"
                             type="button"
                             title="Nuevo registro"
+                            aria-label="Nuevo registro"
                             @click="$emit('create')">
-                            <i class="fad fa-plus"></i>
+                            <i class="fad fa-plus" aria-hidden="true"></i>
                             <span class="d-none d-sm-inline ms-1">Nuevo</span>
                         </button>
 
@@ -115,8 +118,9 @@
                             class="btn btn-primary btn-sm px-2 px-sm-3"
                             type="button"
                             title="Editar"
+                            aria-label="Editar"
                             @click="$emit('edit')">
-                            <i class="fad fa-pen"></i>
+                            <i class="fad fa-pen" aria-hidden="true"></i>
                             <span class="d-none d-sm-inline ms-1">Editar</span>
                         </button>
 
@@ -126,8 +130,9 @@
                             class="btn btn-falcon-default btn-sm px-2 px-sm-3"
                             type="button"
                             title="Regresar"
+                            aria-label="Regresar"
                             @click="$emit('back')">
-                            <i class="fad fa-arrow-left"></i>
+                            <i class="fad fa-arrow-left" aria-hidden="true"></i>
                             <span class="d-none d-sm-inline ms-1">Regresar</span>
                         </button>
 
@@ -249,6 +254,23 @@ defineEmits([
 
 .card:hover {
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
+}
+
+.btn:focus-visible,
+.btn-link:focus-visible {
+    outline: 2px solid #2c7be5;
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fade-in-up {
+        animation: none;
+    }
+    .skeleton-text,
+    .skeleton-icon,
+    .skeleton-badge {
+        animation: none;
+    }
 }
 
 .fs-7 {

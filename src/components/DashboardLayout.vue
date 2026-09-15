@@ -1,11 +1,14 @@
 <template>
+  <a href="#main-content" class="skip-link">Saltar al contenido principal</a>
   <DriverTrackingProvider />
   <Sidebar v-if="!shouldHideSidebar" />
   <div class="content" :class="{ 'no-sidebar-content': shouldHideSidebar }">
     <Navbar :hide-sidebar-toggle="shouldHideSidebar" :show-brand="shouldHideSidebar" />
-    <slot>
-      <router-view />
-    </slot>
+    <main id="main-content" tabindex="-1">
+      <slot>
+        <router-view />
+      </slot>
+    </main>
     <Footer />
   </div>
 </template>
@@ -78,6 +81,31 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.skip-link {
+  position: absolute;
+  top: -48px;
+  left: 12px;
+  z-index: 2000;
+  background: #0f172a;
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  text-decoration: none;
+  transition: top 0.15s ease;
+}
+.skip-link:focus-visible {
+  top: 12px;
+  outline: 2px solid #2c7be5;
+  outline-offset: 2px;
+}
+#main-content:focus {
+  outline: none;
+}
+#main-content:focus-visible {
+  outline: 2px solid #2c7be5;
+  outline-offset: 2px;
+}
 .no-sidebar-content {
   margin-left: 0 !important;
   width: 100% !important;

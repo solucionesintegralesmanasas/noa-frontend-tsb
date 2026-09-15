@@ -1,8 +1,8 @@
 <template>
-    <nav class="navbar navbar-light navbar-glass navbar-top navbar-expand">
+    <nav class="navbar navbar-light navbar-glass navbar-top navbar-expand" aria-label="Barra superior">
         <button v-if="!hideSidebarToggle" class="btn navbar-toggler-humburger-icon navbar-toggler me-1 me-sm-3 d-xl-none" type="button"
             data-bs-toggle="collapse" data-bs-target="#navbarVerticalCollapse" aria-controls="navbarVerticalCollapse"
-            aria-expanded="false" aria-label="Toggle Navigation">
+            aria-expanded="false" aria-label="Abrir menú de navegación">
             <span class="navbar-toggle-icon">
                 <span class="toggle-line"></span>
             </span>
@@ -12,7 +12,7 @@
             <div class="d-flex align-items-center">
                 <img src="/logo.svg" alt="NOA Transportes" class="navbar-brand-logo" />
                 <span v-if="showBrand" class="badge bg-primary bg-opacity-10 text-primary fw-bold ms-2 py-1 px-2 fs-11 d-none d-sm-inline-flex align-items-center gap-1">
-                    <i class="fas fa-steering-wheel"></i> Portal Conductor
+                    <i class="fas fa-steering-wheel" aria-hidden="true"></i> Portal Conductor
                 </span>
             </div>
         </router-link>
@@ -20,12 +20,12 @@
         <ul class="navbar-nav navbar-nav-icons ms-auto flex-row align-items-center">
             <!-- Campana de Notificaciones (SSE) -->
             <li class="nav-item dropdown">
-                <a class="nav-link px-0"
+                <button class="nav-link px-0 bg-transparent border-0"
                     :class="{ 'notification-indicator notification-indicator-primary': store.unreadCount > 0 }"
-                    id="navbarDropdownNotification" role="button" aria-label="Notificaciones" data-bs-toggle="dropdown" aria-haspopup="true"
+                    id="navbarDropdownNotification" type="button" aria-label="Notificaciones" data-bs-toggle="dropdown" aria-haspopup="true"
                     aria-expanded="false">
-                    <span class="fas fa-bell" style="font-size: 33px;"></span>
-                </a>
+                    <span class="fas fa-bell" style="font-size: 33px;" aria-hidden="true"></span>
+                </button>
                 <div class="dropdown-menu dropdown-caret dropdown-menu-end dropdown-menu-card dropdown-menu-notification dropdown-caret-bg"
                     aria-labelledby="navbarDropdownNotification">
                     <div class="card card-notification shadow-none" style="width: 20rem;">
@@ -35,10 +35,11 @@
                                     <h6 class="card-header-title mb-0 fw-bold">Notificaciones</h6>
                                 </div>
                                 <div class="col-auto ps-0 ps-sm-3">
-                                    <a class="card-link fw-normal fs-11" href="#" @click.prevent="store.markAllAsRead"
+                                    <button class="card-link fw-normal fs-11 bg-transparent border-0 p-0 text-primary" type="button" @click="store.markAllAsRead"
+                                        :disabled="store.unreadCount === 0"
                                         :class="{ 'pe-none text-muted opacity-50': store.unreadCount === 0 }">
                                         Marcar todo como leído
-                                    </a>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -99,39 +100,40 @@
 
             <!-- Perfil de usuario -->
             <li class="nav-item dropdown">
-                <a class="nav-link pe-0 ps-2" id="navbarDropdownUser" role="button" data-bs-toggle="dropdown"
-                    aria-haspopup="true" aria-expanded="false" @click.prevent="toggleUserMenu">
+                <button class="nav-link pe-0 ps-2 bg-transparent border-0" id="navbarDropdownUser" type="button" data-bs-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="false" aria-label="Menú de usuario" @click="toggleUserMenu">
                     <div class="avatar avatar-2xl">
-                        <div class="avatar-name rounded-circle fs-10"><span>{{ userName }}</span></div>
+                        <div class="avatar-name rounded-circle fs-10"><span aria-hidden="true">{{ userName }}</span></div>
                     </div>
-                </a>
+                </button>
                 <div class="dropdown-menu dropdown-caret dropdown-menu-end py-0" aria-labelledby="navbarDropdownUser">
                     <div class="bg-white dark__bg-1000 rounded-2 py-2">
                         <a class="dropdown-item fw-bold text-warning" href="#!">
-                            <span class="fas fa-crown me-1"></span>
+                            <span class="fas fa-crown me-1" aria-hidden="true"></span>
                             <span>{{ displayRoles }}</span>
                         </a>
                         <div class="dropdown-divider"></div>
                         <router-link class="dropdown-item" to="/profile">
-                            <span class="fas fa-user me-1"></span> Perfil y cuenta
+                            <span class="fas fa-user me-1" aria-hidden="true"></span> Perfil y cuenta
                         </router-link>
                         <router-link v-if="permissionsStore.can('system_configurations.index')" class="dropdown-item"
                             to="/settings/system-configuration">
-                            <span class="fas fa-cog me-1"></span> Configuración
+                            <span class="fas fa-cog me-1" aria-hidden="true"></span> Configuración
                         </router-link>
                         <router-link class="dropdown-item" :to="{ path: '/profile', query: { tab: 'security' } }">
-                            <span class="fas fa-shield-alt me-1"></span> Seguridad 2FA
+                            <span class="fas fa-shield-alt me-1" aria-hidden="true"></span> Seguridad 2FA
                         </router-link>
                         <router-link class="dropdown-item" to="/roles-permissions">
-                            <span class="fas fa-user-shield me-1"></span> Roles y permisos
+                            <span class="fas fa-user-shield me-1" aria-hidden="true"></span> Roles y permisos
                         </router-link>
                         <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#" :class="{ 'pe-none opacity-75': isLoggingOut }"
-                            :aria-busy="isLoggingOut" @click.prevent="handleLogout">
+                        <button class="dropdown-item bg-transparent border-0 w-100 text-start" type="button" :disabled="isLoggingOut"
+                            :class="{ 'pe-none opacity-75': isLoggingOut }"
+                            :aria-busy="isLoggingOut" @click="handleLogout">
                             <span v-if="isLoggingOut" class="spinner-border spinner-border-sm me-1" role="status"
                                 aria-hidden="true"></span>
-                            <span v-else class="fas fa-sign-out-alt me-1"></span> Cerrar sesión
-                        </a>
+                            <span v-else class="fas fa-sign-out-alt me-1" aria-hidden="true"></span> Cerrar sesión
+                        </button>
                     </div>
                 </div>
             </li>
