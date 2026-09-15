@@ -33,42 +33,42 @@
 
 
                         <div class="col-12 col-sm-6 col-md-6 col-lg-3">
-                            <label class="form-label required">Tipo de persona</label>
-                            <select class="form-control w-100" ref="tipoPersonaSelect">
+                            <label class="form-label required" for="f-person_type">Tipo de persona</label>
+                            <select id="f-person_type" :aria-invalid="!!validationErrors['person_type']" :aria-describedby="validationErrors['person_type'] ? 'f-person_type-error' : undefined" class="form-control w-100" ref="tipoPersonaSelect">
                                 <option value="">Seleccionar tipo</option>
                                 <option value="PERSONA JURIDICA">Jurídica</option>
                                 <option value="PERSONA NATURAL">Natural</option>
                             </select>
-                            <div v-if="validationErrors.person_type" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.person_type" class="invalid-feedback d-block" id="f-person_type-error" role="alert">
                                 {{ validationErrors.person_type }}
                             </div>
                         </div>
                         <div class="col-12 col-sm-6 col-md-6 col-lg-3">
-                            <label class="form-label required">Sector (Naturaleza)</label>
-                            <select class="form-control w-100" ref="typeOfCompanySelect">
+                            <label class="form-label required" for="f-type_of_company">Sector (Naturaleza)</label>
+                            <select id="f-type_of_company" :aria-invalid="!!validationErrors['type_of_company']" :aria-describedby="validationErrors['type_of_company'] ? 'f-type_of_company-error' : undefined" class="form-control w-100" ref="typeOfCompanySelect">
                                 <option value="">Seleccionar</option>
                                 <option value="PRIVADO">Privado</option>
                                 <option value="PUBLICO">Público</option>
                             </select>
-                            <div v-if="validationErrors.type_of_company" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.type_of_company" class="invalid-feedback d-block" id="f-type_of_company-error" role="alert">
                                 {{ validationErrors.type_of_company }}
                             </div>
                         </div>
                         <div class="col-12 col-sm-6 col-md-6 col-lg-3">
-                            <label class="form-label required">Tipo de documento</label>
-                            <select class="form-control w-100" ref="documentTypeSelectUuid">
+                            <label class="form-label required" for="f-document_type_uuid">Tipo de documento</label>
+                            <select id="f-document_type_uuid" :aria-invalid="!!validationErrors['document_type_uuid']" :aria-describedby="validationErrors['document_type_uuid'] ? 'f-document_type_uuid-error' : undefined" class="form-control w-100" ref="documentTypeSelectUuid">
                                 <option value="">Seleccionar tipo</option>
                                 <option v-for="doc in store.catalogs.documentTypes" :key="doc.uuid" :value="doc.uuid">
                                     {{ doc.prefix }} - {{ doc.name }}
                                 </option>
                             </select>
-                            <div v-if="validationErrors.document_type_uuid" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.document_type_uuid" class="invalid-feedback d-block" id="f-document_type_uuid-error" role="alert">
                                 {{ validationErrors.document_type_uuid }}
                             </div>
                         </div>
                         <div class="col-12 col-sm-6 col-md-6 col-lg-3">
-                            <label class="form-label">Estructura Legal</label>
-                            <select class="form-control w-100" ref="legalStructureSelect">
+                            <label class="form-label" for="f-legal-structure">Estructura Legal</label>
+                            <select id="f-legal-structure" class="form-control w-100" ref="legalStructureSelect">
                                 <option value="">Seleccionar estructura</option>
                                 <option value="SOCIEDAD POR ACCIONES SIMPLIFICADA - SAS">SAS</option>
                                 <option value="SOCIEDAD DE RESPONSABILIDAD LIMITADA - LTDA">LTDA</option>
@@ -81,53 +81,53 @@
 
 
                         <div class="col-9 col-sm-9 col-md-8 col-lg-3">
-                            <label class="form-label required">Número de documento</label>
-                            <input type="text" autocomplete="off" class="form-control"
+                            <label class="form-label required" for="f-document_number">Número de documento</label>
+                            <input id="f-document_number" :aria-invalid="!!validationErrors['document_number']" :aria-describedby="validationErrors['document_number'] ? 'f-document_number-error' : undefined" type="text" autocomplete="off" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.document_number }"
                                 v-model="formData.document_number" placeholder="Ej: 900123456" />
-                            <div v-if="validationErrors.document_number" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.document_number" class="invalid-feedback d-block" id="f-document_number-error" role="alert">
                                 {{ validationErrors.document_number }}
                             </div>
                         </div>
 
                         <div class="col-3 col-sm-3 col-md-4 col-lg-2">
-                            <label class="form-label">Dígito</label>
-                            <input type="text" autocomplete="off" class="form-control" v-model="formData.verification_digit" maxlength="1"
+                            <label class="form-label" for="f-verification_digit">Dígito</label>
+                            <input id="f-verification_digit" :aria-invalid="!!validationErrors['verification_digit']" :aria-describedby="validationErrors['verification_digit'] ? 'f-verification_digit-error' : undefined" type="text" autocomplete="off" class="form-control" v-model="formData.verification_digit" maxlength="1"
                                 placeholder="0" />
                         </div>
 
                         <div class="col-12 col-sm-12 col-md-12 col-lg-7">
-                            <label class="form-label required">Razón social legal completa</label>
-                            <input type="text" autocomplete="off" class="form-control"
+                            <label class="form-label required" for="f-business_name">Razón social legal completa</label>
+                            <input id="f-business_name" :aria-invalid="!!validationErrors['business_name']" :aria-describedby="validationErrors['business_name'] ? 'f-business_name-error' : undefined" type="text" autocomplete="off" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.business_name }"
                                 v-model="formData.business_name" placeholder="Razón social completa" />
-                            <div v-if="validationErrors.business_name" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.business_name" class="invalid-feedback d-block" id="f-business_name-error" role="alert">
                                 {{ validationErrors.business_name }}
                             </div>
                         </div>
 
 
                         <div class="col-12 col-sm-6 col-md-6 col-lg-3">
-                            <label class="form-label">Nombre comercial (Marca)</label>
-                            <input type="text" autocomplete="off" class="form-control" v-model="formData.trade_name"
+                            <label class="form-label" for="f-trade_name">Nombre comercial (Marca)</label>
+                            <input id="f-trade_name" :aria-invalid="!!validationErrors['trade_name']" :aria-describedby="validationErrors['trade_name'] ? 'f-trade_name-error' : undefined" type="text" autocomplete="off" class="form-control" v-model="formData.trade_name"
                                 placeholder="Nombre de la marca" />
                         </div>
 
                         <div class="col-12 col-sm-6 col-md-6 col-lg-3">
-                            <label class="form-label">Sector Económico</label>
-                            <input type="text" autocomplete="off" class="form-control" v-model="formData.economic_sector"
+                            <label class="form-label" for="f-economic_sector">Sector Económico</label>
+                            <input id="f-economic_sector" :aria-invalid="!!validationErrors['economic_sector']" :aria-describedby="validationErrors['economic_sector'] ? 'f-economic_sector-error' : undefined" type="text" autocomplete="off" class="form-control" v-model="formData.economic_sector"
                                 placeholder="Sector económico" />
                         </div>
 
                         <div class="col-12 col-sm-6 col-md-6 col-lg-3">
-                            <label class="form-label">Matrícula Mercantil</label>
-                            <input type="text" autocomplete="off" class="form-control" v-model="formData.commercial_registration"
+                            <label class="form-label" for="f-commercial_registration">Matrícula Mercantil</label>
+                            <input id="f-commercial_registration" :aria-invalid="!!validationErrors['commercial_registration']" :aria-describedby="validationErrors['commercial_registration'] ? 'f-commercial_registration-error' : undefined" type="text" autocomplete="off" class="form-control" v-model="formData.commercial_registration"
                                 placeholder="Ej: 12345678" />
                         </div>
 
                         <div class="col-12 col-sm-6 col-md-6 col-lg-3">
-                            <label class="form-label">N° Empleados</label>
-                            <input type="text" autocomplete="off" class="form-control" v-model="formData.approximate_number_of_employees"
+                            <label class="form-label" for="f-approximate_number_of_employees">N° Empleados</label>
+                            <input id="f-approximate_number_of_employees" :aria-invalid="!!validationErrors['approximate_number_of_employees']" :aria-describedby="validationErrors['approximate_number_of_employees'] ? 'f-approximate_number_of_employees-error' : undefined" type="text" autocomplete="off" class="form-control" v-model="formData.approximate_number_of_employees"
                                 placeholder="Ej: 1-50" />
                         </div>
 
@@ -141,92 +141,92 @@
 
 
                         <div class="col-12 col-sm-6 col-md-6 col-lg-3">
-                            <label class="form-label required">Municipio</label>
-                            <select class="form-control w-100" ref="municipioSelect">
+                            <label class="form-label required" for="f-municipality_uuid">Municipio</label>
+                            <select id="f-municipality_uuid" :aria-invalid="!!validationErrors['municipality_uuid']" :aria-describedby="validationErrors['municipality_uuid'] ? 'f-municipality_uuid-error' : undefined" class="form-control w-100" ref="municipioSelect">
                                 <option value="">Seleccionar municipio</option>
                                 <option v-for="mun in store.catalogs.municipalities" :key="mun.uuid" :value="mun.uuid">
                                     {{ mun.name }}
                                 </option>
                             </select>
-                            <div v-if="validationErrors.municipality_uuid" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.municipality_uuid" class="invalid-feedback d-block" id="f-municipality_uuid-error" role="alert">
                                 {{ validationErrors.municipality_uuid }}
                             </div>
                         </div>
                         <div class="col-12 col-sm-12 col-md-12 col-lg-6">
-                            <label class="form-label required">Dirección</label>
-                            <input type="text" autocomplete="off" class="form-control" :class="{ 'is-invalid': validationErrors.address }"
+                            <label class="form-label required" for="f-address">Dirección</label>
+                            <input id="f-address" :aria-invalid="!!validationErrors['address']" :aria-describedby="validationErrors['address'] ? 'f-address-error' : undefined" type="text" autocomplete="off" class="form-control" :class="{ 'is-invalid': validationErrors.address }"
                                 v-model="formData.address" placeholder="Dirección completa" />
-                            <div v-if="validationErrors.address" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.address" class="invalid-feedback d-block" id="f-address-error" role="alert">
                                 {{ validationErrors.address }}
                             </div>
                         </div>
 
                         <div class="col-12 col-sm-6 col-md-6 col-lg-3">
-                            <label class="form-label">Código postal</label>
-                            <input type="text" autocomplete="off" class="form-control" v-model="formData.postal_code" placeholder="C.P." />
+                            <label class="form-label" for="f-postal_code">Código postal</label>
+                            <input id="f-postal_code" :aria-invalid="!!validationErrors['postal_code']" :aria-describedby="validationErrors['postal_code'] ? 'f-postal_code-error' : undefined" type="text" autocomplete="off" class="form-control" v-model="formData.postal_code" placeholder="C.P." />
                         </div>
 
 
                         <div class="col-12 col-sm-6 col-md-6 col-lg-3">
-                            <label class="form-label required">Teléfono</label>
-                            <input type="tel" class="form-control" :class="{ 'is-invalid': validationErrors.phone }"
+                            <label class="form-label required" for="f-phone">Teléfono</label>
+                            <input id="f-phone" :aria-invalid="!!validationErrors['phone']" :aria-describedby="validationErrors['phone'] ? 'f-phone-error' : undefined" type="tel" class="form-control" :class="{ 'is-invalid': validationErrors.phone }"
                                 v-model="formData.phone" placeholder="Teléfono" />
-                            <div v-if="validationErrors.phone" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.phone" class="invalid-feedback d-block" id="f-phone-error" role="alert">
                                 {{ validationErrors.phone }}
                             </div>
                         </div>
 
                         <div class="col-12 col-sm-6 col-md-6 col-lg-5">
-                            <label class="form-label required">Correo electrónico</label>
-                            <input type="email" class="form-control" :class="{ 'is-invalid': validationErrors.email }"
+                            <label class="form-label required" for="f-email">Correo electrónico</label>
+                            <input id="f-email" :aria-invalid="!!validationErrors['email']" :aria-describedby="validationErrors['email'] ? 'f-email-error' : undefined" type="email" class="form-control" :class="{ 'is-invalid': validationErrors.email }"
                                 v-model="formData.email" placeholder="correo@empresa.com" />
-                            <div v-if="validationErrors.email" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.email" class="invalid-feedback d-block" id="f-email-error" role="alert">
                                 {{ validationErrors.email }}
                             </div>
                         </div>
 
                         <div class="col-12 col-sm-12 col-md-12 col-lg-4">
-                            <label class="form-label required">Página Web</label>
-                            <input type="url" class="form-control" :class="{ 'is-invalid': validationErrors.web_page }"
+                            <label class="form-label required" for="f-web_page">Página Web</label>
+                            <input id="f-web_page" :aria-invalid="!!validationErrors['web_page']" :aria-describedby="validationErrors['web_page'] ? 'f-web_page-error' : undefined" type="url" class="form-control" :class="{ 'is-invalid': validationErrors.web_page }"
                                 v-model="formData.web_page" placeholder="https://www.empresa.com" />
-                            <div v-if="validationErrors.web_page" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.web_page" class="invalid-feedback d-block" id="f-web_page-error" role="alert">
                                 {{ validationErrors.web_page }}
                             </div>
                         </div>
 
 
                         <div class="col-12 col-sm-6 col-md-6 col-lg-3">
-                            <label class="form-label required">Régimen Fiscal</label>
-                            <select class="form-control w-100" ref="taxRegimeSelect">
+                            <label class="form-label required" for="f-tax_regime_uuid">Régimen Fiscal</label>
+                            <select id="f-tax_regime_uuid" :aria-invalid="!!validationErrors['tax_regime_uuid']" :aria-describedby="validationErrors['tax_regime_uuid'] ? 'f-tax_regime_uuid-error' : undefined" class="form-control w-100" ref="taxRegimeSelect">
                                 <option value="">Seleccionar régimen</option>
                                 <option v-for="res in store.catalogs.taxRegimes" :key="res.uuid" :value="res.uuid">
                                     {{ res.name }}
                                 </option>
                             </select>
-                            <div v-if="validationErrors.tax_regime_uuid" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.tax_regime_uuid" class="invalid-feedback d-block" id="f-tax_regime_uuid-error" role="alert">
                                 {{ validationErrors.tax_regime_uuid }}
                             </div>
                         </div>
 
                         <div class="col-12 col-sm-6 col-md-6 col-lg-3">
-                            <label class="form-label required">Moneda</label>
-                            <select class="form-control w-100" ref="monedaSelect">
+                            <label class="form-label required" for="f-moneda">Moneda</label>
+                            <select id="f-moneda" class="form-control w-100" ref="monedaSelect">
                                 <option value="COP">COP - Peso colombiano</option>
                                 <option value="USD">USD - Dólar americano</option>
                             </select>
                         </div>
 
                         <div class="col-12 col-sm-6 col-md-6 col-lg-3">
-                            <label class="form-label required">País</label>
-                            <select class="form-control w-100" ref="paisSelect">
+                            <label class="form-label required" for="f-pais">País</label>
+                            <select id="f-pais" class="form-control w-100" ref="paisSelect">
                                 <option value="CO">Colombia</option>
                                 <option value="US">Estados Unidos</option>
                             </select>
                         </div>
 
                         <div class="col-12 col-sm-6 col-md-6 col-lg-3">
-                            <label class="form-label required">Estado</label>
-                            <select class="form-control w-100" ref="statusSelect">
+                            <label class="form-label required" for="f-status">Estado</label>
+                            <select id="f-status" class="form-control w-100" ref="statusSelect">
                                 <option value="1">Activo</option>
                                 <option value="0">Inactivo</option>
                             </select>
@@ -241,55 +241,55 @@
 
 
                         <div class="col-12 col-sm-6 col-md-6 col-lg-3">
-                            <label class="form-label required">Tipo Doc. Representante</label>
-                            <select class="form-control w-100" ref="legalRepresentativeDocumenttype">
+                            <label class="form-label required" for="f-legal_representative_document_type">Tipo Doc. Representante</label>
+                            <select id="f-legal_representative_document_type" :aria-invalid="!!validationErrors['legal_representative_document_type']" :aria-describedby="validationErrors['legal_representative_document_type'] ? 'f-legal_representative_document_type-error' : undefined" class="form-control w-100" ref="legalRepresentativeDocumenttype">
                                 <option value="">Seleccionar tipo</option>
                                 <option v-for="doc in store.catalogs.documentTypes" :key="doc.uuid" :value="doc.prefix">
                                     {{ doc.name }}
                                 </option>
                             </select>
                             <div v-if="validationErrors.legal_representative_document_type"
-                                class="invalid-feedback d-block">
+                                class="invalid-feedback d-block" id="f-legal_representative_document_type-error" role="alert">
                                 {{ validationErrors.legal_representative_document_type }}
                             </div>
                         </div>
                         <div class="col-12 col-sm-6 col-md-6 col-lg-3">
-                            <label class="form-label required">Núm. Doc. Representante</label>
-                            <input type="text" autocomplete="off" class="form-control"
+                            <label class="form-label required" for="f-legal_representative_document_number">Núm. Doc. Representante</label>
+                            <input id="f-legal_representative_document_number" :aria-invalid="!!validationErrors['legal_representative_document_number']" :aria-describedby="validationErrors['legal_representative_document_number'] ? 'f-legal_representative_document_number-error' : undefined" type="text" autocomplete="off" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.legal_representative_document_number }"
                                 v-model="formData.legal_representative_document_number" placeholder="Ej: 123456789" />
-                            <div v-if="validationErrors.legal_representative_document_number" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.legal_representative_document_number" class="invalid-feedback d-block" id="f-legal_representative_document_number-error" role="alert">
                                 {{ validationErrors.legal_representative_document_number }}
                             </div>
                         </div>
                         <div class="col-12 col-sm-6 col-md-6 col-lg-3">
-                            <label class="form-label">Fecha Exp. Documento</label>
-                            <input type="date" class="form-control"
+                            <label class="form-label" for="f-legal_representative_document_issue_date">Fecha Exp. Documento</label>
+                            <input id="f-legal_representative_document_issue_date" :aria-invalid="!!validationErrors['legal_representative_document_issue_date']" :aria-describedby="validationErrors['legal_representative_document_issue_date'] ? 'f-legal_representative_document_issue_date-error' : undefined" type="date" class="form-control"
                                 v-model="formData.legal_representative_document_issue_date" placeholder="YYYY-MM-DD" />
                         </div>
                         <div class="col-12 col-sm-6 col-md-6 col-lg-3">
-                            <label class="form-label">Nacionalidad Representante</label>
-                            <input type="text" autocomplete="off" class="form-control" v-model="formData.legal_representative_nationality"
+                            <label class="form-label" for="f-legal_representative_nationality">Nacionalidad Representante</label>
+                            <input id="f-legal_representative_nationality" :aria-invalid="!!validationErrors['legal_representative_nationality']" :aria-describedby="validationErrors['legal_representative_nationality'] ? 'f-legal_representative_nationality-error' : undefined" type="text" autocomplete="off" class="form-control" v-model="formData.legal_representative_nationality"
                                 placeholder="Ej: Colombiana" />
                         </div>
 
 
                         <div class="col-12 col-sm-6 col-md-6 col-lg-3">
-                            <label class="form-label required">Nombres del representante</label>
-                            <input type="text" autocomplete="off" class="form-control"
+                            <label class="form-label required" for="f-legal_representative_name">Nombres del representante</label>
+                            <input id="f-legal_representative_name" :aria-invalid="!!validationErrors['legal_representative_name']" :aria-describedby="validationErrors['legal_representative_name'] ? 'f-legal_representative_name-error' : undefined" type="text" autocomplete="off" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.legal_representative_name }"
                                 v-model="formData.legal_representative_name" placeholder="Nombres del representante" />
-                            <div v-if="validationErrors.legal_representative_name" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.legal_representative_name" class="invalid-feedback d-block" id="f-legal_representative_name-error" role="alert">
                                 {{ validationErrors.legal_representative_name }}
                             </div>
                         </div>
 
                         <div class="col-12 col-sm-6 col-md-6 col-lg-3">
-                            <label class="form-label required">Apellidos del representante</label>
-                            <input type="text" autocomplete="off" class="form-control"
+                            <label class="form-label required" for="f-legal_representative_last_name">Apellidos del representante</label>
+                            <input id="f-legal_representative_last_name" :aria-invalid="!!validationErrors['legal_representative_last_name']" :aria-describedby="validationErrors['legal_representative_last_name'] ? 'f-legal_representative_last_name-error' : undefined" type="text" autocomplete="off" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.legal_representative_last_name }"
                                 v-model="formData.legal_representative_last_name" placeholder="Apellidos del representante" />
-                            <div v-if="validationErrors.legal_representative_last_name" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.legal_representative_last_name" class="invalid-feedback d-block" id="f-legal_representative_last_name-error" role="alert">
                                 {{ validationErrors.legal_representative_last_name }}
                             </div>
                         </div>
@@ -297,12 +297,12 @@
 
 
                         <div class="col-12 col-sm-6 col-md-6 col-lg-3">
-                            <label class="form-label">Firma del representante</label>
+                            <label class="form-label" for="f-signature">Firma del representante</label>
                             <div class="d-flex flex-column gap-2 p-2 border rounded-3 bg-light">
                                 <div v-if="filePreviews.signature" class="preview-box text-center">
                                     <img :src="filePreviews.signature" alt="Vista previa de la firma del representante" class="img-thumbnail img-fluid" style="max-height: 60px;">
                                 </div>
-                                <input type="file" class="form-control form-control-sm"
+                                <input type="file" id="f-signature" class="form-control form-control-sm"
                                     @change="onFileChange($event, 'signature')" accept="image/*" />
                             </div>
                         </div>
@@ -311,12 +311,13 @@
                             <div class="d-flex flex-column align-items-center">
                                 <div class="position-relative">
                                     <img :src="filePreviews.logo || '/assets/img/team/default.png'"
+                                        alt="Logo de la empresa"
                                         class="rounded-3 border shadow-sm bg-white img-fluid"
                                         style="width: 100px; height: 100px; object-fit: contain;">
-                                    <label for="logoInput"
+                                    <label for="logoInput" aria-label="Cambiar logo de la empresa"
                                         class="btn btn-sm btn-primary position-absolute bottom-0 end-0 rounded-circle p-1"
                                         style="transform: translate(50%, 50%); width: 32px; height: 32px;">
-                                        <i class="fas fa-camera"></i>
+                                        <i class="fas fa-camera" aria-hidden="true"></i>
                                     </label>
                                 </div>
                                 <input type="file" id="logoInput" class="d-none" @change="onFileChange($event, 'logo')"
@@ -504,6 +505,9 @@ function mapRuesRegistro(registro) {
 }
 
 // --- VALIDACION Y SUBMIT ---
+const isEmpty = (v) => v === null || v === undefined || (typeof v === 'string' ? v.trim() === '' : !v);
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 const validateForm = () => {
     Object.keys(validationErrors).forEach(key => delete validationErrors[key]);
     const required = [
@@ -512,7 +516,8 @@ const validateForm = () => {
         'legal_representative_name', 'legal_representative_last_name', 'legal_representative_document_type', 'legal_representative_document_number'
     ];
     required.forEach(field => {
-        if (!formData[field]) validationErrors[field] = 'Este campo es obligatorio';
+        if (isEmpty(formData[field])) validationErrors[field] = 'Este campo es obligatorio';
+        else if (field === 'email' && !EMAIL_RE.test(String(formData[field]))) validationErrors[field] = 'El correo electrónico no tiene un formato válido';
     });
     return Object.keys(validationErrors).length === 0;
 };
@@ -523,8 +528,13 @@ const handleSubmit = async () => {
 
     if (!validateForm()) {
         applyAllValidations(selectConfigs.value);
-        const firstError = document.querySelector('.is-invalid, .is-invalid-select2');
-        if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        await nextTick();
+        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+        if (firstError) {
+            if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(firstError.tagName)) firstError.setAttribute('tabindex', '-1');
+            firstError.focus({ preventScroll: true });
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return toast('Atención', 'Revisa los campos obligatorios', 'warning');
     }
 

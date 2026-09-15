@@ -30,38 +30,38 @@
 
                         <!-- Placa del Vehículo -->
                         <div class="col-12 col-md-6 col-lg-3">
-                            <label class="form-label required fw-medium" style="font-size: 0.9rem;">Placa del
+                            <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-vehicle_license_plate">Placa del
                                 Vehículo</label>
-                            <input type="text" autocomplete="off"
+                            <input id="f-vehicle_license_plate" :aria-invalid="!!validationErrors['vehicle_license_plate']" :aria-describedby="validationErrors['vehicle_license_plate'] ? 'f-vehicle_license_plate-error' : undefined" type="text" autocomplete="off"
                                 class="form-control text-uppercase fw-bold text-primary" :class="{
                                     'is-invalid': validationErrors.vehicle_license_plate,
                                     'is-valid': formData.vehicle_license_plate && !validationErrors.vehicle_license_plate
                                 }" v-model="formData.vehicle_license_plate" placeholder="Ej: ABC123" maxlength="10"
                                 @input="formData.vehicle_license_plate = $event.target.value.toUpperCase(); validateField('vehicle_license_plate', formData.vehicle_license_plate, 'La placa es obligatoria')"
                                 @blur="validateField('vehicle_license_plate', formData.vehicle_license_plate, 'La placa es obligatoria')" />
-                            <div v-if="validationErrors.vehicle_license_plate" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.vehicle_license_plate" class="invalid-feedback d-block" id="f-vehicle_license_plate-error" role="alert">
                                 {{ validationErrors.vehicle_license_plate }}
                             </div>
                         </div>
 
                         <!-- Licencia de Tránsito -->
                         <div class="col-12 col-md-6 col-lg-3">
-                            <label class="form-label required fw-medium" style="font-size: 0.9rem;">Licencia de
+                            <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-transit_license_number">Licencia de
                                 Tránsito</label>
-                            <input type="text" autocomplete="off" class="form-control" :class="{
+                            <input id="f-transit_license_number" :aria-invalid="!!validationErrors['transit_license_number']" :aria-describedby="validationErrors['transit_license_number'] ? 'f-transit_license_number-error' : undefined" type="text" autocomplete="off" class="form-control" :class="{
                                 'is-invalid': validationErrors.transit_license_number,
                                 'is-valid': formData.transit_license_number && !validationErrors.transit_license_number
                             }" v-model="formData.transit_license_number" placeholder="Ej: TR-2026-001"
                                 @input="validateField('transit_license_number', formData.transit_license_number, 'La licencia es obligatoria')"
                                 @blur="validateField('transit_license_number', formData.transit_license_number, 'La licencia es obligatoria')" />
-                            <div v-if="validationErrors.transit_license_number" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.transit_license_number" class="invalid-feedback d-block" id="f-transit_license_number-error" role="alert">
                                 {{ validationErrors.transit_license_number }}
                             </div>
                         </div>
 
                         <!-- Clase de Vehículo -->
                         <div class="col-12 col-md-6 col-lg-3">
-                            <label class="form-label required fw-medium" style="font-size: 0.9rem;">Clase de
+                            <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="vehicle_class_uuid">Clase de
                                 Vehículo</label>
                             <select id="vehicle_class_uuid" ref="vehicleClassSelect" v-model="formData.vehicle_class_uuid"
                                 class="form-control select2-input w-100">
@@ -70,7 +70,7 @@
                                     {{ opt.description }}
                                 </option>
                             </select>
-                            <div v-if="validationErrors.vehicle_class_uuid" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.vehicle_class_uuid" class="invalid-feedback d-block" id="f-vehicle_class_uuid-error" role="alert">
                                 <i class="fad fa-exclamation-circle me-1"></i>{{ validationErrors.vehicle_class_uuid }}
                             </div>
                         </div>
@@ -84,7 +84,7 @@
                                 <option value="PUBLICO">Público</option>
                                 <option value="PARTICULAR">Particular</option>
                             </select>
-                            <div v-if="validationErrors.type_of_service" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.type_of_service" class="invalid-feedback d-block" id="f-type_of_service-error" role="alert">
                                 {{ validationErrors.type_of_service }}
                             </div>
                         </div>
@@ -98,7 +98,7 @@
 
                         <!-- Marca -->
                         <div class="col-12 col-md-6 col-lg-3">
-                            <label class="form-label required fw-medium" style="font-size: 0.9rem;">Marca</label>
+                            <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="brand_uuid">Marca</label>
                             <select id="brand_uuid" ref="brandSelect" v-model="formData.brand_uuid"
                                 class="form-control select2-input w-100">
                                 <option value="">Seleccionar marca</option>
@@ -106,137 +106,137 @@
                                     {{ opt.description }}
                                 </option>
                             </select>
-                            <div v-if="validationErrors.brand_uuid" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.brand_uuid" class="invalid-feedback d-block" id="f-brand_uuid-error" role="alert">
                                 <i class="fad fa-exclamation-circle me-1"></i>{{ validationErrors.brand_uuid }}
                             </div>
                         </div>
 
                         <!-- Línea -->
                         <div class="col-12 col-md-6 col-lg-3">
-                            <label class="form-label required fw-medium" style="font-size: 0.9rem;">Línea</label>
-                            <input type="text" autocomplete="off" class="form-control" :class="{
+                            <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-line">Línea</label>
+                            <input id="f-line" :aria-invalid="!!validationErrors['line']" :aria-describedby="validationErrors['line'] ? 'f-line-error' : undefined" type="text" autocomplete="off" class="form-control" :class="{
                                 'is-invalid': validationErrors.line,
                                 'is-valid': formData.line && !validationErrors.line
                             }" v-model="formData.line" placeholder="Ej: Hilux, D-Max"
                                 @input="validateField('line', formData.line, 'La línea es obligatoria')"
                                 @blur="validateField('line', formData.line, 'La línea es obligatoria')" />
-                            <div v-if="validationErrors.line" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.line" class="invalid-feedback d-block" id="f-line-error" role="alert">
                                 {{ validationErrors.line }}
                             </div>
                         </div>
 
                         <!-- Modelo -->
                         <div class="col-12 col-md-6 col-lg-3">
-                            <label class="form-label required fw-medium" style="font-size: 0.9rem;">Modelo</label>
-                            <input type="text" autocomplete="off" class="form-control" :class="{
+                            <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-model">Modelo</label>
+                            <input id="f-model" :aria-invalid="!!validationErrors['model']" :aria-describedby="validationErrors['model'] ? 'f-model-error' : undefined" type="text" autocomplete="off" class="form-control" :class="{
                                 'is-invalid': validationErrors.model,
                                 'is-valid': formData.model && !validationErrors.model
                             }" v-model="formData.model" placeholder="Ej: 2025"
                                 @input="validateField('model', formData.model, 'El modelo es obligatorio')"
                                 @blur="validateField('model', formData.model, 'El modelo es obligatorio')" />
-                            <div v-if="validationErrors.model" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.model" class="invalid-feedback d-block" id="f-model-error" role="alert">
                                 {{ validationErrors.model }}
                             </div>
                         </div>
 
                         <!-- Color -->
                         <div class="col-12 col-md-6 col-lg-3">
-                            <label class="form-label required fw-medium" style="font-size: 0.9rem;">Color</label>
-                            <input type="text" autocomplete="off" class="form-control" :class="{
+                            <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-color">Color</label>
+                            <input id="f-color" :aria-invalid="!!validationErrors['color']" :aria-describedby="validationErrors['color'] ? 'f-color-error' : undefined" type="text" autocomplete="off" class="form-control" :class="{
                                 'is-invalid': validationErrors.color,
                                 'is-valid': formData.color && !validationErrors.color
                             }" v-model="formData.color" placeholder="Ej: Blanco"
                                 @input="validateField('color', formData.color, 'El color es obligatorio')"
                                 @blur="validateField('color', formData.color, 'El color es obligatorio')" />
-                            <div v-if="validationErrors.color" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.color" class="invalid-feedback d-block" id="f-color-error" role="alert">
                                 {{ validationErrors.color }}
                             </div>
                         </div>
 
                         <!-- Número de Serie -->
                         <div class="col-12 col-md-6 col-lg-3">
-                            <label class="form-label fw-medium" style="font-size: 0.9rem;">Número de Serie</label>
-                            <input type="text" autocomplete="off" class="form-control" :class="{
+                            <label class="form-label fw-medium" style="font-size: 0.9rem;" for="f-serial_number">Número de Serie</label>
+                            <input id="f-serial_number" :aria-invalid="!!validationErrors['serial_number']" :aria-describedby="validationErrors['serial_number'] ? 'f-serial_number-error' : undefined" type="text" autocomplete="off" class="form-control" :class="{
                                 'is-invalid': validationErrors.serial_number
                             }" v-model="formData.serial_number" placeholder="SER123456" />
-                            <div v-if="validationErrors.serial_number" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.serial_number" class="invalid-feedback d-block" id="f-serial_number-error" role="alert">
                                 {{ validationErrors.serial_number }}
                             </div>
                         </div>
 
                         <!-- Número de Motor -->
                         <div class="col-12 col-md-6 col-lg-3">
-                            <label class="form-label required fw-medium" style="font-size: 0.9rem;">Número de
+                            <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-engine_number">Número de
                                 Motor</label>
-                            <input type="text" autocomplete="off" class="form-control" :class="{
+                            <input id="f-engine_number" :aria-invalid="!!validationErrors['engine_number']" :aria-describedby="validationErrors['engine_number'] ? 'f-engine_number-error' : undefined" type="text" autocomplete="off" class="form-control" :class="{
                                 'is-invalid': validationErrors.engine_number,
                                 'is-valid': formData.engine_number && !validationErrors.engine_number
                             }" v-model="formData.engine_number" placeholder="ENG9876"
                                 @input="validateField('engine_number', formData.engine_number, 'El número de motor es obligatorio')"
                                 @blur="validateField('engine_number', formData.engine_number, 'El número de motor es obligatorio')" />
-                            <div v-if="validationErrors.engine_number" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.engine_number" class="invalid-feedback d-block" id="f-engine_number-error" role="alert">
                                 {{ validationErrors.engine_number }}
                             </div>
                         </div>
 
                         <!-- Número de Chasis -->
                         <div class="col-12 col-md-6 col-lg-3">
-                            <label class="form-label required fw-medium" style="font-size: 0.9rem;">Número de
+                            <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-chassis_number">Número de
                                 Chasis</label>
-                            <input type="text" autocomplete="off" class="form-control" :class="{
+                            <input id="f-chassis_number" :aria-invalid="!!validationErrors['chassis_number']" :aria-describedby="validationErrors['chassis_number'] ? 'f-chassis_number-error' : undefined" type="text" autocomplete="off" class="form-control" :class="{
                                 'is-invalid': validationErrors.chassis_number,
                                 'is-valid': formData.chassis_number && !validationErrors.chassis_number
                             }" v-model="formData.chassis_number" placeholder="CHS123"
                                 @input="validateField('chassis_number', formData.chassis_number, 'El chasis es obligatorio')"
                                 @blur="validateField('chassis_number', formData.chassis_number, 'El chasis es obligatorio')" />
-                            <div v-if="validationErrors.chassis_number" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.chassis_number" class="invalid-feedback d-block" id="f-chassis_number-error" role="alert">
                                 {{ validationErrors.chassis_number }}
                             </div>
                         </div>
 
                         <!-- Número VIN -->
                         <div class="col-12 col-md-6 col-lg-3">
-                            <label class="form-label fw-medium" style="font-size: 0.9rem;">Número VIN</label>
-                            <input type="text" autocomplete="off" class="form-control" :class="{
+                            <label class="form-label fw-medium" style="font-size: 0.9rem;" for="f-vin_number">Número VIN</label>
+                            <input id="f-vin_number" :aria-invalid="!!validationErrors['vin_number']" :aria-describedby="validationErrors['vin_number'] ? 'f-vin_number-error' : undefined" type="text" autocomplete="off" class="form-control" :class="{
                                 'is-invalid': validationErrors.vin_number
                             }" v-model="formData.vin_number" placeholder="VIN123456" />
-                            <div v-if="validationErrors.vin_number" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.vin_number" class="invalid-feedback d-block" id="f-vin_number-error" role="alert">
                                 {{ validationErrors.vin_number }}
                             </div>
                         </div>
 
                         <!-- Cilindraje -->
                         <div class="col-12 col-md-6 col-lg-3">
-                            <label class="form-label required fw-medium" style="font-size: 0.9rem;">Cilindraje</label>
-                            <input type="text" autocomplete="off" class="form-control" :class="{
+                            <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-engine_displacement">Cilindraje</label>
+                            <input id="f-engine_displacement" :aria-invalid="!!validationErrors['engine_displacement']" :aria-describedby="validationErrors['engine_displacement'] ? 'f-engine_displacement-error' : undefined" type="text" autocomplete="off" class="form-control" :class="{
                                 'is-invalid': validationErrors.engine_displacement,
                                 'is-valid': formData.engine_displacement && !validationErrors.engine_displacement
                             }" v-model="formData.engine_displacement" placeholder="Ej: 2400"
                                 @input="validateField('engine_displacement', formData.engine_displacement, 'El cilindraje es obligatorio')"
                                 @blur="validateField('engine_displacement', formData.engine_displacement, 'El cilindraje es obligatorio')" />
-                            <div v-if="validationErrors.engine_displacement" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.engine_displacement" class="invalid-feedback d-block" id="f-engine_displacement-error" role="alert">
                                 {{ validationErrors.engine_displacement }}
                             </div>
                         </div>
 
                         <!-- Tipo de Carrocería -->
                         <div class="col-12 col-md-6 col-lg-3">
-                            <label class="form-label required fw-medium" style="font-size: 0.9rem;">Tipo de
+                            <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-body_type">Tipo de
                                 Carrocería</label>
-                            <input type="text" autocomplete="off" class="form-control" :class="{
+                            <input id="f-body_type" :aria-invalid="!!validationErrors['body_type']" :aria-describedby="validationErrors['body_type'] ? 'f-body_type-error' : undefined" type="text" autocomplete="off" class="form-control" :class="{
                                 'is-invalid': validationErrors.body_type,
                                 'is-valid': formData.body_type && !validationErrors.body_type
                             }" v-model="formData.body_type" placeholder="Ej: Sedán"
                                 @input="validateField('body_type', formData.body_type, 'La carrocería es obligatoria')"
                                 @blur="validateField('body_type', formData.body_type, 'La carrocería es obligatoria')" />
-                            <div v-if="validationErrors.body_type" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.body_type" class="invalid-feedback d-block" id="f-body_type-error" role="alert">
                                 {{ validationErrors.body_type }}
                             </div>
                         </div>
 
                         <!-- Tipo de Combustible -->
                         <div class="col-12 col-md-6 col-lg-3">
-                            <label class="form-label required fw-medium" style="font-size: 0.9rem;">Tipo de
+                            <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="fuel_type">Tipo de
                                 Combustible</label>
                             <select id="fuel_type" ref="fuelTypeSelect" v-model="formData.fuel_type"
                                 class="form-control select2-input w-100">
@@ -249,44 +249,44 @@
                                 <option value="ELECTRICO">Eléctrico</option>
                                 <option value="OTRO">Otro</option>
                             </select>
-                            <div v-if="validationErrors.fuel_type" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.fuel_type" class="invalid-feedback d-block" id="f-fuel_type-error" role="alert">
                                 <i class="fad fa-exclamation-circle me-1"></i>{{ validationErrors.fuel_type }}
                             </div>
                         </div>
 
                         <!-- Número de Puertas -->
                         <div class="col-12 col-md-6 col-lg-3">
-                            <label class="form-label fw-medium" style="font-size: 0.9rem;">Número de Puertas</label>
-                            <input type="number" autocomplete="off" placeholder="Ej: 4" class="form-control" v-model.number="formData.doors"
+                            <label class="form-label fw-medium" style="font-size: 0.9rem;" for="f-doors">Número de Puertas</label>
+                            <input id="f-doors" :aria-invalid="!!validationErrors['doors']" :aria-describedby="validationErrors['doors'] ? 'f-doors-error' : undefined" type="number" autocomplete="off" placeholder="Ej: 4" class="form-control" v-model.number="formData.doors"
                                 min="1" max="10" />
                         </div>
 
                         <!-- Fecha de Matriculación -->
                         <div class="col-12 col-md-4 col-lg-4">
-                            <label class="form-label required fw-medium" style="font-size: 0.9rem;">Fecha de
+                            <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-registration_date">Fecha de
                                 Matriculación</label>
-                            <input type="date" class="form-control" placeholder="YYYY-MM-DD" :class="{
+                            <input id="f-registration_date" :aria-invalid="!!validationErrors['registration_date']" :aria-describedby="validationErrors['registration_date'] ? 'f-registration_date-error' : undefined" type="date" class="form-control" placeholder="YYYY-MM-DD" :class="{
                                 'is-invalid': validationErrors.registration_date,
                                 'is-valid': formData.registration_date && !validationErrors.registration_date
                             }" v-model="formData.registration_date"
                                 @input="validateField('registration_date', formData.registration_date, 'La fecha es obligatoria')"
                                 @blur="validateField('registration_date', formData.registration_date, 'La fecha es obligatoria')" />
-                            <div v-if="validationErrors.registration_date" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.registration_date" class="invalid-feedback d-block" id="f-registration_date-error" role="alert">
                                 {{ validationErrors.registration_date }}
                             </div>
                         </div>
 
                         <!-- Autoridad de Tránsito -->
                         <div class="col-12 col-md-4 col-lg-4">
-                            <label class="form-label required fw-medium" style="font-size: 0.9rem;">Autoridad de
+                            <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-transit_authority">Autoridad de
                                 Tránsito</label>
-                            <input type="text" autocomplete="off" class="form-control" :class="{
+                            <input id="f-transit_authority" :aria-invalid="!!validationErrors['transit_authority']" :aria-describedby="validationErrors['transit_authority'] ? 'f-transit_authority-error' : undefined" type="text" autocomplete="off" class="form-control" :class="{
                                 'is-invalid': validationErrors.transit_authority,
                                 'is-valid': formData.transit_authority && !validationErrors.transit_authority
                             }" v-model="formData.transit_authority" placeholder="Ej: Secretaría de Tránsito"
                                 @input="validateField('transit_authority', formData.transit_authority, 'La autoridad es obligatoria')"
                                 @blur="validateField('transit_authority', formData.transit_authority, 'La autoridad es obligatoria')" />
-                            <div v-if="validationErrors.transit_authority" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.transit_authority" class="invalid-feedback d-block" id="f-transit_authority-error" role="alert">
                                 {{ validationErrors.transit_authority }}
                             </div>
                         </div>
@@ -301,7 +301,7 @@
                                     {{ opt.name }}
                                 </option>
                             </select>
-                            <div v-if="validationErrors.branch_uuid" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.branch_uuid" class="invalid-feedback d-block" id="f-branch_uuid-error" role="alert">
                                 {{ validationErrors.branch_uuid }}
                             </div>
                         </div>
@@ -315,45 +315,45 @@
 
                         <!-- Capacidad de Carga -->
                         <div class="col-12 col-md-4 col-lg-4">
-                            <label class="form-label fw-medium" style="font-size: 0.9rem;">Capacidad de Carga
+                            <label class="form-label fw-medium" style="font-size: 0.9rem;" for="f-load_capacity">Capacidad de Carga
                                 (kg)</label>
-                            <input type="number" autocomplete="off" placeholder="Ej: 2000" class="form-control"
+                            <input id="f-load_capacity" :aria-invalid="!!validationErrors['load_capacity']" :aria-describedby="validationErrors['load_capacity'] ? 'f-load_capacity-error' : undefined" type="number" autocomplete="off" placeholder="Ej: 2000" class="form-control"
                                 v-model.number="formData.load_capacity" min="0" />
                         </div>
 
                         <!-- Peso Bruto -->
                         <div class="col-12 col-md-4 col-lg-4">
-                            <label class="form-label fw-medium" style="font-size: 0.9rem;">Peso Bruto (kg)</label>
-                            <input type="number" autocomplete="off" placeholder="Ej: 3500" class="form-control"
+                            <label class="form-label fw-medium" style="font-size: 0.9rem;" for="f-gross_vehicle_weight">Peso Bruto (kg)</label>
+                            <input id="f-gross_vehicle_weight" :aria-invalid="!!validationErrors['gross_vehicle_weight']" :aria-describedby="validationErrors['gross_vehicle_weight'] ? 'f-gross_vehicle_weight-error' : undefined" type="number" autocomplete="off" placeholder="Ej: 3500" class="form-control"
                                 v-model.number="formData.gross_vehicle_weight" min="0" />
                         </div>
 
                         <!-- Cap. Pasajeros -->
                         <div class="col-12 col-md-4 col-lg-4">
-                            <label class="form-label fw-medium" style="font-size: 0.9rem;">Cap. Pasajeros</label>
-                            <input type="number" autocomplete="off" placeholder="Ej: 5" class="form-control"
+                            <label class="form-label fw-medium" style="font-size: 0.9rem;" for="f-passenger_capacity">Cap. Pasajeros</label>
+                            <input id="f-passenger_capacity" :aria-invalid="!!validationErrors['passenger_capacity']" :aria-describedby="validationErrors['passenger_capacity'] ? 'f-passenger_capacity-error' : undefined" type="number" autocomplete="off" placeholder="Ej: 5" class="form-control"
                                 v-model.number="formData.passenger_capacity" min="0" />
                         </div>
 
                         <!-- Pasajeros Sentados -->
                         <div class="col-12 col-md-4 col-lg-4">
-                            <label class="form-label required fw-medium" style="font-size: 0.9rem;">Pasajeros
+                            <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-seated_passenger_capacity">Pasajeros
                                 Sentados</label>
-                            <input type="number" autocomplete="off" placeholder="Ej: 4" class="form-control" :class="{
+                            <input id="f-seated_passenger_capacity" :aria-invalid="!!validationErrors['seated_passenger_capacity']" :aria-describedby="validationErrors['seated_passenger_capacity'] ? 'f-seated_passenger_capacity-error' : undefined" type="number" autocomplete="off" placeholder="Ej: 4" class="form-control" :class="{
                                 'is-invalid': validationErrors.seated_passenger_capacity,
                                 'is-valid': formData.seated_passenger_capacity !== null && formData.seated_passenger_capacity !== '' && !validationErrors.seated_passenger_capacity
                             }" v-model.number="formData.seated_passenger_capacity" min="0"
                                 @input="validateField('seated_passenger_capacity', formData.seated_passenger_capacity, 'Los pasajeros sentados son obligatorios')"
                                 @blur="validateField('seated_passenger_capacity', formData.seated_passenger_capacity, 'Los pasajeros sentados son obligatorios')" />
-                            <div v-if="validationErrors.seated_passenger_capacity" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.seated_passenger_capacity" class="invalid-feedback d-block" id="f-seated_passenger_capacity-error" role="alert">
                                 {{ validationErrors.seated_passenger_capacity }}
                             </div>
                         </div>
 
                         <!-- Número de Ejes -->
                         <div class="col-12 col-md-4 col-lg-4">
-                            <label class="form-label fw-medium" style="font-size: 0.9rem;">Número de Ejes</label>
-                            <input type="number" autocomplete="off" placeholder="Ej: 2" class="form-control"
+                            <label class="form-label fw-medium" style="font-size: 0.9rem;" for="f-number_of_axles">Número de Ejes</label>
+                            <input id="f-number_of_axles" :aria-invalid="!!validationErrors['number_of_axles']" :aria-describedby="validationErrors['number_of_axles'] ? 'f-number_of_axles-error' : undefined" type="number" autocomplete="off" placeholder="Ej: 2" class="form-control"
                                 v-model.number="formData.number_of_axles" min="1" />
                         </div>
 
@@ -363,7 +363,7 @@
                             <input id="internal_number" v-model="formData.internal_number" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.internal_number }" type="text"
                                 autocomplete="off" placeholder="Ingresa el número interno" />
-                            <div v-if="validationErrors.internal_number" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.internal_number" class="invalid-feedback d-block" id="f-internal_number-error" role="alert">
                                 {{ validationErrors.internal_number }}
                             </div>
                             <div v-if="hasAgreements" class="text-warning small mb-0 mt-1 d-flex align-items-center gap-1">
@@ -382,7 +382,7 @@
                                     {{ opt.business_name }}
                                 </option>
                             </select>
-                            <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block" id="f-company_uuid-error" role="alert">
                                 {{ validationErrors.company_uuid }}
                             </div>
                         </div>
@@ -398,7 +398,7 @@
                                     opt.last_name].filter(Boolean).join(' ') || opt.document_number || 'Sin nombre' }}
                                 </option>
                             </select>
-                            <div v-if="validationErrors.third_party_uuid" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.third_party_uuid" class="invalid-feedback d-block" id="f-third_party_uuid-error" role="alert">
                                 {{ validationErrors.third_party_uuid }}
                             </div>
                         </div>
@@ -411,7 +411,7 @@
                                 <option value="1">Activo</option>
                                 <option value="0">Inactivo</option>
                             </select>
-                            <div v-if="validationErrors.is_active" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.is_active" class="invalid-feedback d-block" id="f-is_active-error" role="alert">
                                 {{ validationErrors.is_active }}
                             </div>
                         </div>
@@ -465,7 +465,7 @@
                                     </option>
                                 </select>
                                 <div v-if="validationErrors['owner.document_type_uuid']"
-                                    class="invalid-feedback d-block">
+                                    class="invalid-feedback d-block" id="f-owner-document_type_uuid-error" role="alert">
                                     {{ validationErrors['owner.document_type_uuid'] }}
                                 </div>
                             </div>
@@ -479,7 +479,7 @@
                                     class="form-control"
                                     :class="{ 'is-invalid': validationErrors['owner.document_number'] }" type="text"
                                     autocomplete="off" placeholder="Ingresa el número de documento" />
-                                <div v-if="validationErrors['owner.document_number']" class="invalid-feedback d-block">
+                                <div v-if="validationErrors['owner.document_number']" class="invalid-feedback d-block" id="f-owner-document_number-error" role="alert">
                                     {{ validationErrors['owner.document_number'] }}
                                 </div>
                             </div>
@@ -492,7 +492,7 @@
                                     :class="{ 'is-invalid': validationErrors['owner.verification_digit'] }" type="text"
                                     autocomplete="off" placeholder="Ingresa el dígito de verificación" maxlength="1" />
                                 <div v-if="validationErrors['owner.verification_digit']"
-                                    class="invalid-feedback d-block">
+                                    class="invalid-feedback d-block" id="f-owner-verification_digit-error" role="alert">
                                     {{ validationErrors['owner.verification_digit'] }}
                                 </div>
                             </div>
@@ -506,7 +506,7 @@
                                     :class="{ 'is-invalid': validationErrors['owner.owner_name'] }" type="text"
                                     autocomplete="off"
                                     placeholder="Ingresa el nombre completo o razón social del propietario" />
-                                <div v-if="validationErrors['owner.owner_name']" class="invalid-feedback d-block">
+                                <div v-if="validationErrors['owner.owner_name']" class="invalid-feedback d-block" id="f-owner-owner_name-error" role="alert">
                                     {{ validationErrors['owner.owner_name'] }}
                                 </div>
                             </div>
@@ -661,42 +661,44 @@ const validateField = (field, value, message) => {
     }
 };
 
+const isEmpty = (v) => v === null || v === undefined || (typeof v === 'string' ? v.trim() === '' : !v);
+
 const validateForm = () => {
     Object.keys(validationErrors).forEach(key => delete validationErrors[key]);
 
     // Validar requeridos según el JSON
-    if (!formData.company_uuid) validationErrors.company_uuid = 'Este campo es obligatorio';
-    if (!formData.vehicle_license_plate) validationErrors.vehicle_license_plate = 'Este campo es obligatorio';
-    if (!formData.transit_license_number) validationErrors.transit_license_number = 'Este campo es obligatorio';
-    if (!formData.type_of_service) validationErrors.type_of_service = 'Este campo es obligatorio';
-    if (!formData.vehicle_class_uuid) validationErrors.vehicle_class_uuid = 'Este campo es obligatorio';
-    if (!formData.brand_uuid) validationErrors.brand_uuid = 'Este campo es obligatorio';
-    if (!formData.line) validationErrors.line = 'Este campo es obligatorio';
-    if (!formData.model) validationErrors.model = 'Este campo es obligatorio';
-    if (!formData.color) validationErrors.color = 'Este campo es obligatorio';
-    if (!formData.engine_number) validationErrors.engine_number = 'Este campo es obligatorio';
-    if (!formData.chassis_number) validationErrors.chassis_number = 'Este campo es obligatorio';
-    if (!formData.engine_displacement) validationErrors.engine_displacement = 'Este campo es obligatorio';
-    if (!formData.body_type) validationErrors.body_type = 'Este campo es obligatorio';
-    if (!formData.fuel_type) validationErrors.fuel_type = 'Este campo es obligatorio';
-    if (!formData.registration_date) validationErrors.registration_date = 'Este campo es obligatorio';
-    if (!formData.transit_authority) validationErrors.transit_authority = 'Este campo es obligatorio';
+    if (isEmpty(formData.company_uuid)) validationErrors.company_uuid = 'Este campo es obligatorio';
+    if (isEmpty(formData.vehicle_license_plate)) validationErrors.vehicle_license_plate = 'Este campo es obligatorio';
+    if (isEmpty(formData.transit_license_number)) validationErrors.transit_license_number = 'Este campo es obligatorio';
+    if (isEmpty(formData.type_of_service)) validationErrors.type_of_service = 'Este campo es obligatorio';
+    if (isEmpty(formData.vehicle_class_uuid)) validationErrors.vehicle_class_uuid = 'Este campo es obligatorio';
+    if (isEmpty(formData.brand_uuid)) validationErrors.brand_uuid = 'Este campo es obligatorio';
+    if (isEmpty(formData.line)) validationErrors.line = 'Este campo es obligatorio';
+    if (isEmpty(formData.model)) validationErrors.model = 'Este campo es obligatorio';
+    if (isEmpty(formData.color)) validationErrors.color = 'Este campo es obligatorio';
+    if (isEmpty(formData.engine_number)) validationErrors.engine_number = 'Este campo es obligatorio';
+    if (isEmpty(formData.chassis_number)) validationErrors.chassis_number = 'Este campo es obligatorio';
+    if (isEmpty(formData.engine_displacement)) validationErrors.engine_displacement = 'Este campo es obligatorio';
+    if (isEmpty(formData.body_type)) validationErrors.body_type = 'Este campo es obligatorio';
+    if (isEmpty(formData.fuel_type)) validationErrors.fuel_type = 'Este campo es obligatorio';
+    if (isEmpty(formData.registration_date)) validationErrors.registration_date = 'Este campo es obligatorio';
+    if (isEmpty(formData.transit_authority)) validationErrors.transit_authority = 'Este campo es obligatorio';
     if (formData.doors === '' || formData.doors === null || formData.doors === undefined) validationErrors.doors = 'Este campo es obligatorio';
     if (formData.load_capacity === '' || formData.load_capacity === null || formData.load_capacity === undefined) validationErrors.load_capacity = 'Este campo es obligatorio';
     if (formData.gross_vehicle_weight === '' || formData.gross_vehicle_weight === null || formData.gross_vehicle_weight === undefined) validationErrors.gross_vehicle_weight = 'Este campo es obligatorio';
     if (formData.passenger_capacity === '' || formData.passenger_capacity === null || formData.passenger_capacity === undefined) validationErrors.passenger_capacity = 'Este campo es obligatorio';
     if (formData.seated_passenger_capacity === '' || formData.seated_passenger_capacity === null || formData.seated_passenger_capacity === undefined) validationErrors.seated_passenger_capacity = 'Este campo es obligatorio';
     if (formData.number_of_axles === '' || formData.number_of_axles === null || formData.number_of_axles === undefined) validationErrors.number_of_axles = 'Este campo es obligatorio';
-    if (!formData.third_party_uuid) validationErrors.third_party_uuid = 'Este campo es obligatorio';
-    if (!formData.is_active) validationErrors.is_active = 'Este campo es obligatorio';
+    if (isEmpty(formData.third_party_uuid)) validationErrors.third_party_uuid = 'Este campo es obligatorio';
+    if (isEmpty(formData.is_active)) validationErrors.is_active = 'Este campo es obligatorio';
 
     // Validación condicional del propietario
     const { owner, has_owner } = formData;
     if (has_owner === 1) {
-        if (!owner.third_party_uuid) {
-            if (!owner.document_type_uuid) validationErrors['owner.document_type_uuid'] = 'Este campo es obligatorio';
-            if (!owner.document_number) validationErrors['owner.document_number'] = 'Este campo es obligatorio';
-            if (!owner.owner_name) validationErrors['owner.owner_name'] = 'Este campo es obligatorio';
+        if (isEmpty(owner.third_party_uuid)) {
+            if (isEmpty(owner.document_type_uuid)) validationErrors['owner.document_type_uuid'] = 'Este campo es obligatorio';
+            if (isEmpty(owner.document_number)) validationErrors['owner.document_number'] = 'Este campo es obligatorio';
+            if (isEmpty(owner.owner_name)) validationErrors['owner.owner_name'] = 'Este campo es obligatorio';
         }
     }
 
@@ -718,8 +720,13 @@ const handleSubmit = async () => {
 
     if (!validateForm()) {
         applyAllValidations(selectConfigs.value);
-        const firstError = document.querySelector('.is-invalid, .is-invalid-select2');
-        if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        await nextTick();
+        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+        if (firstError) {
+            if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(firstError.tagName)) firstError.setAttribute('tabindex', '-1');
+            firstError.focus({ preventScroll: true });
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return toast('Atención', 'Revisa los campos obligatorios', 'warning');
     }
 

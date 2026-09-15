@@ -42,16 +42,16 @@
 
                             <div
                                 class="mb-3 position-relative select2-validation-wrapper col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Vehículo
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-vehicle_uuid">Vehículo
                                     Asignado</label>
                                 <div class="d-flex gap-2">
                                     <div class="flex-grow-1">
-                                        <PrimeSelect v-model="formData.vehicle_uuid" :options="store.catalogs.vehicles"
+                                        <PrimeSelect :input-id="'f-vehicle_uuid'" :invalid="!!validationErrors['vehicle_uuid']" v-model="formData.vehicle_uuid" :options="store.catalogs.vehicles"
                                             option-value="uuid" option-label="vehicle_license_plate"
                                             placeholder="Seleccionar vehículo" filter filterPlaceholder="Buscar por placa..."
                                             showClear class="w-full"
                                             :class="{ 'p-invalid': validationErrors.vehicle_uuid }" />
-                                        <div v-if="validationErrors.vehicle_uuid" class="text-danger small mt-1">
+                                        <div v-if="validationErrors.vehicle_uuid" class="text-danger small mt-1" id="f-vehicle_uuid-error" role="alert">
                                             {{ validationErrors.vehicle_uuid }}
                                         </div>
                                     </div>
@@ -84,10 +84,10 @@
                             </div>
 
                             <div class="position-relative select2-validation-wrapper col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Número de
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-contractor-document_number">Número de
                                     Documento</label>
                                 <div class="input-group">
-                                    <input type="text" autocomplete="off" class="form-control" :class="{
+                                    <input id="f-contractor-document_number" :aria-invalid="!!validationErrors['contractor.document_number']" :aria-describedby="validationErrors['contractor.document_number'] ? 'f-contractor-document_number-error' : undefined" type="text" autocomplete="off" class="form-control" :class="{
                                         'is-invalid': validationErrors['contractor.document_number'],
                                         'is-valid': formData.contractor.document_number && !validationErrors['contractor.document_number']
                                     }" v-model="formData.contractor.document_number" placeholder="Ej: 901234567-8"
@@ -95,77 +95,77 @@
                                         @blur="validateField('contractor.document_number', formData.contractor.document_number, 'Obligatorio')"
                                         @change="consultarContratista" />
                                     <button class="btn btn-outline-primary" type="button" @click="consultarContratista"
-                                        title="Buscar Contratante">
-                                        <i class="fad fa-search"></i>
+                                        title="Buscar Contratante" aria-label="Buscar Contratante">
+                                        <i class="fad fa-search" aria-hidden="true"></i>
                                     </button>
                                 </div>
                                 <div v-if="validationErrors['contractor.document_number']"
-                                    class="invalid-feedback d-block mt-1">
+                                    class="invalid-feedback d-block mt-1" id="f-contractor-document_number-error" role="alert">
                                     {{ validationErrors['contractor.document_number'] }}
                                 </div>
                             </div>
 
                             <div class="position-relative col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Tipo de
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-contractor-document_type_uuid">Tipo de
                                     Documento</label>
-                                <PrimeSelect v-model="formData.contractor.document_type_uuid"
+                                <PrimeSelect :input-id="'f-contractor-document_type_uuid'" :invalid="!!validationErrors['contractor.document_type_uuid']" v-model="formData.contractor.document_type_uuid"
                                     :options="store.catalogs.documentTypes" option-value="uuid"
                                     :option-label="(opt) => opt.name + ' - ' + opt.prefix"
                                     placeholder="Seleccionar tipo" class="w-full"
                                     :class="{ 'p-invalid': validationErrors['contractor.document_type_uuid'] }" />
                                 <div v-if="validationErrors['contractor.document_type_uuid']"
-                                    class="text-danger small mt-1">
+                                    class="text-danger small mt-1" id="f-contractor-document_type_uuid-error" role="alert">
                                     {{ validationErrors['contractor.document_type_uuid'] }}
                                 </div>
                             </div>
                             <!-- Fila 2: Ciudad Contratante | Objeto del Contrato -->
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Ciudad
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-contractor-contracting_party_city">Ciudad
                                     Contratante</label>
-                                <input type="text" autocomplete="off" placeholder="Ej: Bogotá D.C." class="form-control"
+                                <input id="f-contractor-contracting_party_city" :aria-invalid="!!validationErrors['contractor.contracting_party_city']" :aria-describedby="validationErrors['contractor.contracting_party_city'] ? 'f-contractor-contracting_party_city-error' : undefined" type="text" autocomplete="off" placeholder="Ej: Bogotá D.C." class="form-control"
                                     v-model="formData.contractor.contracting_party_city"
                                     :class="{ 'is-invalid': validationErrors['contractor.contracting_party_city'], 'is-valid': formData.contractor.contracting_party_city }"
                                     @blur="validateField('contractor.contracting_party_city', formData.contractor.contracting_party_city, 'Obligatorio')" />
                                 <div v-if="validationErrors['contractor.contracting_party_city']"
-                                    class="invalid-feedback d-block">Obligatorio</div>
+                                    class="invalid-feedback d-block" id="f-contractor-contracting_party_city-error" role="alert">Obligatorio</div>
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Número de
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-contractor-contract_number">Número de
                                     Contrato</label>
-                                <input type="text" autocomplete="off" class="form-control bg-light" :class="{
+                                <input id="f-contractor-contract_number" :aria-invalid="!!validationErrors['contractor.contract_number']" :aria-describedby="validationErrors['contractor.contract_number'] ? 'f-contractor-contract_number-error' : undefined" type="text" autocomplete="off" class="form-control bg-light" :class="{
                                     'is-invalid': validationErrors['contractor.contract_number'],
                                     'is-valid': formData.contractor.contract_number && !validationErrors['contractor.contract_number']
                                 }" v-model="formData.contractor.contract_number" placeholder="Generado aut."
                                     @input="validateField('contractor.contract_number', formData.contractor.contract_number, 'Obligatorio')"
                                     @blur="validateField('contractor.contract_number', formData.contractor.contract_number, 'Obligatorio')"
-                                    readonly="true" />
+                                    readonly="true" aria-readonly="true" title="Número generado automáticamente" />
                                 <div v-if="validationErrors['contractor.contract_number']"
-                                    class="invalid-feedback d-block">
+                                    class="invalid-feedback d-block" id="f-contractor-contract_number-error" role="alert">
                                     {{ validationErrors['contractor.contract_number'] }}
                                 </div>
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-6">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Razón Social
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-contractor-company_name">Razón Social
                                     / Nombre</label>
-                                <input type="text" autocomplete="off"
+                                <input id="f-contractor-company_name" :aria-invalid="!!validationErrors['contractor.company_name']" :aria-describedby="validationErrors['contractor.company_name'] ? 'f-contractor-company_name-error' : undefined" type="text" autocomplete="off"
                                     placeholder="Nombre o razón social del contratante" class="form-control"
                                     v-model="formData.contractor.company_name"
                                     :class="{ 'is-invalid': validationErrors['contractor.company_name'], 'is-valid': formData.contractor.company_name }"
                                     @blur="validateField('contractor.company_name', formData.contractor.company_name, 'Obligatorio')" />
                                 <div v-if="validationErrors['contractor.company_name']"
-                                    class="invalid-feedback d-block">
+                                    class="invalid-feedback d-block" id="f-contractor-company_name-error" role="alert">
                                     Obligatorio
                                 </div>
                             </div>
 
                             <div class="position-relative col-12 col-sm-6 col-md-4 col-lg-6">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Objeto del
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-object_contract_uuid">Objeto del
                                     Contrato</label>
-                                <PrimeSelect v-model="formData.object_contract_uuid"
+                                <PrimeSelect :input-id="'f-object_contract_uuid'" :invalid="!!validationErrors['object_contract_uuid']" v-model="formData.object_contract_uuid"
                                     :options="store.catalogs.objectsContracts" option-value="uuid" option-label="name"
                                     placeholder="Seleccionar objeto" class="w-full"
                                     :class="{ 'p-invalid': validationErrors['object_contract_uuid'] }" />
-                                <div v-if="validationErrors['object_contract_uuid']" class="text-danger small mt-1">
+                                <div v-if="validationErrors['object_contract_uuid']" class="text-danger small mt-1" id="f-object_contract_uuid-error" role="alert">
                                     Obligatorio</div>
                             </div>
 
@@ -177,9 +177,9 @@
 
                             <!-- Fila 3: Nombre | Documento | Teléfono | Dirección -->
                             <div class="mb-3 col-12 col-sm-6 col-md-4 col-lg-4">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Nombre y
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-contractor-responsible_name">Nombre y
                                     Apellidos</label>
-                                <input type="text" autocomplete="off" placeholder="Nombre completo del responsable"
+                                <input id="f-contractor-responsible_name" :aria-invalid="!!validationErrors['contractor.responsible_name']" :aria-describedby="validationErrors['contractor.responsible_name'] ? 'f-contractor-responsible_name-error' : undefined" type="text" autocomplete="off" placeholder="Nombre completo del responsable"
                                     class="form-control" :class="{
                                         'is-invalid': validationErrors['contractor.responsible_name'],
                                         'is-valid': formData.contractor.responsible_name && !validationErrors['contractor.responsible_name']
@@ -187,15 +187,15 @@
                                     @input="validateField('contractor.responsible_name', formData.contractor.responsible_name, 'Obligatorio')"
                                     @blur="validateField('contractor.responsible_name', formData.contractor.responsible_name, 'Obligatorio')" />
                                 <div v-if="validationErrors['contractor.responsible_name']"
-                                    class="invalid-feedback d-block">
+                                    class="invalid-feedback d-block" id="f-contractor-responsible_name-error" role="alert">
                                     {{ validationErrors['contractor.responsible_name'] }}
                                 </div>
                             </div>
 
                             <div class="mb-3 col-12 col-sm-6 col-md-4 col-lg-2">
                                 <label class="form-label required fw-medium"
-                                    style="font-size: 0.9rem;">Documento</label>
-                                <input type="text" autocomplete="off" placeholder="Ej: 123456789" class="form-control"
+                                    style="font-size: 0.9rem;" for="f-contractor-responsible_document">Documento</label>
+                                <input id="f-contractor-responsible_document" :aria-invalid="!!validationErrors['contractor.responsible_document']" :aria-describedby="validationErrors['contractor.responsible_document'] ? 'f-contractor-responsible_document-error' : undefined" type="text" autocomplete="off" placeholder="Ej: 123456789" class="form-control"
                                     :class="{
                                         'is-invalid': validationErrors['contractor.responsible_document'],
                                         'is-valid': formData.contractor.responsible_document && !validationErrors['contractor.responsible_document']
@@ -203,14 +203,14 @@
                                     @input="validateField('contractor.responsible_document', formData.contractor.responsible_document, 'Obligatorio')"
                                     @blur="validateField('contractor.responsible_document', formData.contractor.responsible_document, 'Obligatorio')" />
                                 <div v-if="validationErrors['contractor.responsible_document']"
-                                    class="invalid-feedback d-block">
+                                    class="invalid-feedback d-block" id="f-contractor-responsible_document-error" role="alert">
                                     {{ validationErrors['contractor.responsible_document'] }}
                                 </div>
                             </div>
 
                             <div class="mb-3 col-12 col-sm-6 col-md-4 col-lg-2">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Teléfono</label>
-                                <input type="text" autocomplete="off" placeholder="Ej: 3001234567" class="form-control"
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-contractor-responsible_phone">Teléfono</label>
+                                <input id="f-contractor-responsible_phone" :aria-invalid="!!validationErrors['contractor.responsible_phone']" :aria-describedby="validationErrors['contractor.responsible_phone'] ? 'f-contractor-responsible_phone-error' : undefined" type="text" autocomplete="off" placeholder="Ej: 3001234567" class="form-control"
                                     :class="{
                                         'is-invalid': validationErrors['contractor.responsible_phone'],
                                         'is-valid': formData.contractor.responsible_phone && !validationErrors['contractor.responsible_phone']
@@ -218,15 +218,15 @@
                                     @input="validateField('contractor.responsible_phone', formData.contractor.responsible_phone, 'Obligatorio')"
                                     @blur="validateField('contractor.responsible_phone', formData.contractor.responsible_phone, 'Obligatorio')" />
                                 <div v-if="validationErrors['contractor.responsible_phone']"
-                                    class="invalid-feedback d-block">
+                                    class="invalid-feedback d-block" id="f-contractor-responsible_phone-error" role="alert">
                                     {{ validationErrors['contractor.responsible_phone'] }}
                                 </div>
                             </div>
 
                             <div class="mb-3 col-12 col-sm-6 col-md-4 col-lg-4">
                                 <label class="form-label required fw-medium"
-                                    style="font-size: 0.9rem;">Dirección</label>
-                                <input type="text" autocomplete="off" placeholder="Ej: Cra 50 #10-20"
+                                    style="font-size: 0.9rem;" for="f-contractor-responsible_address">Dirección</label>
+                                <input id="f-contractor-responsible_address" :aria-invalid="!!validationErrors['contractor.responsible_address']" :aria-describedby="validationErrors['contractor.responsible_address'] ? 'f-contractor-responsible_address-error' : undefined" type="text" autocomplete="off" placeholder="Ej: Cra 50 #10-20"
                                     class="form-control" :class="{
                                         'is-invalid': validationErrors['contractor.responsible_address'],
                                         'is-valid': formData.contractor.responsible_address && !validationErrors['contractor.responsible_address']
@@ -234,7 +234,7 @@
                                     @input="validateField('contractor.responsible_address', formData.contractor.responsible_address, 'Obligatorio')"
                                     @blur="validateField('contractor.responsible_address', formData.contractor.responsible_address, 'Obligatorio')" />
                                 <div v-if="validationErrors['contractor.responsible_address']"
-                                    class="invalid-feedback d-block">
+                                    class="invalid-feedback d-block" id="f-contractor-responsible_address-error" role="alert">
                                     {{ validationErrors['contractor.responsible_address'] }}
                                 </div>
                             </div>
@@ -248,29 +248,29 @@
 
                             <!-- Fila 4: F. Inicio | F. Vencimiento | Consecutivo FUEC | Ciudad Origen -->
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Fecha de
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-effective_date">Fecha de
                                     Inicio</label>
-                                <input type="date" class="form-control" placeholder="YYYY-MM-DD" :class="{
+                                <input id="f-effective_date" :aria-invalid="!!validationErrors['effective_date']" :aria-describedby="validationErrors['effective_date'] ? 'f-effective_date-error' : undefined" type="date" class="form-control" placeholder="YYYY-MM-DD" :class="{
                                     'is-invalid': validationErrors['effective_date'],
                                     'is-valid': formData.effective_date && !validationErrors['effective_date']
                                 }" v-model="formData.effective_date"
                                     @input="validateField('effective_date', formData.effective_date, 'Obligatorio')"
                                     @blur="validateField('effective_date', formData.effective_date, 'Obligatorio')" />
-                                <div v-if="validationErrors['effective_date']" class="invalid-feedback d-block">
+                                <div v-if="validationErrors['effective_date']" class="invalid-feedback d-block" id="f-effective_date-error" role="alert">
                                     {{ validationErrors['effective_date'] }}
                                 </div>
                             </div>
 
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Fecha de
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-expiration_date">Fecha de
                                     Vencimiento</label>
-                                <input type="date" class="form-control" placeholder="YYYY-MM-DD" :class="{
+                                <input id="f-expiration_date" :aria-invalid="!!validationErrors['expiration_date']" :aria-describedby="validationErrors['expiration_date'] ? 'f-expiration_date-error' : undefined" type="date" class="form-control" placeholder="YYYY-MM-DD" :class="{
                                     'is-invalid': validationErrors['expiration_date'],
                                     'is-valid': formData.expiration_date && !validationErrors['expiration_date']
                                 }" v-model="formData.expiration_date" :max="vehiclePaymentLimit"
                                     @input="validateField('expiration_date', formData.expiration_date, 'Obligatorio')"
                                     @blur="validateField('expiration_date', formData.expiration_date, 'Obligatorio')" />
-                                <div v-if="validationErrors['expiration_date']" class="invalid-feedback d-block">
+                                <div v-if="validationErrors['expiration_date']" class="invalid-feedback d-block" id="f-expiration_date-error" role="alert">
                                     {{ validationErrors['expiration_date'] }}
                                 </div>
                             </div>
@@ -284,30 +284,30 @@
 
 
                             <div class="col-12 col-sm-6 col-md-4 col-lg-6">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-origin">
                                     Origen</label>
-                                <input type="text" autocomplete="off" class="form-control" :class="{
+                                <input id="f-origin" :aria-invalid="!!validationErrors['origin']" :aria-describedby="validationErrors['origin'] ? 'f-origin-error' : undefined" type="text" autocomplete="off" class="form-control" :class="{
                                     'is-invalid': validationErrors['origin'],
                                     'is-valid': formData.origin && !validationErrors['origin']
                                 }" v-model="formData.origin" placeholder="Ej: Bogotá D.C."
                                     @input="validateField('origin', formData.origin, 'Obligatorio')"
                                     @blur="validateField('origin', formData.origin, 'Obligatorio')" />
-                                <div v-if="validationErrors['origin']" class="invalid-feedback d-block">
+                                <div v-if="validationErrors['origin']" class="invalid-feedback d-block" id="f-origin-error" role="alert">
                                     {{ validationErrors['origin'] }}
                                 </div>
                             </div>
 
                             <!-- Ciudad Destino: en lg completa la segunda fila de Vigencia/Ruta -->
                             <div class="col-12 col-sm-6 col-md-4 col-lg-6">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-destination">
                                     Destino</label>
-                                <input type="text" autocomplete="off" class="form-control" :class="{
+                                <input id="f-destination" :aria-invalid="!!validationErrors['destination']" :aria-describedby="validationErrors['destination'] ? 'f-destination-error' : undefined" type="text" autocomplete="off" class="form-control" :class="{
                                     'is-invalid': validationErrors['destination'],
                                     'is-valid': formData.destination && !validationErrors['destination']
                                 }" v-model="formData.destination" placeholder="Ej: Medellín"
                                     @input="validateField('destination', formData.destination, 'Obligatorio')"
                                     @blur="validateField('destination', formData.destination, 'Obligatorio')" />
-                                <div v-if="validationErrors['destination']" class="invalid-feedback d-block">
+                                <div v-if="validationErrors['destination']" class="invalid-feedback d-block" id="f-destination-error" role="alert">
                                     {{ validationErrors['destination'] }}
                                 </div>
                             </div>
@@ -321,30 +321,30 @@
 
                             <!-- Fila 5: Conductor Principal | Secundario | Terciario -->
                             <div class="position-relative col-12 col-sm-6 col-md-4 col-lg-4">
-                                <label class="form-label required fw-medium" style="font-size: 0.9rem;">Conductor
+                                <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-main_conductor_uuid">Conductor
                                     Principal</label>
-                                <PrimeSelect v-model="formData.main_conductor_uuid" :options="store.catalogs.drivers"
+                                <PrimeSelect :input-id="'f-main_conductor_uuid'" :invalid="!!validationErrors['main_conductor_uuid']" v-model="formData.main_conductor_uuid" :options="store.catalogs.drivers"
                                     option-value="uuid" :option-label="(d) => d.first_name + ' ' + d.last_name"
                                     placeholder="Seleccionar conductor" class="w-full"
                                     :class="{ 'p-invalid': validationErrors['main_conductor_uuid'] }" />
-                                <div v-if="validationErrors['main_conductor_uuid']" class="text-danger small mt-1">
+                                <div v-if="validationErrors['main_conductor_uuid']" class="text-danger small mt-1" id="f-main_conductor_uuid-error" role="alert">
                                     {{ validationErrors['main_conductor_uuid'] }}
                                 </div>
                             </div>
 
                             <div class="position-relative col-12 col-sm-6 col-md-4 col-lg-4">
-                                <label class="form-label fw-medium" style="font-size: 0.9rem;">Conductor
+                                <label class="form-label fw-medium" style="font-size: 0.9rem;" for="f-secondary_conductor_uuid">Conductor
                                     Secundario</label>
-                                <PrimeSelect v-model="formData.secondary_conductor_uuid"
+                                <PrimeSelect :input-id="'f-secondary_conductor_uuid'" :invalid="!!validationErrors['secondary_conductor_uuid']" v-model="formData.secondary_conductor_uuid"
                                     :options="store.catalogs.drivers" option-value="uuid"
                                     :option-label="(d) => d.first_name + ' ' + d.last_name"
                                     placeholder="Seleccionar conductor (Opcional)" class="w-full" />
                             </div>
 
                             <div class="position-relative col-12 col-sm-6 col-md-4 col-lg-4">
-                                <label class="form-label fw-medium" style="font-size: 0.9rem;">Conductor
+                                <label class="form-label fw-medium" style="font-size: 0.9rem;" for="f-tertiary_conductor_uuid">Conductor
                                     Terciario</label>
-                                <PrimeSelect v-model="formData.tertiary_conductor_uuid"
+                                <PrimeSelect :input-id="'f-tertiary_conductor_uuid'" :invalid="!!validationErrors['tertiary_conductor_uuid']" v-model="formData.tertiary_conductor_uuid"
                                     :options="store.catalogs.drivers" option-value="uuid"
                                     :option-label="(d) => d.first_name + ' ' + d.last_name"
                                     placeholder="Seleccionar conductor (Opcional)" class="w-full" />
@@ -431,7 +431,7 @@
     </div>
 </template>
 <script setup>
-import { ref, reactive, computed, onMounted, watch } from 'vue';
+import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useFuecStore } from '../store/fuec.store.js';
 import { usePermissionsStore, useAuthStore } from '@store';
@@ -530,18 +530,18 @@ const openPassengerModal = () => {
         html: `
             <div style="text-align: left; font-family: inherit;">
                 <div class="mb-3">
-                    <label class="form-label required fw-medium" style="font-size: 0.9rem; display: block; margin-bottom: .5rem;">Tipo de Documento</label>
+                    <label for="swal-passenger-doc-type" class="form-label required fw-medium" style="font-size: 0.9rem; display: block; margin-bottom: .5rem;">Tipo de Documento</label>
                     <select id="swal-passenger-doc-type" class="form-select w-100">
                         <option value="">Seleccionar tipo</option>
                         ${documentTypesOptions}
                     </select>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label required fw-medium" style="font-size: 0.9rem; display: block; margin-bottom: .5rem;">Número de Documento</label>
+                    <label for="swal-passenger-doc-num" class="form-label required fw-medium" style="font-size: 0.9rem; display: block; margin-bottom: .5rem;">Número de Documento</label>
                     <input type="text" autocomplete="off" id="swal-passenger-doc-num" class="form-control" placeholder="Ej: 12345678" style="width: 100%; height: 38px; border-radius: 6px; border: 1px solid #ced4da; padding: 0.375rem 0.75rem;" />
                 </div>
                 <div class="mb-3">
-                    <label class="form-label required fw-medium" style="font-size: 0.9rem; display: block; margin-bottom: .5rem;">Nombre y Apellido</label>
+                    <label for="swal-passenger-name" class="form-label required fw-medium" style="font-size: 0.9rem; display: block; margin-bottom: .5rem;">Nombre y Apellido</label>
                     <input type="text" autocomplete="off" id="swal-passenger-name" class="form-control" placeholder="Ej: Juan Pérez" style="width: 100%; height: 38px; border-radius: 6px; border: 1px solid #ced4da; padding: 0.375rem 0.75rem;" />
                 </div>
             </div>
@@ -1156,7 +1156,7 @@ const consultarContratista = async () => {
 };
 
 const validateField = (field, value, msg) => {
-    if (!value) {
+    if (isEmpty(value)) {
         validationErrors[field] = msg;
     } else {
         delete validationErrors[field];
@@ -1208,11 +1208,13 @@ const validateLicensesExpiryDate = () => {
     return true;
 };
 
+const isEmpty = (v) => v === null || v === undefined || (typeof v === 'string' ? v.trim() === '' : !v);
+
 const validateForm = () => {
     Object.keys(validationErrors).forEach(key => delete validationErrors[key]);
 
     // Autocompletar la fecha de expedición si está vacía
-    if (!formData.issue_date) {
+    if (isEmpty(formData.issue_date)) {
         formData.issue_date = new Date().toISOString().split('T')[0];
     }
 
@@ -1224,30 +1226,30 @@ const validateForm = () => {
         formData.contractor.telephone = formData.contractor.responsible_phone;
     }
 
-    if (!formData.effective_date) validationErrors.effective_date = 'Obligatorio';
-    if (!formData.expiration_date) validationErrors.expiration_date = 'Obligatorio';
-    if (!formData.origin) validationErrors.origin = 'Obligatorio';
-    if (!formData.destination) validationErrors.destination = 'Obligatorio';
-    if (!formData.vehicle_uuid) validationErrors.vehicle_uuid = 'Obligatorio';
-    if (!formData.object_contract_uuid) validationErrors.object_contract_uuid = 'Obligatorio';
-    if (!formData.main_conductor_uuid) validationErrors.main_conductor_uuid = 'Obligatorio';
+    if (isEmpty(formData.effective_date)) validationErrors.effective_date = 'Obligatorio';
+    if (isEmpty(formData.expiration_date)) validationErrors.expiration_date = 'Obligatorio';
+    if (isEmpty(formData.origin)) validationErrors.origin = 'Obligatorio';
+    if (isEmpty(formData.destination)) validationErrors.destination = 'Obligatorio';
+    if (isEmpty(formData.vehicle_uuid)) validationErrors.vehicle_uuid = 'Obligatorio';
+    if (isEmpty(formData.object_contract_uuid)) validationErrors.object_contract_uuid = 'Obligatorio';
+    if (isEmpty(formData.main_conductor_uuid)) validationErrors.main_conductor_uuid = 'Obligatorio';
 
     // Contratista Validations
-    if (!formData.contractor.document_type_uuid) validationErrors['contractor.document_type_uuid'] = 'Obligatorio';
-    if (!formData.contractor.document_number) validationErrors['contractor.document_number'] = 'Obligatorio';
-    if (!formData.contractor.company_name) validationErrors['contractor.company_name'] = 'Obligatorio';
-    if (!formData.contractor.contract_number) validationErrors['contractor.contract_number'] = 'Obligatorio';
-    if (!formData.contractor.contracting_party_city) validationErrors['contractor.contracting_party_city'] = 'Obligatorio';
-    if (!formData.contractor.responsible_name) validationErrors['contractor.responsible_name'] = 'Obligatorio';
-    if (!formData.contractor.responsible_document) validationErrors['contractor.responsible_document'] = 'Obligatorio';
-    if (!formData.contractor.responsible_phone) validationErrors['contractor.responsible_phone'] = 'Obligatorio';
-    if (!formData.contractor.responsible_address) validationErrors['contractor.responsible_address'] = 'Obligatorio';
+    if (isEmpty(formData.contractor.document_type_uuid)) validationErrors['contractor.document_type_uuid'] = 'Obligatorio';
+    if (isEmpty(formData.contractor.document_number)) validationErrors['contractor.document_number'] = 'Obligatorio';
+    if (isEmpty(formData.contractor.company_name)) validationErrors['contractor.company_name'] = 'Obligatorio';
+    if (isEmpty(formData.contractor.contract_number)) validationErrors['contractor.contract_number'] = 'Obligatorio';
+    if (isEmpty(formData.contractor.contracting_party_city)) validationErrors['contractor.contracting_party_city'] = 'Obligatorio';
+    if (isEmpty(formData.contractor.responsible_name)) validationErrors['contractor.responsible_name'] = 'Obligatorio';
+    if (isEmpty(formData.contractor.responsible_document)) validationErrors['contractor.responsible_document'] = 'Obligatorio';
+    if (isEmpty(formData.contractor.responsible_phone)) validationErrors['contractor.responsible_phone'] = 'Obligatorio';
+    if (isEmpty(formData.contractor.responsible_address)) validationErrors['contractor.responsible_address'] = 'Obligatorio';
 
     // Passengers Validations
     formData.passengers.forEach((p, i) => {
-        if (!p.type_of_document_uuid) validationErrors['passenger_' + i + '_type'] = 'Requerido';
-        if (!p.document_number) validationErrors['passenger_' + i + '_doc'] = 'Requerido';
-        if (!p.first_and_last_name) validationErrors['passenger_' + i + '_name'] = 'Requerido';
+        if (isEmpty(p.type_of_document_uuid)) validationErrors['passenger_' + i + '_type'] = 'Requerido';
+        if (isEmpty(p.document_number)) validationErrors['passenger_' + i + '_doc'] = 'Requerido';
+        if (isEmpty(p.first_and_last_name)) validationErrors['passenger_' + i + '_name'] = 'Requerido';
     });
 
     // Validar que la fecha de vencimiento del FUEC no supere la de las licencias
@@ -1288,8 +1290,13 @@ const goToList = goBack;
 
 const handleSubmit = async () => {
     if (!validateForm()) {
-        const firstError = document.querySelector('.is-invalid, .is-invalid-select2, .text-danger');
-        if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        await nextTick();
+        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+        if (firstError) {
+            if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(firstError.tagName)) firstError.setAttribute('tabindex', '-1');
+            firstError.focus({ preventScroll: true });
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return Swal.fire({
             title: 'Atención',
             text: 'Revisa los campos obligatorios',
