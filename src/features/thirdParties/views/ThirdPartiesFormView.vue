@@ -34,11 +34,10 @@
                                     <div class="row g-2 g-md-3">
                                         <div class="col-12 col-sm-6 col-md-3 col-lg-3">
                                             <label class="form-label required" for="person_type">Tipo de Persona</label>
-                                            <select id="person_type" ref="personTypeSelect" class="form-control select2-input w-100">
-                                                <option value="">Seleccione...</option>
-                                                <option value="NATURAL">Natural</option>
-                                                <option value="JURIDICA">Jurídica</option>
-                                            </select>
+                                            <PrimeSelect :input-id="'person_type'" v-model="formData.person_type"
+                                                :options="[{ label: 'Natural', value: 'NATURAL' }, { label: 'Jurídica', value: 'JURIDICA' }]"
+                                                option-label="label" option-value="value" placeholder="Seleccione..."
+                                                showClear filter class="w-100" :invalid="!!validationErrors['person_type']" />
                                             <div v-if="validationErrors.person_type" class="invalid-feedback d-block" id="f-person_type-error" role="alert">
                                                 {{ validationErrors.person_type }}
                                             </div>
@@ -46,12 +45,10 @@
 
                                         <div class="col-12 col-sm-6 col-md-3 col-lg-3">
                                             <label class="form-label required" for="document_type_uuid">Tipo de Documento</label>
-                                            <select id="document_type_uuid" ref="docTypeSelect" class="form-control select2-input w-100">
-                                                <option value="">Seleccione...</option>
-                                                <option v-for="opt in store.catalogs.documentTypes" :key="opt.uuid" :value="opt.uuid">
-                                                    {{ opt.name }}
-                                                </option>
-                                            </select>
+                                            <PrimeSelect :input-id="'document_type_uuid'" v-model="formData.document_type_uuid"
+                                                :options="store.catalogs.documentTypes" option-value="uuid" option-label="name"
+                                                placeholder="Seleccione..." showClear filter class="w-100"
+                                                :invalid="!!validationErrors['document_type_uuid']" />
                                             <div v-if="validationErrors.document_type_uuid" class="invalid-feedback d-block" id="f-document_type_uuid-error" role="alert">
                                                 {{ validationErrors.document_type_uuid }}
                                             </div>
@@ -174,12 +171,10 @@
 
                         <div class="col-12 col-sm-6 col-md-3 col-lg-3">
                             <label class="form-label required" for="municipality_uuid">Municipio</label>
-                            <select id="municipality_uuid" ref="municipalitySelect" class="form-control select2-input w-100">
-                                <option value="">Seleccione...</option>
-                                <option v-for="opt in store.catalogs.cities" :key="opt.uuid" :value="opt.uuid">
-                                    {{ opt.name }}
-                                </option>
-                            </select>
+                            <PrimeSelect :input-id="'municipality_uuid'" v-model="formData.municipality_uuid"
+                                :options="store.catalogs.cities" option-value="uuid" option-label="name"
+                                placeholder="Seleccione..." showClear filter class="w-100"
+                                :invalid="!!validationErrors['municipality_uuid']" />
                             <div v-if="validationErrors.municipality_uuid" class="invalid-feedback d-block" id="f-municipality_uuid-error" role="alert">
                                 {{ validationErrors.municipality_uuid }}
                             </div>
@@ -205,12 +200,10 @@
 
                         <div class="col-12 col-sm-6 col-md-4 col-lg-4">
                             <label class="form-label" for="bank_account_type">Tipo de Cuenta</label>
-                            <select id="bank_account_type" ref="bankAccountTypeSelect" class="form-control select2-input w-100">
-                                <option value="">Seleccione...</option>
-                                <option value="AHORROS">Ahorros</option>
-                                <option value="CORRIENTE">Corriente</option>
-                                <option value="MONEDA_EXTRANJERA">Moneda Extranjera</option>
-                            </select>
+                            <PrimeSelect :input-id="'bank_account_type'" v-model="formData.bank_account_type"
+                                :options="[{ label: 'Ahorros', value: 'AHORROS' }, { label: 'Corriente', value: 'CORRIENTE' }, { label: 'Moneda Extranjera', value: 'MONEDA_EXTRANJERA' }]"
+                                option-label="label" option-value="value" placeholder="Seleccione..." showClear filter
+                                class="w-100" :invalid="!!validationErrors['bank_account_type']" />
                             <div v-if="validationErrors.bank_account_type" class="invalid-feedback d-block" id="f-bank_account_type-error" role="alert">
                                 {{ validationErrors.bank_account_type }}
                             </div>
@@ -236,14 +229,10 @@
 
                         <div :class="bottomRowColClass">
                             <label class="form-label required" for="tax_regime">Régimen Tributario</label>
-                            <select id="tax_regime" ref="taxRegimeSelect" class="form-control select2-input w-100">
-                                <option value="">Seleccione...</option>
-                                <option value="48">Régimen Común (48)</option>
-                                <option value="49">Responsable de IVA (49)</option>
-                                <option value="47">No Responsable de IVA (47)</option>
-                                <option value="05">Gran Contribuyente (05)</option>
-                                <option value="42">Autorretenedor (42)</option>
-                            </select>
+                            <PrimeSelect :input-id="'tax_regime'" v-model="formData.tax_regime"
+                                :options="[{ label: 'Régimen Común (48)', value: '48' }, { label: 'Responsable de IVA (49)', value: '49' }, { label: 'No Responsable de IVA (47)', value: '47' }, { label: 'Gran Contribuyente (05)', value: '05' }, { label: 'Autorretenedor (42)', value: '42' }]"
+                                option-label="label" option-value="value" placeholder="Seleccione..." showClear filter
+                                class="w-100" :invalid="!!validationErrors['tax_regime']" />
                             <div v-if="validationErrors.tax_regime" class="invalid-feedback d-block" id="f-tax_regime-error" role="alert">
                                 {{ validationErrors.tax_regime }}
                             </div>
@@ -251,12 +240,10 @@
 
                         <div :class="bottomRowColClass">
                             <label class="form-label required" for="tax_responsibility_uuid">Responsabilidad Fiscal</label>
-                            <select id="tax_responsibility_uuid" ref="taxRespSelect" class="form-control select2-input w-100">
-                                <option value="">Seleccione...</option>
-                                <option v-for="opt in store.catalogs.taxResponsibilities" :key="opt.uuid" :value="opt.uuid">
-                                    {{ opt.name }}
-                                </option>
-                            </select>
+                            <PrimeSelect :input-id="'tax_responsibility_uuid'" v-model="formData.tax_responsibility_uuid"
+                                :options="store.catalogs.taxResponsibilities" option-value="uuid" option-label="name"
+                                placeholder="Seleccione..." showClear filter class="w-100"
+                                :invalid="!!validationErrors['tax_responsibility_uuid']" />
                             <div v-if="validationErrors.tax_responsibility_uuid" class="invalid-feedback d-block" id="f-tax_responsibility_uuid-error" role="alert">
                                 {{ validationErrors.tax_responsibility_uuid }}
                             </div>
@@ -266,12 +253,10 @@
                         
                         <div :class="bottomRowColClass" v-if="isSuperAdmin">
                             <label class="form-label required" for="company_uuid">Empresa</label>
-                            <select id="company_uuid" ref="companySelect" class="form-control select2-input w-100">
-                                <option value="">Seleccione...</option>
-                                <option v-for="opt in store.catalogs.companies" :key="opt.uuid" :value="opt.uuid">
-                                    {{ opt.business_name }}
-                                </option>
-                            </select>
+                            <PrimeSelect :input-id="'company_uuid'" v-model="formData.company_uuid"
+                                :options="store.catalogs.companies" option-value="uuid" option-label="business_name"
+                                placeholder="Seleccione..." showClear filter class="w-100"
+                                :invalid="!!validationErrors['company_uuid']" />
                             <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block" id="f-company_uuid-error" role="alert">
                                 {{ validationErrors.company_uuid }}
                             </div>
@@ -305,10 +290,10 @@
 
                         <div :class="bottomRowColClass">
                             <label class="form-label required" for="statusSelect">Estado</label>
-                            <select id="statusSelect" ref="statusSelect" class="form-control select2-input w-100">
-                                <option value="1">Activo</option>
-                                <option value="0">Inactivo</option>
-                            </select>
+                            <PrimeSelect :input-id="'statusSelect'" v-model="formData.is_active"
+                                :options="[{ label: 'Activo', value: '1' }, { label: 'Inactivo', value: '0' }]"
+                                option-label="label" option-value="value" class="w-100"
+                                :invalid="!!validationErrors['is_active']" />
                             <div v-if="validationErrors.is_active" class="invalid-feedback d-block" id="f-is_active-error" role="alert">
                                 {{ validationErrors.is_active }}
                             </div>
@@ -341,12 +326,10 @@
                                 </div>
                                 <div class="col-12 col-sm-6 col-md-4 col-lg-4">
                                     <label class="form-label required" for="license_category">Categoría</label>
-                                    <select id="license_category" ref="licenseCategorySelect" class="form-control select2-input w-100">
-                                        <option value="">Seleccione...</option>
-                                        <option value="C1">C1</option>
-                                        <option value="C2">C2</option>
-                                        <option value="C3">C3</option>
-                                    </select>
+                                    <PrimeSelect :input-id="'license_category'" v-model="formData.license_category"
+                                        :options="[{ label: 'C1', value: 'C1' }, { label: 'C2', value: 'C2' }, { label: 'C3', value: 'C3' }]"
+                                        option-label="label" option-value="value" placeholder="Seleccione..." showClear
+                                        filter class="w-100" :invalid="!!validationErrors['license_category']" />
                                     <div v-if="validationErrors.license_category" class="invalid-feedback d-block" id="f-license_category-error" role="alert">
                                         {{ validationErrors.license_category }}
                                     </div>
@@ -369,13 +352,11 @@
                                 </div>
                                 <div class="col-12 col-sm-6 col-md-4 col-lg-4" v-if="!isOwnerDriver">
                                     <label class="form-label required" for="affiliate_uuid">Afiliado Asignado (Propietario)</label>
-                                    <select id="affiliate_uuid" ref="affiliateSelect" class="form-control select2-input w-100">
-                                        <option value="">Seleccione afiliado...</option>
-                                        <option v-for="a in store.catalogs.affiliate" :key="a.uuid" :value="a.uuid">
-                                            {{ a.document_number }} - {{ a.trade_name || a.company_name || a.first_name
-                                                + ' ' + (a.last_name || '') }}
-                                        </option>
-                                    </select>
+                                    <PrimeSelect :input-id="'affiliate_uuid'" v-model="formData.affiliate_uuid"
+                                        :options="store.catalogs.affiliate" option-value="uuid"
+                                        :option-label="(opt) => `${opt.document_number || ''} - ${opt.trade_name || opt.company_name || `${opt.first_name || ''} ${opt.last_name || ''}`.trim()}`"
+                                        placeholder="Seleccione afiliado..." showClear filter class="w-100"
+                                        :invalid="!!validationErrors['affiliate_uuid']" />
                                     <div v-if="validationErrors.affiliate_uuid" class="invalid-feedback d-block" id="f-affiliate_uuid-error" role="alert">
                                         {{ validationErrors.affiliate_uuid }}
                                     </div>
@@ -398,12 +379,10 @@
                                 </div>
                                 <div class="col-12 col-sm-12 col-md-12 col-lg-12">
                                     <label class="form-label required" for="license_status">Estado de Licencia</label>
-                                    <select id="license_status" ref="licenseStatusSelect" class="form-control select2-input w-100">
-                                        <option value="ACTIVA">Activa</option>
-                                        <option value="SUSPENDIDA">Suspendida</option>
-                                        <option value="VENCIDA">Vencida</option>
-                                        <option value="CANCELADA">Cancelada</option>
-                                    </select>
+                                    <PrimeSelect :input-id="'license_status'" v-model="formData.license_status"
+                                        :options="[{ label: 'Activa', value: 'ACTIVA' }, { label: 'Suspendida', value: 'SUSPENDIDA' }, { label: 'Vencida', value: 'VENCIDA' }, { label: 'Cancelada', value: 'CANCELADA' }]"
+                                        option-label="label" option-value="value" class="w-100"
+                                        :invalid="!!validationErrors['license_status']" />
                                     <div v-if="validationErrors.license_status" class="invalid-feedback d-block" id="f-license_status-error" role="alert">
                                         {{ validationErrors.license_status }}
                                     </div>
@@ -461,11 +440,10 @@ import { toast } from '@/utils/toast.js';
  * @resource {ThirdParty}
  */
 
-import { ref, reactive, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
+import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useThirdPartiesStore } from '../store/thirdParties.store.js';
 import { usePermissionsStore, useUserStore } from '@store';
-import { useSelect2 } from '@/hooks/useSelect2.js';
 import apiClient from '@/services/api/client.js';
 import Swal from 'sweetalert2';
 import BasePageHeader from '@/components/BasePageHeader.vue';
@@ -541,35 +519,6 @@ const formData = reactive({
 });
 
 const filePreviews = reactive({});
-
-// --- REFS PARA SELECT2 ---
-const personTypeSelect = ref(null);
-const docTypeSelect = ref(null);
-const municipalitySelect = ref(null);
-const bankAccountTypeSelect = ref(null);
-const taxRegimeSelect = ref(null);
-const taxRespSelect = ref(null);
-const companySelect = ref(null);
-const statusSelect = ref(null);
-const licenseCategorySelect = ref(null);
-const affiliateSelect = ref(null);
-const licenseStatusSelect = ref(null);
-
-const selectConfigs = computed(() => [
-    { ref: personTypeSelect, field: 'person_type', placeholder: 'Seleccione...' },
-    { ref: docTypeSelect, field: 'document_type_uuid', placeholder: 'Seleccione...' },
-    { ref: municipalitySelect, field: 'municipality_uuid', placeholder: 'Seleccione...' },
-    { ref: bankAccountTypeSelect, field: 'bank_account_type', placeholder: 'Seleccione...' },
-    { ref: taxRegimeSelect, field: 'tax_regime', placeholder: 'Seleccione...' },
-    { ref: taxRespSelect, field: 'tax_responsibility_uuid', placeholder: 'Seleccione...' },
-    { ref: companySelect, field: 'company_uuid', placeholder: 'Seleccione...' },
-    { ref: statusSelect, field: 'is_active', placeholder: 'Seleccione...' },
-    { ref: licenseCategorySelect, field: 'license_category', placeholder: 'Seleccione...' },
-    { ref: affiliateSelect, field: 'affiliate_uuid', placeholder: 'Seleccione...' },
-    { ref: licenseStatusSelect, field: 'license_status', placeholder: 'Seleccione...' }
-]);
-
-const { initSelect2, setValues: setSelect2Values, destroySelect2 } = useSelect2(formData, validationErrors);
 
 const isOwnerDriver = computed(() => formData.partyTypes && formData.partyTypes.includes('is_affiliate') && formData.partyTypes.includes('is_driver'));
 
@@ -659,7 +608,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const focusFirstError = async (fieldKey) => {
     await nextTick();
     const byId = fieldKey ? document.getElementById(`f-${String(fieldKey).replace(/\./g, '-')}`) : null;
-    const target = byId || document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+    const target = byId || document.querySelector('[aria-invalid="true"], .is-invalid');
     if (target) {
         if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(target.tagName)) target.setAttribute('tabindex', '-1');
         target.focus({ preventScroll: true });
@@ -903,19 +852,11 @@ onMounted(async () => {
     } catch (error) {
         toast('Error', 'No se pudieron cargar los datos', 'error');
     } finally {
-        setTimeout(async () => {
-            isViewLoading.value = false;
-            initSelect2(selectConfigs.value);
-            setSelect2Values(selectConfigs.value);
-            if (!isEditMode.value && routeType.value !== 'all' && formData.partyTypes.length === 0) {
-                formData.partyTypes = [routeType.value];
-            }
-        }, 400);
+        isViewLoading.value = false;
+        if (!isEditMode.value && routeType.value !== 'all' && formData.partyTypes.length === 0) {
+            formData.partyTypes = [routeType.value];
+        }
     }
-});
-
-onUnmounted(() => {
-    destroySelect2();
 });
 </script>
 
@@ -953,13 +894,7 @@ onUnmounted(() => {
 }
 
 /* ==================== SELECT2 VALIDATION ==================== */
-:deep(.is-invalid-select2 .select2-selection) {
-    border-color: #dc3545 !important;
-}
 
-:deep(.is-valid-select2 .select2-selection) {
-    border-color: #198754 !important;
-}
 
 .invalid-feedback {
     display: block;
@@ -970,45 +905,10 @@ onUnmounted(() => {
 }
 
 /* ==================== SELECT2 UI FIXES ==================== */
-:deep(.select2-container .select2-selection--single) {
-    height: 38px;
-    border: 1px solid #ced4da;
-    border-radius: 0.25rem;
-    background-color: #fff;
-    display: flex;
-    align-items: center;
-    padding: 0;
-    box-shadow: none;
-    outline: none;
-    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-}
 
-:deep(.select2-container .select2-selection--single:focus),
-:deep(.select2-container--open .select2-selection--single) {
-    border-color: #86b7fe;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-}
 
-:deep(.select2-container .select2-selection--single .select2-selection__rendered) {
-    color: #212529;
-    font-size: 1rem;
-    font-weight: 400;
-    line-height: 1.5;
-    padding-left: 0.75rem;
-    padding-right: 2rem;
-}
 
-:deep(.select2-container .select2-selection--single .select2-selection__arrow) {
-    height: 36px;
-    right: 8px;
-}
 
-:deep(.select2-dropdown) {
-    border: 1px solid #86b7fe;
-    border-radius: 0.25rem;
-    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
-    font-size: 1rem;
-}
 
 /* ===== BOTONES ===== */
 .btn {

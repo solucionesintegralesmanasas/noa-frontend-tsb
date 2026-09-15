@@ -11,7 +11,6 @@ import { logger } from "@utils/logger.js";
 import { handleGlobalError, setupGlobalErrorHandlers } from "@utils/error-handler.js";
 import { verifyConnection, subscribe, setToastHandler } from "@utils/connectivity.js";
 import { installPrimeVue } from "@components/app/primevue.js";
-import { installUiLibs } from "@components/app/ui-libs.js";
 import { installI18n } from "@utils/i18n.js";
 import { tokenManager } from "@services/security/token-manager.js";
 import { toast } from '@/utils/toast.js';
@@ -27,7 +26,6 @@ export async function registerPlugins(app) {
         // 1. Inicialización de Estado y UI
         await medirPlugin("Pinia", async () => app.use(pinia));
         await medirPlugin("PrimeVue", async () => installPrimeVue(app));
-        await medirPlugin("UI Libs", async () => installUiLibs(app));
         // 2. Seguridad inicial
         await medirPlugin("Token Manager", async () => await tokenManager.init());
 

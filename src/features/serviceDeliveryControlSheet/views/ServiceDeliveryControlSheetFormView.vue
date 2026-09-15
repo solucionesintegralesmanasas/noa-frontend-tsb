@@ -41,23 +41,20 @@
 
                         <div class="col-12 col-sm-6 col-lg-3" v-if="isSuperAdmin">
                             <label class="form-label required" for="company_uuid">Empresa</label>
-                            <select id="company_uuid" ref="companySelect" class="form-control select2-input w-100">
-                                <option value="">Seleccione...</option>
-                                <option v-for="opt in store.catalogs.companies" :key="opt.uuid" :value="opt.uuid">{{
-                                    opt.business_name }}</option>
-                            </select>
+                            <PrimeSelect :input-id="'company_uuid'" v-model="formData.company_uuid"
+                                :options="store.catalogs.companies" option-value="uuid" option-label="business_name"
+                                placeholder="Seleccione..." showClear filter class="w-100"
+                                :invalid="!!validationErrors['company_uuid']" />
                             <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block" id="f-company_uuid-error" role="alert">{{
                                 validationErrors.company_uuid }}</div>
                         </div>
 
                         <div class="col-12 col-sm-6 col-lg-6">
                             <label class="form-label required" for="project_uuid">Proyecto</label>
-                            <select id="project_uuid" ref="projectSelect" class="form-control select2-input w-100">
-                                <option value="">Seleccione el proyecto...</option>
-                                <option v-for="opt in store.projects" :key="opt.uuid" :value="opt.uuid">
-                                    {{ opt.project_name }}
-                                </option>
-                            </select>
+                            <PrimeSelect :input-id="'project_uuid'" v-model="formData.project_uuid"
+                                :options="store.projects" option-value="uuid" option-label="project_name"
+                                placeholder="Seleccione el proyecto..." showClear filter class="w-100"
+                                :invalid="!!validationErrors['project_uuid']" />
                             <div v-if="validationErrors.project_uuid" class="invalid-feedback d-block" id="f-project_uuid-error" role="alert">{{
                                 validationErrors.project_uuid }}</div>
                             <div v-if="proyectoSeleccionado" class="form-text text-muted small">
@@ -80,12 +77,10 @@
                         <div class="col-12 col-sm-6 col-lg-3">
                             <label class="form-label required" for="type_of_control_sheet">Tipo de hoja de
                                 control</label>
-                            <select id="type_of_control_sheet" ref="typeSelect" class="form-control select2-input w-100">
-                                <option value="DIRECTO_CON_LA_EMPRESA">Directo con la empresa</option>
-                                <option value="SUBCONTRATADO">Subcontratado</option>
-                                <option value="CON_VEHICULO_CONTRATADO">Con vehículo contratado</option>
-                                <option value="EXTERNO_PLATAFORMA">Vehículo externo de plataforma</option>
-                            </select>
+                            <PrimeSelect :input-id="'type_of_control_sheet'" v-model="formData.type_of_control_sheet"
+                                :options="[{ label: 'Directo con la empresa', value: 'DIRECTO_CON_LA_EMPRESA' }, { label: 'Subcontratado', value: 'SUBCONTRATADO' }, { label: 'Con vehículo contratado', value: 'CON_VEHICULO_CONTRATADO' }, { label: 'Vehículo externo de plataforma', value: 'EXTERNO_PLATAFORMA' }]"
+                                option-label="label" option-value="value" class="w-100"
+                                :invalid="!!validationErrors['type_of_control_sheet']" />
                             <div v-if="validationErrors.type_of_control_sheet" class="invalid-feedback d-block" id="f-type_of_control_sheet-error" role="alert">{{
                                 validationErrors.type_of_control_sheet }}</div>
                         </div>
@@ -124,10 +119,10 @@
                         </div>
                         <div class="col-12 col-sm-6 col-lg-3">
                             <label class="form-label" for="statusSelect">Estado</label>
-                            <select id="statusSelect" ref="statusSelect" class="form-control select2-input w-100">
-                                <option value="1">Activo</option>
-                                <option value="0">Inactivo</option>
-                            </select>
+                            <PrimeSelect :input-id="'statusSelect'" v-model="formData.is_active"
+                                :options="[{ label: 'Activo', value: '1' }, { label: 'Inactivo', value: '0' }]"
+                                option-label="label" option-value="value" class="w-100"
+                                :invalid="!!validationErrors['is_active']" />
                             <div v-if="validationErrors.is_active" class="invalid-feedback d-block" id="f-is_active-error" role="alert">
                                 {{ validationErrors.is_active }}
                             </div>
@@ -159,33 +154,30 @@
                             </div>
                             <div class="col-12 col-sm-6 col-xl-5">
                                 <label class="form-label" for="fuec_uuid">FUEC asociado</label>
-                                <select id="fuec_uuid" ref="fuecSelect" class="form-control select2-input w-100">
-                                    <option value="">Seleccione...</option>
-                                    <option v-for="opt in store.catalogs.fuecs" :key="opt.uuid" :value="opt.uuid">{{
-                                        opt.fuec_number ?? opt.uuid }}</option>
-                                </select>
+                                <PrimeSelect :input-id="'fuec_uuid'" v-model="formData.fuec_uuid"
+                                    :options="store.catalogs.fuecs" option-value="uuid"
+                                    :option-label="(opt) => opt.fuec_number ?? opt.uuid" placeholder="Seleccione..."
+                                    showClear filter class="w-100" :invalid="!!validationErrors['fuec_uuid']" />
                                 <div v-if="validationErrors.fuec_uuid" class="invalid-feedback d-block" id="f-fuec_uuid-error" role="alert">{{
                                     validationErrors.fuec_uuid }}</div>
                             </div>
                             <div class="col-12 col-sm-6 col-xl-3">
                                 <label class="form-label required" for="vehicle_uuid">Vehículo</label>
-                                <select id="vehicle_uuid" ref="vehicleSelect" class="form-control select2-input w-100">
-                                    <option value="">Seleccione...</option>
-                                    <option v-for="opt in vehiculosFiltrados" :key="opt.uuid" :value="opt.uuid">{{
-                                        opt.vehicle_license_plate }}</option>
-                                </select>
+                                <PrimeSelect :input-id="'vehicle_uuid'" v-model="formData.vehicle_uuid"
+                                    :options="vehiculosFiltrados" option-value="uuid"
+                                    option-label="vehicle_license_plate" placeholder="Seleccione..." showClear filter
+                                    class="w-100" :invalid="!!validationErrors['vehicle_uuid']" />
                                 <div v-if="validationErrors.vehicle_uuid" class="invalid-feedback d-block" id="f-vehicle_uuid-error" role="alert">{{
                                     validationErrors.vehicle_uuid }}</div>
                             </div>
 
                             <div class="col-12 col-sm-6 col-xl-4">
                                 <label class="form-label required" for="third_party_uuid">Conductor</label>
-                                <select id="third_party_uuid" ref="driverSelect"
-                                    class="form-control select2-input w-100">
-                                    <option value="">Seleccione...</option>
-                                    <option v-for="opt in conductoresFiltrados" :key="opt.uuid" :value="opt.uuid">{{
-                                        opt.first_name }} {{ opt.last_name }}</option>
-                                </select>
+                                <PrimeSelect :input-id="'third_party_uuid'" v-model="formData.third_party_uuid"
+                                    :options="conductoresFiltrados" option-value="uuid"
+                                    :option-label="(opt) => `${opt.first_name || ''} ${opt.last_name || ''}`.trim()"
+                                    placeholder="Seleccione..." showClear filter class="w-100"
+                                    :invalid="!!validationErrors['third_party_uuid']" />
                                 <div v-if="validationErrors.third_party_uuid" class="invalid-feedback d-block" id="f-third_party_uuid-error" role="alert">{{
                                     validationErrors.third_party_uuid }}</div>
                                 <div class="form-check form-switch mt-2" v-if="formData.project_uuid">
@@ -226,27 +218,26 @@
                             </div>
                             <div class="col-12 col-sm-6 col-xl-3">
                                 <label class="form-label" for="vehicle_class_uuid">Clase de vehículo</label>
-                                <select id="vehicle_class_uuid" ref="vehicleClassSelect" class="form-control select2-input w-100">
-                                    <option value="">Seleccione...</option>
-                                    <option v-for="opt in store.catalogs.vehicleClasses" :key="opt.uuid" :value="opt.uuid">{{
-                                        opt.description ?? opt.class_code_class ?? opt.uuid }}</option>
-                                </select>
+                                <PrimeSelect :input-id="'vehicle_class_uuid'" v-model="formData.vehicle_class_uuid"
+                                    :options="store.catalogs.vehicleClasses" option-value="uuid"
+                                    :option-label="(opt) => opt.description ?? opt.class_code_class ?? opt.uuid"
+                                    placeholder="Seleccione..." showClear filter class="w-100"
+                                    :invalid="!!validationErrors['vehicle_class_uuid']" />
                             </div>
                             <div class="col-12 col-sm-6 col-xl-5">
                                 <label class="form-label" for="fuec_uuid_ext">FUEC asociado (opcional)</label>
-                                <select id="fuec_uuid_ext" ref="fuecSelect" class="form-control select2-input w-100">
-                                    <option value="">Seleccione...</option>
-                                    <option v-for="opt in store.catalogs.fuecs" :key="opt.uuid" :value="opt.uuid">{{
-                                        opt.fuec_number ?? opt.uuid }}</option>
-                                </select>
+                                <PrimeSelect :input-id="'fuec_uuid_ext'" v-model="formData.fuec_uuid"
+                                    :options="store.catalogs.fuecs" option-value="uuid"
+                                    :option-label="(opt) => opt.fuec_number ?? opt.uuid" placeholder="Seleccione..."
+                                    showClear filter class="w-100" :invalid="!!validationErrors['fuec_uuid']" />
                             </div>
                             <div class="col-12 col-sm-6 col-xl-4" v-if="formData.type_of_control_sheet === 'EXTERNO_PLATAFORMA'">
                                 <label class="form-label" for="vehicle_uuid_ext">Vehículo de plataforma (si está registrado)</label>
-                                <select id="vehicle_uuid_ext" ref="vehicleSelect" class="form-control select2-input w-100">
-                                    <option value="">No está registrado / ingreso manual</option>
-                                    <option v-for="opt in vehiculosFiltrados" :key="opt.uuid" :value="opt.uuid">{{
-                                        opt.vehicle_license_plate }}</option>
-                                </select>
+                                <PrimeSelect :input-id="'vehicle_uuid_ext'" v-model="formData.vehicle_uuid"
+                                    :options="vehiculosFiltrados" option-value="uuid"
+                                    option-label="vehicle_license_plate"
+                                    placeholder="No está registrado / ingreso manual" showClear filter class="w-100"
+                                    :invalid="!!validationErrors['vehicle_uuid']" />
                                 <div class="form-text text-muted small">Si la placa ya existe en plataforma, selecciónela para trazabilidad.</div>
                             </div>
                         </template>
@@ -302,11 +293,10 @@ import Swal from 'sweetalert2';
  * @module {Features.Fleet}
  * @resource {ServiceDeliveryControlSheet}
  */
-import { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } from 'vue';
+import { ref, reactive, computed, onMounted, nextTick, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useServiceDeliveryControlSheetStore } from '../store/serviceDeliveryControlSheet.store.js';
 import { usePermissionsStore, useUserStore } from '@store';
-import { useSelect2 } from '@/hooks/useSelect2.js';
 import BasePageHeader from '@/components/BasePageHeader.vue';
 import BaseFormActions from '@/components/BaseFormActions.vue';
 
@@ -378,27 +368,6 @@ const formData = reactive({
 
 const mostrarTodos = ref(false);
 
-// --- REFS PARA SELECT2 ---
-const statusSelect = ref(null);
-const companySelect = ref(null);
-const projectSelect = ref(null);
-const typeSelect = ref(null);
-const vehicleSelect = ref(null);
-const driverSelect = ref(null);
-const fuecSelect = ref(null);
-const vehicleClassSelect = ref(null);
-
-const selectConfigs = computed(() => [
-    { ref: statusSelect, field: 'is_active', placeholder: 'Seleccionar...' },
-    { ref: companySelect, field: 'company_uuid', placeholder: 'Seleccionar...' },
-    { ref: projectSelect, field: 'project_uuid', placeholder: 'Seleccione el proyecto...' },
-    { ref: typeSelect, field: 'type_of_control_sheet', placeholder: 'Seleccionar...' },
-    { ref: vehicleSelect, field: 'vehicle_uuid', placeholder: 'Seleccionar...' },
-    { ref: driverSelect, field: 'third_party_uuid', placeholder: 'Seleccionar...' },
-    { ref: fuecSelect, field: 'fuec_uuid', placeholder: 'Seleccionar...' },
-    { ref: vehicleClassSelect, field: 'vehicle_class_uuid', placeholder: 'Seleccionar...' },
-]);
-
 // --- COMPUTADOS DE PROYECTO / TIPO / FILTRADO ---
 const isExternalType = computed(() => ['SUBCONTRATADO', 'CON_VEHICULO_CONTRATADO', 'EXTERNO_PLATAFORMA'].includes(formData.type_of_control_sheet));
 const tipoLabel = computed(() => ({
@@ -441,9 +410,6 @@ const conductoresFiltrados = computed(() => {
 
 
 
-// ─── Hook Select2 ─────────────────────────────────────────────────────────────
-const { initSelect2, setValues: setSelect2Values, syncFromSelect2, destroySelect2, applyAllValidations } = useSelect2(formData, validationErrors);
-
 // --- LOGICA DEL COMPONENTE ---
 
 // Autocompletar nombre de conductor al seleccionar uno
@@ -464,8 +430,6 @@ watch(() => formData.third_party_uuid, (newUuid) => {
 watch(() => formData.company_uuid, async (newCompany) => {
     if (newCompany) {
         await store.loadProjects(newCompany);
-        await nextTick();
-        setSelect2Values(selectConfigs.value);
     } else {
         store.projects = [];
     }
@@ -493,8 +457,6 @@ watch(() => formData.project_uuid, async (newProject) => {
             const cOk = asignacionesProyecto.value.some(a => a.third_party_uuid === formData.third_party_uuid);
             if (formData.vehicle_uuid && !vOk) formData.vehicle_uuid = '';
             if (formData.third_party_uuid && !cOk) formData.third_party_uuid = '';
-            await nextTick();
-            setSelect2Values(selectConfigs.value);
         }
     }
 });
@@ -505,15 +467,6 @@ watch(() => formData.driver_name_and_surname, (val) => {
         formData.official_name_and_surname = val;
     }
 });
-
-// Al cambiar el tipo de planilla, reinicializar selects del bloque correspondiente
-watch(() => formData.type_of_control_sheet, async () => {
-    await nextTick();
-    try { destroySelect2(selectConfigs.value); } catch (e) {}
-    initSelect2(selectConfigs.value);
-    setSelect2Values(selectConfigs.value);
-});
-
 
 // --- VALIDACION Y SUBMIT ---
 const isEmpty = (v) => v === null || v === undefined || (typeof v === 'string' ? v.trim() === '' : !v);
@@ -648,12 +601,9 @@ const buildPayload = () => {
 };
 
 const handleSubmit = async () => {
-    syncFromSelect2(selectConfigs.value);
-
     if (!validateForm()) {
-        applyAllValidations(selectConfigs.value);
         await nextTick();
-        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid');
         if (firstError) {
             if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(firstError.tagName)) firstError.setAttribute('tabindex', '-1');
             firstError.focus({ preventScroll: true });
@@ -722,16 +672,9 @@ onMounted(async () => {
             }
         }
     } finally {
-        setTimeout(async () => {
-            isViewLoading.value = false;
-            await nextTick();
-            initSelect2(selectConfigs.value);
-            setSelect2Values(selectConfigs.value);
-        }, 300);
+        isViewLoading.value = false;
     }
 });
-
-onUnmounted(() => destroySelect2(selectConfigs.value));
 </script>
 
 <style scoped>
@@ -814,13 +757,7 @@ onUnmounted(() => destroySelect2(selectConfigs.value));
 }
 
 /* ==================== SELECT2 VALIDATION ==================== */
-:deep(.is-invalid-select2 .select2-selection) {
-    border-color: #dc3545 !important;
-}
 
-:deep(.is-valid-select2 .select2-selection) {
-    border-color: #198754 !important;
-}
 
 .invalid-feedback {
     display: block;
@@ -831,45 +768,10 @@ onUnmounted(() => destroySelect2(selectConfigs.value));
 }
 
 /* ==================== SELECT2 UI FIXES ==================== */
-:deep(.select2-container .select2-selection--single) {
-    height: 38px;
-    border: 1px solid #ced4da;
-    border-radius: 0.25rem;
-    background-color: #fff;
-    display: flex;
-    align-items: center;
-    padding: 0;
-    box-shadow: none;
-    outline: none;
-    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-}
 
-:deep(.select2-container .select2-selection--single:focus),
-:deep(.select2-container--open .select2-selection--single) {
-    border-color: #86b7fe;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-}
 
-:deep(.select2-container .select2-selection--single .select2-selection__rendered) {
-    color: #212529;
-    font-size: 1rem;
-    font-weight: 400;
-    line-height: 1.5;
-    padding-left: 0.75rem;
-    padding-right: 2rem;
-}
 
-:deep(.select2-container .select2-selection--single .select2-selection__arrow) {
-    height: 36px;
-    right: 8px;
-}
 
-:deep(.select2-dropdown) {
-    border: 1px solid #86b7fe;
-    border-radius: 0.25rem;
-    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
-    font-size: 1rem;
-}
 
 /* ===== BOTONES ===== */
 .btn {

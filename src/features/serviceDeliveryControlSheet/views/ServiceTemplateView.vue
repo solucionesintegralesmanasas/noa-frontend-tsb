@@ -97,17 +97,14 @@
                                         <label class="form-label required fw-medium text-700" style="font-size: 0.9rem;" for="servicioId">
                                             <i class="fad fa-bus-alt text-primary me-1"></i> Planilla / Servicio Asignado
                                         </label>
-                                        <select
-                                            id="servicioId"
-                                            ref="servicioSelect"
+                                        <PrimeSelect
+                                            input-id="servicioId"
                                             v-model="formData.servicioId"
-                                            class="form-control select2-input w-100"
-                                        >
-                                            <option value="">— Seleccione un servicio —</option>
-                                            <option v-for="s in serviciosFiltrados" :key="s.uuid" :value="s.uuid">
-                                                {{ s.daily_route || recorridosTextoDe(s) }} · {{ tipoCorto(s.type_of_control_sheet) }}{{ s.project?.project_name ? ' · ' + s.project.project_name : '' }}
-                                            </option>
-                                        </select>
+                                            :options="serviciosFiltrados" option-value="uuid"
+                                            :option-label="(s) => `${s.daily_route || recorridosTextoDe(s)} · ${tipoCorto(s.type_of_control_sheet)}${s.project?.project_name ? ' · ' + s.project.project_name : ''}`"
+                                            placeholder="— Seleccione un servicio —" showClear filter class="w-100"
+                                            :invalid="!!validationErrors.servicioId"
+                                        />
                                         <div v-if="validationErrors.servicioId" class="invalid-feedback d-block mt-1" id="f-servicioId-error" role="alert">
                                             {{ validationErrors.servicioId }}
                                         </div>
@@ -316,17 +313,13 @@
                                         <label class="form-label fw-medium text-700" style="font-size: 0.9rem;" for="fuec_uuid">
                                             <i class="fad fa-file-certificate text-primary me-1"></i> N.° Planilla / FUEC
                                         </label>
-                                        <select
-                                            id="fuec_uuid"
-                                            ref="fuecSelect"
+                                        <PrimeSelect
+                                            input-id="fuec_uuid"
                                             v-model="formData.fuec_uuid"
-                                            class="form-control select2-input w-100"
-                                        >
-                                            <option value="">Seleccione FUEC</option>
-                                            <option v-for="item in fuecsCatalogo" :key="item.uuid" :value="item.uuid">
-                                                {{ item.sheet_number || item.fuec_number }}
-                                            </option>
-                                        </select>
+                                            :options="fuecsCatalogo" option-value="uuid"
+                                            :option-label="(item) => item.sheet_number || item.fuec_number"
+                                            placeholder="Seleccione FUEC" showClear filter class="w-100"
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -1413,7 +1406,6 @@ import { useServiceDeliveryControlSheetStore } from '../store/serviceDeliveryCon
 import serviceDeliveryControlSheetService from '../services/serviceDeliveryControlSheet.service.js';
 import vehicleInspectionsService from '../../vehicleInspections/services/vehicleInspections.service.js';
 import { usePermissionsStore, useUserStore } from '@store';
-import { useSelect2 } from '@/hooks/useSelect2.js';
 import { useDriverTrackingStore } from '../../tracking/store/driverTracking.store.js';
 import FirmaPad from '../components/FirmaPad.vue';
 
@@ -1954,16 +1946,7 @@ const startTimer = () => {
     }, 1000);
 };
 
-// --- SELECT2 ---
-const servicioSelect = ref(null);
-const fuecSelect = ref(null);
-
-const { initSelect2, destroySelect2, setValues: setSelect2Values } = useSelect2(formData, validationErrors);
-
-const selectConfigs = [
-    { ref: servicioSelect, field: 'servicioId', placeholder: '— Seleccione un servicio —' },
-    { ref: fuecSelect, field: 'fuec_uuid', placeholder: 'Seleccione FUEC' },
-];
+// --- SELECTS (PrimeSelect con v-model directo, sin refs) ---
 
 const formatFecha = (fecha) => {
     if (!fecha) return '—';
@@ -2045,9 +2028,6 @@ const restaurarProgreso = async () => {
     }
     if (queryId && prog && prog.servicioId !== queryId) limpiarProgreso();
     formData.servicioId = targetId;
-    await nextTick();
-    await nextTick();
-    setSelect2Values([selectConfigs[0]]);
     const activa = planillaActiva.value;
     if (!activa) return;
     const enRuta = (activa.is_active == 1 || activa.is_active === true) && !!activa.start_time && !activa.end_time;
@@ -2119,9 +2099,6 @@ const goStep2 = () => {
         formData.start_time = now.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false });
     }
     goStep(2);
-    nextTick(() => {
-        initSelect2([selectConfigs[1]]);
-    });
 };
 
 const iniciarServicio = async () => {
@@ -2697,9 +2674,6 @@ const reiniciar = () => {
     currentStep.value = 1;
     if (timerInterval) clearInterval(timerInterval);
     timerStr.value = '00:00:00';
-    nextTick(() => {
-        setSelect2Values([selectConfigs[0]]);
-    });
 };
 
 // --- CICLO DE VIDA ---
@@ -2728,10 +2702,6 @@ onMounted(async () => {
             proyectosList.value = catalogs.projects || [];
         }
 
-        await nextTick();
-        initSelect2([selectConfigs[0]]);
-        setSelect2Values([selectConfigs[0]]);
-
         // Retomar servicio en curso (recarga o reingreso): paso 3 si sigue en ruta.
         await restaurarProgreso();
     } catch (err) {
@@ -2744,7 +2714,6 @@ onMounted(async () => {
 onUnmounted(() => {
     if (clockInterval) clearInterval(clockInterval);
     if (timerInterval) clearInterval(timerInterval);
-    destroySelect2(selectConfigs);
 });
 
 watch(() => formData.servicioId, (newVal) => {
@@ -2783,7 +2752,6 @@ watch(proyectoFiltro, (nuevo) => {
     if (formData.servicioId && !pertenece) {
         formData.servicioId = '';
         planillaIndex.value = 0;
-        nextTick(() => setSelect2Values([selectConfigs[0]]));
     }
 });
 
@@ -3078,20 +3046,6 @@ h1, h2, h3, h4, h5, h6,
 }
 
 /* ─── SELECT2 FIXES DENTRO DE VISTA ─────────────────────────── */
-:deep(.select2-container .select2-selection--single) {
-    height: 42px !important;
-    border: 1px solid #d8e2ef !important;
-    border-radius: 0.375rem !important;
-    display: flex !important;
-    align-items: center !important;
-}
 
-:deep(.select2-container--open .select2-selection--single) {
-    border-color: #2c7be5 !important;
-    box-shadow: 0 0 0 3px rgba(44, 123, 229, 0.2) !important;
-}
 
-:deep(.is-invalid-select2 .select2-selection) {
-    border-color: #e63757 !important;
-}
 </style>

@@ -1,6 +1,8 @@
 import { createApp } from "vue";
 import App from "./App.vue";
 import "./assets/brand-tokens.css";
+// Estilos de SweetAlert2 (los toasts usan import() diferido, el CSS queda en el bundle inicial)
+import "sweetalert2/dist/sweetalert2.min.css";
 // Importación usando alias definido en vite.config.js -> @utils apunta a src/utils/
 import { registerPlugins } from "@utils/plugins.js";
 

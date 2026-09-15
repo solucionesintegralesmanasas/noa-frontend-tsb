@@ -78,12 +78,10 @@
               <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3" v-if="isSuperAdmin">
                 <label class="form-label required fw-medium" for="company_uuid"
                   style="font-size: 0.9rem;">Empresa</label>
-                <select id="f-company_uuid" :aria-invalid="!!validationErrors['company_uuid']" :aria-describedby="validationErrors['company_uuid'] ? 'f-company_uuid-error' : undefined" ref="companySelect" v-model="formData.company_uuid" class="form-control select2-input w-100"
-                  :class="{ 'is-invalid': validationErrors.company_uuid }">
-                  <option value="">Seleccione...</option>
-                  <option v-for="opt in store.catalogs.companies" :key="opt.uuid" :value="opt.uuid">{{ opt.business_name
-                  }}</option>
-                </select>
+                <PrimeSelect :input-id="'f-company_uuid'" v-model="formData.company_uuid"
+                  :options="store.catalogs.companies" option-value="uuid" option-label="business_name"
+                  placeholder="Seleccione..." showClear filter class="w-100"
+                  :invalid="!!validationErrors['company_uuid']" />
                 <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block" id="f-company_uuid-error" role="alert">{{
                   validationErrors.company_uuid }}</div>
               </div>
@@ -91,12 +89,10 @@
               <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
                 <label class="form-label required fw-medium" for="vehicle_uuid"
                   style="font-size: 0.9rem;">Vehículo</label>
-                <select id="f-vehicle_uuid" :aria-invalid="!!validationErrors['vehicle_uuid']" :aria-describedby="validationErrors['vehicle_uuid'] ? 'f-vehicle_uuid-error' : undefined" ref="vehicleSelect" v-model="formData.vehicle_uuid" class="form-control select2-input w-100"
-                  :class="{ 'is-invalid': validationErrors.vehicle_uuid }">
-                  <option value="">Seleccionar vehículo</option>
-                  <option v-for="item in store.catalogs.vehicles" :key="item.uuid" :value="item.uuid">{{
-                    item.vehicle_license_plate }}</option>
-                </select>
+                <PrimeSelect :input-id="'f-vehicle_uuid'" v-model="formData.vehicle_uuid"
+                  :options="store.catalogs.vehicles" option-value="uuid" option-label="vehicle_license_plate"
+                  placeholder="Seleccionar vehículo" showClear filter class="w-100"
+                  :invalid="!!validationErrors['vehicle_uuid']" />
                 <div v-if="validationErrors.vehicle_uuid" class="invalid-feedback d-block" id="f-vehicle_uuid-error" role="alert">{{
                   validationErrors.vehicle_uuid }}</div>
               </div>
@@ -117,13 +113,10 @@
               <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
                 <label class="form-label required fw-medium" for="charge_type" style="font-size: 0.9rem;">Tipo de
                   Cobro</label>
-                <select id="f-charge_type" :aria-invalid="!!validationErrors['charge_type']" :aria-describedby="validationErrors['charge_type'] ? 'f-charge_type-error' : undefined" ref="chargeTypeSelect" v-model="formData.charge_type" class="form-control select2-input w-100"
-                  :class="{ 'is-invalid': validationErrors.charge_type }">
-                  <option value="">Seleccione...</option>
-                  <option value="CUOTA_ADMINISTRACION">Cuota de Administración</option>
-                  <option value="PAGO_MENSUALIDAD">Pago Mensualidad</option>
-                  <option value="PAGO_CUPO">Pago de Cupo</option>
-                </select>
+                <PrimeSelect :input-id="'f-charge_type'" v-model="formData.charge_type"
+                  :options="[{ label: 'Cuota de Administración', value: 'CUOTA_ADMINISTRACION' }, { label: 'Pago Mensualidad', value: 'PAGO_MENSUALIDAD' }, { label: 'Pago de Cupo', value: 'PAGO_CUPO' }]"
+                  option-label="label" option-value="value" placeholder="Seleccione..." showClear filter class="w-100"
+                  :invalid="!!validationErrors['charge_type']" />
                 <div v-if="validationErrors.charge_type" class="invalid-feedback d-block" id="f-charge_type-error" role="alert">{{
                   validationErrors.charge_type }}</div>
               </div>
@@ -212,29 +205,19 @@
             <div class="row g-3">
               <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
                 <label class="form-label required fw-medium" for="status" style="font-size: 0.9rem;">Estado</label>
-                <select id="f-status" :aria-invalid="!!validationErrors['status']" :aria-describedby="validationErrors['status'] ? 'f-status-error' : undefined" ref="statusSelect" v-model="formData.status" class="form-control select2-input w-100"
-                  :class="{ 'is-invalid': validationErrors.status }">
-                  <option value="PENDIENTE">Pendiente</option>
-                  <option value="PAGADO">Pagado</option>
-                  <option value="VENCIDO">Vencido</option>
-                  <option value="EN_MORA">En Mora</option>
-                  <option value="ANULADO">Anulado</option>
-                </select>
+                <PrimeSelect :input-id="'f-status'" v-model="formData.status"
+                  :options="[{ label: 'Pendiente', value: 'PENDIENTE' }, { label: 'Pagado', value: 'PAGADO' }, { label: 'Vencido', value: 'VENCIDO' }, { label: 'En Mora', value: 'EN_MORA' }, { label: 'Anulado', value: 'ANULADO' }]"
+                  option-label="label" option-value="value" class="w-100"
+                  :invalid="!!validationErrors['status']" />
                 <div v-if="validationErrors.status" class="invalid-feedback d-block" id="f-status-error" role="alert">{{ validationErrors.status }}</div>
               </div>
 
               <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
                 <label class="form-label fw-medium" for="payment_method" style="font-size: 0.9rem;">Método de Pago</label>
-                <select id="payment_method" v-model="formData.payment_method" class="form-control w-100"
-                  :class="{ 'is-invalid': validationErrors.payment_method }">
-                  <option value="">Seleccione...</option>
-                  <option value="EFECTIVO">Efectivo</option>
-                  <option value="TRANSFERENCIA">Transferencia</option>
-                  <option value="CHEQUE">Cheque</option>
-                  <option value="TARJETA">Tarjeta</option>
-                  <option value="CORTESIA">Cortesía</option>
-                  <option value="OTRO">Otro</option>
-                </select>
+                <PrimeSelect :input-id="'payment_method'" v-model="formData.payment_method"
+                  :options="[{ label: 'Efectivo', value: 'EFECTIVO' }, { label: 'Transferencia', value: 'TRANSFERENCIA' }, { label: 'Cheque', value: 'CHEQUE' }, { label: 'Tarjeta', value: 'TARJETA' }, { label: 'Cortesía', value: 'CORTESIA' }, { label: 'Otro', value: 'OTRO' }]"
+                  option-label="label" option-value="value" placeholder="Seleccione..." showClear filter class="w-100"
+                  :invalid="!!validationErrors['payment_method']" />
                 <div v-if="validationErrors.payment_method" class="invalid-feedback d-block" id="f-payment_method-error" role="alert">{{ validationErrors.payment_method }}</div>
               </div>
 
@@ -323,12 +306,11 @@
 
 <script setup>
 import { toast } from '@/utils/toast.js';
-import { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } from 'vue';
+import { ref, reactive, computed, onMounted, nextTick, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAffiliateAdminChargesStore } from '../store/affiliateCharges.store.js';
 import { usePermissionsStore, useUserStore } from '@store';
 import { useSystemConfigurationStore } from '@/features/systemConfiguration/store/systemConfiguration.store.js';
-import { useSelect2 } from '@/hooks/useSelect2.js';
 import BasePageHeader from '@/components/BasePageHeader.vue';
 import VehiclesService from '@/features/vehicles/services/vehicles.service.js';
 
@@ -388,26 +370,6 @@ const formData = reactive({
   bank_reference: '',
   notes: ''
 });
-
-// Refs de Select2
-const companySelect = ref(null);
-const vehicleSelect = ref(null);
-const chargeTypeSelect = ref(null);
-const statusSelect = ref(null);
-
-const selectConfigs = computed(() => {
-  const configs = [
-    { ref: vehicleSelect, field: 'vehicle_uuid', placeholder: 'Seleccionar vehículo' },
-    { ref: chargeTypeSelect, field: 'charge_type', placeholder: 'Seleccionar tipo' },
-    { ref: statusSelect, field: 'status', placeholder: 'Seleccionar estado' }
-  ];
-  if (isSuperAdmin.value) {
-    configs.unshift({ ref: companySelect, field: 'company_uuid', placeholder: 'Seleccionar empresa' });
-  }
-  return configs;
-});
-
-const { initSelect2, setValues: setSelect2Values, syncFromSelect2, destroySelect2, applyAllValidations } = useSelect2(formData, validationErrors);
 
 // Lógica de cálculo de fechas dinámicas y corte
 const handleDateChange = (field) => {
@@ -536,12 +498,9 @@ const validateForm = () => {
 const goBack = () => router.push('/pagos-de-administracion');
 
 const handleSubmit = async () => {
-  syncFromSelect2(selectConfigs.value);
-
   if (!validateForm()) {
-    applyAllValidations(selectConfigs.value);
     await nextTick();
-    const firstError = document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+    const firstError = document.querySelector('[aria-invalid="true"], .is-invalid');
     if (firstError) {
         if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(firstError.tagName)) firstError.setAttribute('tabindex', '-1');
         firstError.focus({ preventScroll: true });
@@ -586,16 +545,10 @@ onMounted(async () => {
       }
     }
   } finally {
-    setTimeout(async () => {
-      isViewLoading.value = false;
-      await nextTick();
-      initSelect2(selectConfigs.value);
-      setSelect2Values(selectConfigs.value);
-    }, 400);
+    isViewLoading.value = false;
   }
 });
 
-onUnmounted(() => destroySelect2(selectConfigs.value));
 </script>
 
 <style scoped>
@@ -682,40 +635,8 @@ onUnmounted(() => destroySelect2(selectConfigs.value));
 }
 
 /* ==================== SELECT2 UI FIXES ==================== */
-:deep(.is-invalid-select2 .select2-selection) {
-  border-color: #dc3545 !important;
-}
 
-:deep(.select2-container .select2-selection--single) {
-  height: 38px;
-  border: 1px solid #ced4da;
-  border-radius: 0.25rem;
-  background-color: #fff;
-  display: flex;
-  align-items: center;
-  padding: 0;
-  box-shadow: none;
-  outline: none;
-  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-}
 
-:deep(.select2-container .select2-selection--single:focus),
-:deep(.select2-container--open .select2-selection--single) {
-  border-color: #86b7fe;
-  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-}
 
-:deep(.select2-container .select2-selection--single .select2-selection__rendered) {
-  color: #212529;
-  font-size: 0.9rem;
-  font-weight: 400;
-  line-height: 1.5;
-  padding-left: 0.75rem;
-  padding-right: 2rem;
-}
 
-:deep(.select2-container .select2-selection--single .select2-selection__arrow) {
-  height: 36px;
-  right: 8px;
-}
 </style>

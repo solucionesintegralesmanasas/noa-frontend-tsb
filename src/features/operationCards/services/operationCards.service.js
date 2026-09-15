@@ -78,7 +78,7 @@ class OperationCardsService extends BaseService {
             fetchSafe('fleet-management/vehicles/list' + vehicleQuery)
         ]);
 
-        // Deduplica los vehículos por uuid/placa para evitar opciones repetidas en el select2
+        // Deduplica los vehículos por uuid/placa para evitar opciones repetidas en el desplegable
         const seenVehicles = new Set();
         const uniqueVehicles = (vehicles || []).filter((v) => {
             const key = v?.uuid ?? v?.vehicle_license_plate;

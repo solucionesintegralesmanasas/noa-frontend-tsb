@@ -21,13 +21,10 @@
                         <input type="hidden" v-if="!isSuperAdmin" v-model="formData.company_uuid" />
                         <div class="col-12 col-sm-6 col-md-6 col-lg-4 col-xl-4 col-xxl-4" v-if="isSuperAdmin">
                             <label class="form-label required" for="company_uuid">Empresa</label>
-                             <select id="company_uuid" ref="companySelect" v-model="formData.company_uuid"
-                                class="form-control select2-input w-100">
-                                <option value="">Seleccione una empresa...</option>
-                                <option v-for="opt in store.catalogs.companies" :key="opt.uuid" :value="opt.uuid">
-                                    {{ opt.business_name }}
-                                </option>
-                            </select>
+                             <PrimeSelect :input-id="'company_uuid'" v-model="formData.company_uuid"
+                                :options="store.catalogs.companies" option-value="uuid" option-label="business_name"
+                                placeholder="Seleccione una empresa..." showClear filter class="w-100"
+                                :invalid="!!validationErrors.company_uuid" />
                             <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block" id="f-company_uuid-error" role="alert">
                                 {{ validationErrors.company_uuid }}
                             </div>
@@ -154,11 +151,10 @@ import { toast } from '@/utils/toast.js';
  * @module experiences/FormView
  */
 
-import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, reactive, computed, onMounted, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useExperiencesStore } from '../store/experiences.store.js';
 import { usePermissionsStore, useUserStore } from '@store';
-import { useSelect2 } from '@/hooks/useSelect2.js';
 import BasePageHeader from '@/components/BasePageHeader.vue';
 import BaseFormActions from '@/components/BaseFormActions.vue';
 
@@ -222,32 +218,6 @@ const formData = reactive({
 });
 
 /**
- * Referencias a los elementos Select2 del formulario.
- * @type {import('vue').Ref<HTMLSelectElement|null>}
- */
-const companySelect = ref(null);
-
-/**
- * Configuración de los controles Select2.
- * Cada entrada vincula la referencia del DOM, el campo del formData y el placeholder.
- * @type {import('vue').ComputedRef<Array<Object>>}
- */
-const selectConfigs = computed(() => [
-    { ref: companySelect, field: 'company_uuid', placeholder: 'Seleccione una empresa...' },
-]);
-
-/**
- * Hook de Select2 que provee métodos para inicializar, sincronizar y destruir los controles.
- * @type {Object}
- * @property {Function} initSelect2 - Inicializa todos los Select2.
- * @property {Function} setValues - Establece valores desde formData a los Select2.
- * @property {Function} syncFromSelect2 - Sincroniza valores de Select2 a formData.
- * @property {Function} destroySelect2 - Destruye todas las instancias de Select2.
- * @property {Function} applyAllValidations - Aplica clases de validación a los Select2.
- */
-const { initSelect2, setValues: setSelect2Values, syncFromSelect2, destroySelect2, applyAllValidations } = useSelect2(formData, validationErrors);
-
-/**
  * Valida los campos obligatorios del formulario.
  * Para campos numéricos usa comparación explícita contra '', null y undefined.
  * @returns {boolean} True si el formulario es válido.
@@ -277,12 +247,9 @@ const goBack = () => router.push('/empresas/experiencias');
  * @returns {Promise<void>}
  */
 const handleSubmit = async () => {
-    syncFromSelect2(selectConfigs.value);
-
     if (!validateForm()) {
-        applyAllValidations(selectConfigs.value);
         await nextTick();
-        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid');
         if (firstError) {
             if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(firstError.tagName)) firstError.setAttribute('tabindex', '-1');
             firstError.focus({ preventScroll: true });
@@ -311,7 +278,7 @@ const handleSubmit = async () => {
 };
 
 /**
- * Hook del ciclo de vida: carga catálogos, datos del registro (si edita) e inicializa Select2.
+ * Hook del ciclo de vida: carga catálogos y datos del registro (si edita).
  */
 onMounted(async () => {
     isViewLoading.value = true;
@@ -336,19 +303,9 @@ onMounted(async () => {
             }
         }
     } finally {
-        setTimeout(async () => {
-            isViewLoading.value = false;
-            await nextTick();
-            initSelect2(selectConfigs.value);
-            setSelect2Values(selectConfigs.value);
-        }, 400);
+        isViewLoading.value = false;
     }
 });
-
-/**
- * Hook del ciclo de vida: destruye instancias de Select2 al desmontar.
- */
-onUnmounted(() => destroySelect2(selectConfigs.value));
 </script>
 
 <style scoped>
@@ -385,13 +342,7 @@ onUnmounted(() => destroySelect2(selectConfigs.value));
 }
 
 /* ==================== SELECT2 VALIDATION ==================== */
-:deep(.is-invalid-select2 .select2-selection) {
-    border-color: #dc3545 !important;
-}
 
-:deep(.is-valid-select2 .select2-selection) {
-    border-color: #198754 !important;
-}
 
 .invalid-feedback {
     display: block;
@@ -402,45 +353,10 @@ onUnmounted(() => destroySelect2(selectConfigs.value));
 }
 
 /* ==================== SELECT2 UI FIXES ==================== */
-:deep(.select2-container .select2-selection--single) {
-    height: 38px;
-    border: 1px solid #ced4da;
-    border-radius: 0.25rem;
-    background-color: #fff;
-    display: flex;
-    align-items: center;
-    padding: 0;
-    box-shadow: none;
-    outline: none;
-    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-}
 
-:deep(.select2-container .select2-selection--single:focus),
-:deep(.select2-container--open .select2-selection--single) {
-    border-color: #86b7fe;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-}
 
-:deep(.select2-container .select2-selection--single .select2-selection__rendered) {
-    color: #212529;
-    font-size: 1rem;
-    font-weight: 400;
-    line-height: 1.5;
-    padding-left: 0.75rem;
-    padding-right: 2rem;
-}
 
-:deep(.select2-container .select2-selection--single .select2-selection__arrow) {
-    height: 36px;
-    right: 8px;
-}
 
-:deep(.select2-dropdown) {
-    border: 1px solid #86b7fe;
-    border-radius: 0.25rem;
-    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
-    font-size: 1rem;
-}
 
 /* ===== BOTONES ===== */
 .btn {

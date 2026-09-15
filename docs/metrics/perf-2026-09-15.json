@@ -2,16 +2,16 @@
   "fecha": "2026-09-15",
   "dist": true,
   "metricas": {
-    "totalJS": 2736.1,
-    "totalCSS": 276.9,
+    "totalJS": 2565.5,
+    "totalCSS": 241.4,
     "vendorPrimevue": 806.3,
-    "vendorUI": 148.5,
+    "vendorUI": null,
     "vendorFeedback": 76.3,
     "vendorHttp": 40.1,
     "vendorVue": 102.4,
-    "indexJS": 117.3,
-    "numChunksJS": 156,
-    "numChunksCSS": 88
+    "indexJS": 116.5,
+    "numChunksJS": 154,
+    "numChunksCSS": 87
   },
   "html": {
     "scriptsSinDefer": [],
@@ -20,53 +20,53 @@
   },
   "topChunks": [
     {
-      "archivo": "vendor-primevue-DL1rH2fT.js",
+      "archivo": "vendor-primevue-Dr3llia4.js",
       "kb": 806.3,
       "tipo": "js"
     },
     {
-      "archivo": "vendor-ui-Br7w7ERN.js",
-      "kb": 148.5,
+      "archivo": "index-CzwFZfmu.js",
+      "kb": 116.5,
       "tipo": "js"
     },
     {
-      "archivo": "index-fCY0LM7x.js",
-      "kb": 117.3,
-      "tipo": "js"
-    },
-    {
-      "archivo": "vendor-vue-8d4gbgr0.js",
+      "archivo": "vendor-vue-CJL7SkBS.js",
       "kb": 102.4,
       "tipo": "js"
     },
     {
-      "archivo": "ServiceTemplateView-DLtuNN1K.js",
-      "kb": 92.8,
+      "archivo": "ServiceTemplateView-hp_mfbQ_.js",
+      "kb": 92.3,
       "tipo": "js"
     },
     {
-      "archivo": "vendor-feedback-Cpr9TM1t.js",
+      "archivo": "vendor-feedback-p_XCIix1.js",
       "kb": 76.3,
       "tipo": "js"
     },
     {
-      "archivo": "SystemConfigurationView-BvWROSPC.js",
+      "archivo": "SystemConfigurationView-CfsWXJBg.js",
       "kb": 52.9,
       "tipo": "js"
     },
     {
-      "archivo": "FuecFormView-Crm7KCuF.js",
+      "archivo": "FuecFormView-Rfexb-C8.js",
       "kb": 48.1,
       "tipo": "js"
     },
     {
-      "archivo": "vendor-http-BTEV2dRg.js",
+      "archivo": "vendor-http-Cum7x4mu.js",
       "kb": 40.1,
       "tipo": "js"
     },
     {
-      "archivo": "VehicleDocumentsFormView-Bdah3_4D.js",
-      "kb": 37.2,
+      "archivo": "ThirdPartiesListView-D4-BRUm-.js",
+      "kb": 35.6,
+      "tipo": "js"
+    },
+    {
+      "archivo": "ConductorDashboardView-DaS08gzq.js",
+      "kb": 34.8,
       "tipo": "js"
     }
   ]

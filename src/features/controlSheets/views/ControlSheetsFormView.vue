@@ -31,32 +31,30 @@
 
                         <div class="col-12 col-sm-6 col-md-6" v-if="isSuperAdmin">
                             <label class="form-label required" for="company_uuid">Empresa</label>
-                            <select id="company_uuid" ref="companySelect" class="form-control select2-input w-100">
-                                <option value="">Seleccione...</option>
-                                <option v-for="opt in store.catalogs.companies" :key="opt.uuid" :value="opt.uuid">{{
-                                    opt.business_name }}</option>
-                            </select>
+                            <PrimeSelect :input-id="'company_uuid'" v-model="formData.company_uuid"
+                                :options="store.catalogs.companies" option-value="uuid" option-label="business_name"
+                                placeholder="Seleccione..." showClear filter class="w-100"
+                                :invalid="!!validationErrors['company_uuid']" />
                             <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block" id="f-company_uuid-error" role="alert">{{
                                 validationErrors.company_uuid }}</div>
                         </div>
 
                         <div class="col-12 col-sm-6 col-md-6">
                             <label class="form-label required" for="vehicle_uuid">Vehículo</label>
-                            <select id="vehicle_uuid" ref="vehicleSelect" class="form-control select2-input w-100">
-                                <option value="">Seleccione...</option>
-                                <option v-for="opt in store.catalogs.vehicles" :key="opt.uuid" :value="opt.uuid">{{
-                                    opt.vehicle_license_plate }}</option>
-                            </select>
+                            <PrimeSelect :input-id="'vehicle_uuid'" v-model="formData.vehicle_uuid"
+                                :options="store.catalogs.vehicles" option-value="uuid" option-label="vehicle_license_plate"
+                                placeholder="Seleccione..." showClear filter class="w-100"
+                                :invalid="!!validationErrors['vehicle_uuid']" />
                             <div v-if="validationErrors.vehicle_uuid" class="invalid-feedback d-block" id="f-vehicle_uuid-error" role="alert">{{
                                 validationErrors.vehicle_uuid }}</div>
                         </div>
                         <!-- Estado Checkbox/Select -->
                         <div class="col-12 col-sm-6 col-md-4">
                             <label class="form-label required" for="statusSelect">Estado</label>
-                            <select id="statusSelect" ref="statusSelect" class="form-control select2-input w-100">
-                                <option value="1">Activo</option>
-                                <option value="0">Inactivo</option>
-                            </select>
+                            <PrimeSelect :input-id="'statusSelect'" v-model="formData.is_active"
+                                :options="[{ label: 'Activo', value: '1' }, { label: 'Inactivo', value: '0' }]"
+                                option-label="label" option-value="value" class="w-100"
+                                :invalid="!!validationErrors['is_active']" />
                             <div v-if="validationErrors.is_active" class="invalid-feedback d-block" id="f-is_active-error" role="alert">
                                 {{ validationErrors.is_active }}
                             </div>
@@ -201,11 +199,10 @@ import { toast } from '@/utils/toast.js';
  * @resource {ControlSheet}
  */
 
-import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, reactive, computed, onMounted, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useControlSheetsStore } from '../store/controlSheets.store.js';
 import { usePermissionsStore, useUserStore } from '@store';
-import { useSelect2 } from '@/hooks/useSelect2.js';
 import BasePageHeader from '@/components/BasePageHeader.vue';
 import BaseFormActions from '@/components/BaseFormActions.vue';
 import Swal from 'sweetalert2';
@@ -239,10 +236,6 @@ const formData = reactive({
 });
 
 const filePreviews = reactive({});
-
-const statusSelect = ref(null);
-const companySelect = ref(null);
-const vehicleSelect = ref(null);
 
 const pdfs = ref([]);
 const selectedFiles = ref([]);
@@ -312,14 +305,6 @@ const formatBytes = (bytes, decimals = 2) => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 };
 
-const selectConfigs = computed(() => [
-    { ref: statusSelect, field: 'is_active', placeholder: 'Seleccionar estado' },
-    { ref: companySelect, field: 'company_uuid', placeholder: 'Seleccionar empresa' },
-    { ref: vehicleSelect, field: 'vehicle_uuid', placeholder: 'Seleccionar vehículo' },
-]);
-
-const { initSelect2, setValues: setSelect2Values, syncFromSelect2, destroySelect2, applyAllValidations } = useSelect2(formData, validationErrors);
-
 const isEmpty = (v) => v === null || v === undefined || (typeof v === 'string' ? v.trim() === '' : !v);
 
 const validateForm = () => {
@@ -337,12 +322,9 @@ const validateForm = () => {
 const goBack = () => router.push('/planillas-de-control-de-servicios');
 
 const handleSubmit = async () => {
-    syncFromSelect2(selectConfigs.value);
-
     if (!validateForm()) {
-        applyAllValidations(selectConfigs.value);
         await nextTick();
-        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid');
         if (firstError) {
             if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(firstError.tagName)) firstError.setAttribute('tabindex', '-1');
             firstError.focus({ preventScroll: true });
@@ -394,16 +376,10 @@ onMounted(async () => {
             await fetchPdfs();
         }
     } finally {
-        setTimeout(async () => {
-            isViewLoading.value = false;
-            await nextTick();
-            initSelect2(selectConfigs.value);
-            setSelect2Values(selectConfigs.value);
-        }, 400);
+        isViewLoading.value = false;
     }
 });
 
-onUnmounted(() => destroySelect2(selectConfigs.value));
 </script>
 
 <style scoped>
@@ -439,13 +415,7 @@ onUnmounted(() => destroySelect2(selectConfigs.value));
 }
 
 /* ==================== SELECT2 VALIDATION ==================== */
-:deep(.is-invalid-select2 .select2-selection) {
-    border-color: #dc3545 !important;
-}
 
-:deep(.is-valid-select2 .select2-selection) {
-    border-color: #198754 !important;
-}
 
 .invalid-feedback {
     display: block;
@@ -456,45 +426,10 @@ onUnmounted(() => destroySelect2(selectConfigs.value));
 }
 
 /* ==================== SELECT2 UI FIXES ==================== */
-:deep(.select2-container .select2-selection--single) {
-    height: 38px;
-    border: 1px solid #ced4da;
-    border-radius: 0.25rem;
-    background-color: #fff;
-    display: flex;
-    align-items: center;
-    padding: 0;
-    box-shadow: none;
-    outline: none;
-    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-}
 
-:deep(.select2-container .select2-selection--single:focus),
-:deep(.select2-container--open .select2-selection--single) {
-    border-color: #86b7fe;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-}
 
-:deep(.select2-container .select2-selection--single .select2-selection__rendered) {
-    color: #212529;
-    font-size: 1rem;
-    font-weight: 400;
-    line-height: 1.5;
-    padding-left: 0.75rem;
-    padding-right: 2rem;
-}
 
-:deep(.select2-container .select2-selection--single .select2-selection__arrow) {
-    height: 36px;
-    right: 8px;
-}
 
-:deep(.select2-dropdown) {
-    border: 1px solid #86b7fe;
-    border-radius: 0.25rem;
-    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
-    font-size: 1rem;
-}
 
 /* ===== BOTONES ===== */
 .btn {

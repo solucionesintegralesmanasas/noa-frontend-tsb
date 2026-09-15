@@ -28,12 +28,11 @@
                         <!-- Empleado -->
                         <div class="col-12 col-sm-12 col-md-6 col-lg-6">
                             <label class="form-label required" for="third_party_uuid">Empleado</label>
-                            <select id="third_party_uuid" ref="thirdPartySelect" v-model="formData.third_party_uuid" class="form-control select2-input w-100" :class="{ 'is-invalid': validationErrors.third_party_uuid }">
-                                <option value="">Seleccionar empleado...</option>
-                                <option v-for="opt in store.catalogs?.thirdParties ?? []" :key="opt.uuid" :value="opt.uuid">
-                                    {{ opt.document_number }} - {{ opt.first_name }} {{ opt.last_name }} {{ opt.trade_name }}
-                                </option>
-                            </select>
+                            <PrimeSelect :input-id="'third_party_uuid'" v-model="formData.third_party_uuid"
+                                :options="store.catalogs?.thirdParties ?? []" option-value="uuid"
+                                :option-label="(opt) => `${opt.document_number || ''} - ${opt.first_name || ''} ${opt.last_name || ''} ${opt.trade_name || ''}`.trim()"
+                                placeholder="Seleccionar empleado..." showClear filter class="w-100"
+                                :invalid="!!validationErrors['third_party_uuid']" />
                             <div v-if="validationErrors.third_party_uuid" class="invalid-feedback d-block" id="f-third_party_uuid-error" role="alert">
                                 {{ validationErrors.third_party_uuid }}
                             </div>
@@ -42,13 +41,10 @@
                         <!-- Tipo de contrato -->
                         <div class="col-12 col-sm-6 col-md-3 col-lg-3">
                             <label class="form-label required" for="contract_type">Tipo de Contrato</label>
-                            <select id="contract_type" ref="contractTypeSelect" v-model="formData.contract_type" class="form-control select2-input w-100" :class="{ 'is-invalid': validationErrors.contract_type }">
-                                <option value="TERMINO_FIJO">Término Fijo</option>
-                                <option value="TERMINO_INDEFINIDO">Término Indefinido</option>
-                                <option value="OBRA_LABOR">Obra o Labor</option>
-                                <option value="PRESTACION_SERVICIOS">Prestación de Servicios</option>
-                                <option value="APRENDIZAJE">Aprendizaje</option>
-                            </select>
+                            <PrimeSelect :input-id="'contract_type'" v-model="formData.contract_type"
+                                :options="[{ label: 'Término Fijo', value: 'TERMINO_FIJO' }, { label: 'Término Indefinido', value: 'TERMINO_INDEFINIDO' }, { label: 'Obra o Labor', value: 'OBRA_LABOR' }, { label: 'Prestación de Servicios', value: 'PRESTACION_SERVICIOS' }, { label: 'Aprendizaje', value: 'APRENDIZAJE' }]"
+                                option-label="label" option-value="value" class="w-100"
+                                :invalid="!!validationErrors['contract_type']" />
                             <div v-if="validationErrors.contract_type" class="invalid-feedback d-block" id="f-contract_type-error" role="alert">
                                 {{ validationErrors.contract_type }}
                             </div>
@@ -57,11 +53,10 @@
                         <!-- Estado -->
                         <div class="col-12 col-sm-6 col-md-3 col-lg-3">
                             <label class="form-label required" for="status">Estado</label>
-                            <select id="status" ref="statusSelect" v-model="formData.status" class="form-control select2-input w-100" :class="{ 'is-invalid': validationErrors.status }">
-                                <option value="ACTIVO">Activo</option>
-                                <option value="SUSPENDIDO">Suspendido</option>
-                                <option value="TERMINADO">Terminado</option>
-                            </select>
+                            <PrimeSelect :input-id="'status'" v-model="formData.status"
+                                :options="[{ label: 'Activo', value: 'ACTIVO' }, { label: 'Suspendido', value: 'SUSPENDIDO' }, { label: 'Terminado', value: 'TERMINADO' }]"
+                                option-label="label" option-value="value" class="w-100"
+                                :invalid="!!validationErrors['status']" />
                             <div v-if="validationErrors.status" class="invalid-feedback d-block" id="f-status-error" role="alert">
                                 {{ validationErrors.status }}
                             </div>
@@ -116,10 +111,10 @@
                         <!-- Naturaleza Salarial -->
                         <div class="col-12 col-sm-6 col-md-4 col-lg-4">
                             <label class="form-label" for="salary_type">Naturaleza Salarial</label>
-                            <select id="salary_type" ref="salaryTypeSelect" v-model="formData.salary_type" class="form-control select2-input w-100" :class="{ 'is-invalid': validationErrors.salary_type }">
-                                <option value="ORDINARIO">Ordinario</option>
-                                <option value="INTEGRAL">Integral</option>
-                            </select>
+                            <PrimeSelect :input-id="'salary_type'" v-model="formData.salary_type"
+                                :options="[{ label: 'Ordinario', value: 'ORDINARIO' }, { label: 'Integral', value: 'INTEGRAL' }]"
+                                option-label="label" option-value="value" class="w-100"
+                                :invalid="!!validationErrors['salary_type']" />
                             <div v-if="validationErrors.salary_type" class="invalid-feedback d-block" id="f-salary_type-error" role="alert">
                                 {{ validationErrors.salary_type }}
                             </div>
@@ -128,10 +123,10 @@
                         <!-- Auxilio Transporte -->
                         <div class="col-12 col-sm-6 col-md-4 col-lg-4">
                             <label class="form-label" for="transport_subsidy_applies">¿Aplica auxilio de transporte?</label>
-                            <select id="transport_subsidy_applies" ref="transportSelect" v-model="formData.transport_subsidy_applies" class="form-control select2-input w-100" :class="{ 'is-invalid': validationErrors.transport_subsidy_applies }">
-                                <option value="0">No</option>
-                                <option value="1">Sí</option>
-                            </select>
+                            <PrimeSelect :input-id="'transport_subsidy_applies'" v-model="formData.transport_subsidy_applies"
+                                :options="[{ label: 'No', value: '0' }, { label: 'Sí', value: '1' }]"
+                                option-label="label" option-value="value" class="w-100"
+                                :invalid="!!validationErrors['transport_subsidy_applies']" />
                             <div v-if="validationErrors.transport_subsidy_applies" class="invalid-feedback d-block" id="f-transport_subsidy_applies-error" role="alert">
                                 {{ validationErrors.transport_subsidy_applies }}
                             </div>
@@ -160,10 +155,9 @@
 <script setup>
 import { toast } from '@/utils/toast.js';
 
-import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, reactive, computed, onMounted, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useEmploymentContractsStore } from '../store/employmentContracts.store.js';
-import { useSelect2 } from '@/hooks/useSelect2.js';
 import BasePageHeader from '@/components/BasePageHeader.vue';
 import BaseFormActions from '@/components/BaseFormActions.vue';
 import { handleGlobalError } from '@/utils/error-handler.js';
@@ -195,23 +189,6 @@ const formData = reactive({
     termination_reason: ''
 });
 
-// --- REFS PARA SELECT2 ---
-const thirdPartySelect = ref(null);
-const contractTypeSelect = ref(null);
-const statusSelect = ref(null);
-const salaryTypeSelect = ref(null);
-const transportSelect = ref(null);
-
-const selectConfigs = computed(() => [
-    { ref: thirdPartySelect, field: 'third_party_uuid', placeholder: 'Seleccionar empleado' },
-    { ref: contractTypeSelect, field: 'contract_type', placeholder: 'Seleccionar tipo' },
-    { ref: statusSelect, field: 'status', placeholder: 'Seleccionar estado' },
-    { ref: salaryTypeSelect, field: 'salary_type', placeholder: 'Seleccionar naturaleza' },
-    { ref: transportSelect, field: 'transport_subsidy_applies', placeholder: 'Seleccionar' }
-]);
-
-const { initSelect2, setValues: setSelect2Values, syncFromSelect2, destroySelect2, applyAllValidations } = useSelect2(formData, validationErrors);
-
 const loadData = async () => {
     store.loading = true;
     try {
@@ -238,8 +215,6 @@ const loadData = async () => {
             }
         }
         await nextTick();
-        initSelect2(selectConfigs.value);
-        setSelect2Values(selectConfigs.value);
     } catch (error) {
         handleGlobalError(error);
         goBack();
@@ -251,7 +226,6 @@ const loadData = async () => {
 const handleSubmit = async () => {
     submitting.value = true;
     Object.keys(validationErrors).forEach(k => delete validationErrors[k]);
-    syncFromSelect2(selectConfigs.value);
 
     // Data to send
     const payload = { ...formData };
@@ -272,11 +246,10 @@ const handleSubmit = async () => {
             for (const key in errors) {
                 validationErrors[key] = errors[key][0];
             }
-            applyAllValidations(selectConfigs.value);
             await nextTick();
             const firstKey = Object.keys(validationErrors)[0];
             const target = (firstKey && document.getElementById(`f-${firstKey}`))
-                || document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+                || document.querySelector('[aria-invalid="true"], .is-invalid');
             if (target) {
                 if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(target.tagName)) target.setAttribute('tabindex', '-1');
                 target.focus({ preventScroll: true });
@@ -297,9 +270,5 @@ const goBack = () => {
 
 onMounted(() => {
     loadData();
-});
-
-onUnmounted(() => {
-    destroySelect2(selectConfigs.value);
 });
 </script>

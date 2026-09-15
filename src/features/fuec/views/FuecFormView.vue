@@ -41,7 +41,7 @@
                             </div>
 
                             <div
-                                class="mb-3 position-relative select2-validation-wrapper col-12 col-sm-6 col-md-4 col-lg-3">
+                                class="mb-3 position-relative col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-vehicle_uuid">Vehículo
                                     Asignado</label>
                                 <div class="d-flex gap-2">
@@ -83,7 +83,7 @@
                                 </h6>
                             </div>
 
-                            <div class="position-relative select2-validation-wrapper col-12 col-sm-6 col-md-4 col-lg-3">
+                            <div class="position-relative col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-contractor-document_number">Número de
                                     Documento</label>
                                 <div class="input-group">

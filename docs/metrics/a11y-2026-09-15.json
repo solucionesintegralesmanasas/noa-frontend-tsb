@@ -3,7 +3,7 @@
   "totales": {
     "langEnHtml": 0,
     "labelsSinFor": 96,
-    "controlesVModelSinId": 135,
+    "controlesVModelSinId": 134,
     "erroresSinRole": 0,
     "ariaLabelsIngles": 3,
     "roleButtonEnRouterLink": 0,
@@ -193,7 +193,7 @@
       "iconosSinAriaHidden": 8
     },
     "src\\features\\maintenance\\views\\MaintenanceFormView.vue": {
-      "controlesVModelSinId": 4,
+      "controlesVModelSinId": 3,
       "iconosSinAriaHidden": 7
     },
     "src\\features\\maintenance\\views\\MaintenanceListView.vue": {

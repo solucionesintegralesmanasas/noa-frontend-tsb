@@ -34,49 +34,40 @@
 
                         <div class="col-12 col-sm-6 col-md-6 col-lg-3">
                             <label class="form-label required" for="f-person_type">Tipo de persona</label>
-                            <select id="f-person_type" :aria-invalid="!!validationErrors['person_type']" :aria-describedby="validationErrors['person_type'] ? 'f-person_type-error' : undefined" class="form-control w-100" ref="tipoPersonaSelect">
-                                <option value="">Seleccionar tipo</option>
-                                <option value="PERSONA JURIDICA">Jurídica</option>
-                                <option value="PERSONA NATURAL">Natural</option>
-                            </select>
+                            <PrimeSelect :input-id="'f-person_type'" v-model="formData.person_type"
+                                :options="[{ label: 'Jurídica', value: 'PERSONA JURIDICA' }, { label: 'Natural', value: 'PERSONA NATURAL' }]"
+                                option-label="label" option-value="value" placeholder="Seleccionar tipo" showClear filter class="w-100"
+                                :invalid="!!validationErrors['person_type']" />
                             <div v-if="validationErrors.person_type" class="invalid-feedback d-block" id="f-person_type-error" role="alert">
                                 {{ validationErrors.person_type }}
                             </div>
                         </div>
                         <div class="col-12 col-sm-6 col-md-6 col-lg-3">
                             <label class="form-label required" for="f-type_of_company">Sector (Naturaleza)</label>
-                            <select id="f-type_of_company" :aria-invalid="!!validationErrors['type_of_company']" :aria-describedby="validationErrors['type_of_company'] ? 'f-type_of_company-error' : undefined" class="form-control w-100" ref="typeOfCompanySelect">
-                                <option value="">Seleccionar</option>
-                                <option value="PRIVADO">Privado</option>
-                                <option value="PUBLICO">Público</option>
-                            </select>
+                            <PrimeSelect :input-id="'f-type_of_company'" v-model="formData.type_of_company"
+                                :options="[{ label: 'Privado', value: 'PRIVADO' }, { label: 'Público', value: 'PUBLICO' }]"
+                                option-label="label" option-value="value" placeholder="Seleccionar" showClear filter class="w-100"
+                                :invalid="!!validationErrors['type_of_company']" />
                             <div v-if="validationErrors.type_of_company" class="invalid-feedback d-block" id="f-type_of_company-error" role="alert">
                                 {{ validationErrors.type_of_company }}
                             </div>
                         </div>
                         <div class="col-12 col-sm-6 col-md-6 col-lg-3">
                             <label class="form-label required" for="f-document_type_uuid">Tipo de documento</label>
-                            <select id="f-document_type_uuid" :aria-invalid="!!validationErrors['document_type_uuid']" :aria-describedby="validationErrors['document_type_uuid'] ? 'f-document_type_uuid-error' : undefined" class="form-control w-100" ref="documentTypeSelectUuid">
-                                <option value="">Seleccionar tipo</option>
-                                <option v-for="doc in store.catalogs.documentTypes" :key="doc.uuid" :value="doc.uuid">
-                                    {{ doc.prefix }} - {{ doc.name }}
-                                </option>
-                            </select>
+                            <PrimeSelect :input-id="'f-document_type_uuid'" v-model="formData.document_type_uuid"
+                                :options="store.catalogs.documentTypes" option-value="uuid" option-label="name"
+                                placeholder="Seleccionar tipo" showClear filter class="w-100"
+                                :invalid="!!validationErrors['document_type_uuid']" />
                             <div v-if="validationErrors.document_type_uuid" class="invalid-feedback d-block" id="f-document_type_uuid-error" role="alert">
                                 {{ validationErrors.document_type_uuid }}
                             </div>
                         </div>
                         <div class="col-12 col-sm-6 col-md-6 col-lg-3">
                             <label class="form-label" for="f-legal-structure">Estructura Legal</label>
-                            <select id="f-legal-structure" class="form-control w-100" ref="legalStructureSelect">
-                                <option value="">Seleccionar estructura</option>
-                                <option value="SOCIEDAD POR ACCIONES SIMPLIFICADA - SAS">SAS</option>
-                                <option value="SOCIEDAD DE RESPONSABILIDAD LIMITADA - LTDA">LTDA</option>
-                                <option value="SOCIEDAD POR ACCIONES - SPA">SPA</option>
-                                <option value="SOCIEDAD ANONIMA - SA">SA</option>
-                                <option value="UNIÓN TEMPORAL - UT">UT</option>
-                                <option value="ENTIDAD SIN ÁNIMO DE LUCRO - ESAL">ESAL</option>
-                            </select>
+                            <PrimeSelect :input-id="'f-legal-structure'" v-model="formData.legal_structure"
+                                :options="[{ label: 'SAS', value: 'SOCIEDAD POR ACCIONES SIMPLIFICADA - SAS' }, { label: 'LTDA', value: 'SOCIEDAD DE RESPONSABILIDAD LIMITADA - LTDA' }, { label: 'SPA', value: 'SOCIEDAD POR ACCIONES - SPA' }, { label: 'SA', value: 'SOCIEDAD ANONIMA - SA' }, { label: 'UT', value: 'UNIÓN TEMPORAL - UT' }, { label: 'ESAL', value: 'ENTIDAD SIN ÁNIMO DE LUCRO - ESAL' }]"
+                                option-label="label" option-value="value" placeholder="Seleccionar estructura" showClear filter class="w-100"
+                                :invalid="!!validationErrors['legal_structure']" />
                         </div>
 
 
@@ -142,12 +133,10 @@
 
                         <div class="col-12 col-sm-6 col-md-6 col-lg-3">
                             <label class="form-label required" for="f-municipality_uuid">Municipio</label>
-                            <select id="f-municipality_uuid" :aria-invalid="!!validationErrors['municipality_uuid']" :aria-describedby="validationErrors['municipality_uuid'] ? 'f-municipality_uuid-error' : undefined" class="form-control w-100" ref="municipioSelect">
-                                <option value="">Seleccionar municipio</option>
-                                <option v-for="mun in store.catalogs.municipalities" :key="mun.uuid" :value="mun.uuid">
-                                    {{ mun.name }}
-                                </option>
-                            </select>
+                            <PrimeSelect :input-id="'f-municipality_uuid'" v-model="formData.municipality_uuid"
+                                :options="store.catalogs.municipalities" option-value="uuid" option-label="name"
+                                placeholder="Seleccionar municipio" showClear filter class="w-100"
+                                :invalid="!!validationErrors['municipality_uuid']" />
                             <div v-if="validationErrors.municipality_uuid" class="invalid-feedback d-block" id="f-municipality_uuid-error" role="alert">
                                 {{ validationErrors.municipality_uuid }}
                             </div>
@@ -197,12 +186,10 @@
 
                         <div class="col-12 col-sm-6 col-md-6 col-lg-3">
                             <label class="form-label required" for="f-tax_regime_uuid">Régimen Fiscal</label>
-                            <select id="f-tax_regime_uuid" :aria-invalid="!!validationErrors['tax_regime_uuid']" :aria-describedby="validationErrors['tax_regime_uuid'] ? 'f-tax_regime_uuid-error' : undefined" class="form-control w-100" ref="taxRegimeSelect">
-                                <option value="">Seleccionar régimen</option>
-                                <option v-for="res in store.catalogs.taxRegimes" :key="res.uuid" :value="res.uuid">
-                                    {{ res.name }}
-                                </option>
-                            </select>
+                            <PrimeSelect :input-id="'f-tax_regime_uuid'" v-model="formData.tax_regime_uuid"
+                                :options="store.catalogs.taxRegimes" option-value="uuid" option-label="name"
+                                placeholder="Seleccionar régimen" showClear filter class="w-100"
+                                :invalid="!!validationErrors['tax_regime_uuid']" />
                             <div v-if="validationErrors.tax_regime_uuid" class="invalid-feedback d-block" id="f-tax_regime_uuid-error" role="alert">
                                 {{ validationErrors.tax_regime_uuid }}
                             </div>
@@ -210,26 +197,26 @@
 
                         <div class="col-12 col-sm-6 col-md-6 col-lg-3">
                             <label class="form-label required" for="f-moneda">Moneda</label>
-                            <select id="f-moneda" class="form-control w-100" ref="monedaSelect">
-                                <option value="COP">COP - Peso colombiano</option>
-                                <option value="USD">USD - Dólar americano</option>
-                            </select>
+                            <PrimeSelect :input-id="'f-moneda'" v-model="formData.currency_code"
+                                :options="[{ label: 'COP - Peso colombiano', value: 'COP' }, { label: 'USD - Dólar americano', value: 'USD' }]"
+                                option-label="label" option-value="value" class="w-100"
+                                :invalid="!!validationErrors['currency_code']" />
                         </div>
 
                         <div class="col-12 col-sm-6 col-md-6 col-lg-3">
                             <label class="form-label required" for="f-pais">País</label>
-                            <select id="f-pais" class="form-control w-100" ref="paisSelect">
-                                <option value="CO">Colombia</option>
-                                <option value="US">Estados Unidos</option>
-                            </select>
+                            <PrimeSelect :input-id="'f-pais'" v-model="formData.country_code"
+                                :options="[{ label: 'Colombia', value: 'CO' }, { label: 'Estados Unidos', value: 'US' }]"
+                                option-label="label" option-value="value" class="w-100"
+                                :invalid="!!validationErrors['country_code']" />
                         </div>
 
                         <div class="col-12 col-sm-6 col-md-6 col-lg-3">
                             <label class="form-label required" for="f-status">Estado</label>
-                            <select id="f-status" class="form-control w-100" ref="statusSelect">
-                                <option value="1">Activo</option>
-                                <option value="0">Inactivo</option>
-                            </select>
+                            <PrimeSelect :input-id="'f-status'" v-model="formData.is_active"
+                                :options="[{ label: 'Activo', value: '1' }, { label: 'Inactivo', value: '0' }]"
+                                option-label="label" option-value="value" class="w-100"
+                                :invalid="!!validationErrors['is_active']" />
                         </div>
 
 
@@ -242,12 +229,10 @@
 
                         <div class="col-12 col-sm-6 col-md-6 col-lg-3">
                             <label class="form-label required" for="f-legal_representative_document_type">Tipo Doc. Representante</label>
-                            <select id="f-legal_representative_document_type" :aria-invalid="!!validationErrors['legal_representative_document_type']" :aria-describedby="validationErrors['legal_representative_document_type'] ? 'f-legal_representative_document_type-error' : undefined" class="form-control w-100" ref="legalRepresentativeDocumenttype">
-                                <option value="">Seleccionar tipo</option>
-                                <option v-for="doc in store.catalogs.documentTypes" :key="doc.uuid" :value="doc.prefix">
-                                    {{ doc.name }}
-                                </option>
-                            </select>
+                            <PrimeSelect :input-id="'f-legal_representative_document_type'" v-model="formData.legal_representative_document_type"
+                                :options="store.catalogs.documentTypes" option-value="prefix" option-label="name"
+                                placeholder="Seleccionar tipo" showClear filter class="w-100"
+                                :invalid="!!validationErrors['legal_representative_document_type']" />
                             <div v-if="validationErrors.legal_representative_document_type"
                                 class="invalid-feedback d-block" id="f-legal_representative_document_type-error" role="alert">
                                 {{ validationErrors.legal_representative_document_type }}
@@ -366,12 +351,11 @@ import { toast } from '@/utils/toast.js';
  * @module {Features.Companies}
  * @resource {Company}
  */
-import { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } from 'vue';
+import { ref, reactive, computed, onMounted, nextTick, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useCompaniesStore } from '../store/companies.store.js';
 import { usePermissionsStore } from '@store';
 import { useUserStore } from '@store';
-import { useSelect2 } from '@/hooks/useSelect2.js';
 import BasePageHeader from '@/components/BasePageHeader.vue';
 import BaseFormActions from '@/components/BaseFormActions.vue';
 import RuesLookupPanel from '@/components/RuesLookupPanel.vue';
@@ -429,31 +413,6 @@ const formData = reactive({
 
 const filePreviews = reactive({ logo: null, signature: null });
 
-// --- REFS PARA SELECT2 ---
-const tipoPersonaSelect = ref(null);
-const typeOfCompanySelect = ref(null);
-const documentTypeSelectUuid = ref(null);
-const municipioSelect = ref(null);
-const monedaSelect = ref(null);
-const paisSelect = ref(null);
-const taxRegimeSelect = ref(null);
-const legalRepresentativeDocumenttype = ref(null);
-const statusSelect = ref(null);
-const legalStructureSelect = ref(null);
-
-const selectConfigs = computed(() => [
-    { ref: tipoPersonaSelect, field: 'person_type', placeholder: 'Seleccionar tipo' },
-    { ref: typeOfCompanySelect, field: 'type_of_company', placeholder: 'Seleccionar naturaleza' },
-    { ref: documentTypeSelectUuid, field: 'document_type_uuid', placeholder: 'Seleccionar tipo' },
-    { ref: municipioSelect, field: 'municipality_uuid', placeholder: 'Seleccionar municipio' },
-    { ref: taxRegimeSelect, field: 'tax_regime_uuid', placeholder: 'Seleccionar régimen' },
-    { ref: monedaSelect, field: 'currency_code', placeholder: 'Seleccionar moneda' },
-    { ref: paisSelect, field: 'country_code', placeholder: 'Seleccionar país' },
-    { ref: legalRepresentativeDocumenttype, field: 'legal_representative_document_type', placeholder: 'Seleccionar tipo' },
-    { ref: statusSelect, field: 'is_active', placeholder: 'Seleccionar estado' },
-    { ref: legalStructureSelect, field: 'legal_structure', placeholder: 'Seleccionar estructura' },
-]);
-
 // --- FUNCIONES ---
 const can = (action, subject) => permissionsStore.can(action, subject);
 
@@ -473,18 +432,12 @@ const goBack = () => {
     }
 };
 
-// ─── Hook Select2 ─────────────────────────────────────────────────────────────
-const { initSelect2, setValues: setSelect2Values, syncFromSelect2, destroySelect2, applyAllValidations } = useSelect2(formData, validationErrors);
-
-const setSelect2ValuesTrigger = () => setSelect2Values(selectConfigs.value);
-const initSelect2Trigger = () => initSelect2(selectConfigs.value);
-
 // ─── RUES Lookup ─────────────────────────────────────────────────────────────
 /**
  * Mapea el registro del RUES al formData al recibir el evento @select del panel.
  * @param {Object} registro
  */
-function mapRuesRegistro(registro) {
+async function mapRuesRegistro(registro) {
     if (registro.nit) formData.document_number = registro.nit;
     if (registro.digito_verificacion) formData.verification_digit = registro.digito_verificacion;
     if (registro.razon_social) formData.business_name = registro.razon_social;
@@ -501,7 +454,7 @@ function mapRuesRegistro(registro) {
         formData.legal_representative_document_number = registro.num_identificacion_representante_legal;
     }
 
-    nextTick(() => setSelect2ValuesTrigger());
+    await nextTick();
 }
 
 // --- VALIDACION Y SUBMIT ---
@@ -523,13 +476,9 @@ const validateForm = () => {
 };
 
 const handleSubmit = async () => {
-    // Sincronizar Select2 → formData antes de validar
-    syncFromSelect2(selectConfigs.value);
-
     if (!validateForm()) {
-        applyAllValidations(selectConfigs.value);
         await nextTick();
-        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid');
         if (firstError) {
             if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(firstError.tagName)) firstError.setAttribute('tabindex', '-1');
             firstError.focus({ preventScroll: true });
@@ -585,16 +534,10 @@ onMounted(async () => {
     } catch (e) {
 
     } finally {
-        setTimeout(async () => {
-            isViewLoading.value = false;
-            await nextTick();
-            initSelect2Trigger();
-            setSelect2ValuesTrigger();
-        }, 400);
+        isViewLoading.value = false;
+        await nextTick();
     }
 });
-
-onUnmounted(() => destroySelect2(selectConfigs.value));
 </script>
 
 <style scoped>
@@ -631,13 +574,7 @@ onUnmounted(() => destroySelect2(selectConfigs.value));
 }
 
 /* ==================== SELECT2 VALIDATION ==================== */
-:deep(.is-invalid-select2 .select2-selection) {
-    border-color: #dc3545 !important;
-}
 
-:deep(.is-valid-select2 .select2-selection) {
-    border-color: #198754 !important;
-}
 
 .invalid-feedback {
     display: block;
@@ -648,45 +585,10 @@ onUnmounted(() => destroySelect2(selectConfigs.value));
 }
 
 /* ==================== SELECT2 UI FIXES ==================== */
-:deep(.select2-container .select2-selection--single) {
-    height: 38px;
-    border: 1px solid #ced4da;
-    border-radius: 0.25rem;
-    background-color: #fff;
-    display: flex;
-    align-items: center;
-    padding: 0;
-    box-shadow: none;
-    outline: none;
-    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-}
 
-:deep(.select2-container .select2-selection--single:focus),
-:deep(.select2-container--open .select2-selection--single) {
-    border-color: #86b7fe;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-}
 
-:deep(.select2-container .select2-selection--single .select2-selection__rendered) {
-    color: #212529;
-    font-size: 1rem;
-    font-weight: 400;
-    line-height: 1.5;
-    padding-left: 0.75rem;
-    padding-right: 2rem;
-}
 
-:deep(.select2-container .select2-selection--single .select2-selection__arrow) {
-    height: 36px;
-    right: 8px;
-}
 
-:deep(.select2-dropdown) {
-    border: 1px solid #86b7fe;
-    border-radius: 0.25rem;
-    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
-    font-size: 1rem;
-}
 
 /* ===== BOTONES ===== */
 .btn {

@@ -28,12 +28,10 @@
                         
                         <div class="col-12 col-sm-6 col-md-4 col-lg-4" v-if="isSuperAdmin">
                             <label class="form-label required" for="company_uuid">Empresa</label>
-                            <select id="company_uuid" ref="companySelect" class="form-control select2-input w-100">
-                                <option value="">Seleccione una empresa...</option>
-                                <option v-for="opt in store.catalogs.companies" :key="opt.uuid" :value="opt.uuid">
-                                    {{ opt.business_name }}
-                                </option>
-                            </select>
+                            <PrimeSelect :input-id="'company_uuid'" v-model="formData.company_uuid"
+                                :options="store.catalogs.companies" option-value="uuid" option-label="business_name"
+                                placeholder="Seleccione una empresa..." showClear filter class="w-100"
+                                :invalid="!!validationErrors.company_uuid" />
                             <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block" id="f-company_uuid-error" role="alert">
                                 {{ validationErrors.company_uuid }}
                             </div>
@@ -43,13 +41,10 @@
                             <label class="form-label required" for="activity_code">
                                 Código de Actividad (CIIU Rev. 4 A.C.)
                             </label>
-                            <select id="activity_code" ref="activityCodeSelect" class="form-control select2-input w-100">
-                                <option value="">Seleccione una actividad...</option>
-                                <option v-for="opt in store.catalogs.economicActivities" :key="opt.id || opt.code"
-                                    :value="opt.code">
-                                    {{ opt.code }} — {{ opt.description }}
-                                </option>
-                            </select>
+                            <PrimeSelect :input-id="'activity_code'" v-model="formData.activity_code"
+                                :options="store.catalogs.economicActivities" option-value="code" option-label="description"
+                                placeholder="Seleccione una actividad..." showClear filter class="w-100"
+                                :invalid="!!validationErrors.activity_code" />
                             <div v-if="validationErrors.activity_code" class="invalid-feedback d-block" id="f-activity_code-error" role="alert">
                                 {{ validationErrors.activity_code }}
                             </div>
@@ -59,10 +54,10 @@
                             <label class="form-label" for="mainActivitySelect">
                                 ¿Es actividad principal?
                             </label>
-                            <select id="mainActivitySelect" ref="mainActivitySelect" class="form-control select2-input w-100">
-                                <option value="0">No — Actividad secundaria</option>
-                                <option value="1">Sí — Actividad principal</option>
-                            </select>
+                            <PrimeSelect :input-id="'mainActivitySelect'" v-model="formData.is_main_activity"
+                                :options="[{ label: 'No — Actividad secundaria', value: '0' }, { label: 'Sí — Actividad principal', value: '1' }]"
+                                option-label="label" option-value="value" class="w-100"
+                                :invalid="!!validationErrors.is_main_activity" />
                             <div v-if="validationErrors.is_main_activity" class="invalid-feedback d-block" id="f-is_main_activity-error" role="alert">
                                 {{ validationErrors.is_main_activity }}
                             </div>
@@ -121,11 +116,10 @@ import { toast } from '@/utils/toast.js';
  * @resource {EconomicActivity}
  */
 
-import { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } from 'vue';
+import { ref, reactive, computed, onMounted, nextTick, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useEconomicActivitiesStore } from '../store/economicActivities.store.js';
 import { usePermissionsStore, useUserStore } from '@store';
-import { useSelect2 } from '@/hooks/useSelect2.js';
 import BasePageHeader from '@/components/BasePageHeader.vue';
 import BaseFormActions from '@/components/BaseFormActions.vue';
 
@@ -166,16 +160,6 @@ const formData = reactive({
     is_main_activity: '0',
 });
 
-const companySelect = ref(null);
-const activityCodeSelect = ref(null);
-const mainActivitySelect = ref(null);
-
-const selectConfigs = computed(() => [
-    { ref: companySelect, field: 'company_uuid', placeholder: 'Seleccione una empresa...' },
-    { ref: activityCodeSelect, field: 'activity_code', placeholder: 'Seleccione un código CIIU...' },
-    { ref: mainActivitySelect, field: 'is_main_activity', placeholder: 'Seleccionar opción' },
-]);
-
 watch(() => formData.activity_code, (newVal) => {
     if (newVal) {
         const found = store.catalogs.economicActivities?.find(item => item.code === newVal);
@@ -184,8 +168,6 @@ watch(() => formData.activity_code, (newVal) => {
         }
     }
 });
-
-const { initSelect2, setValues: setSelect2Values, syncFromSelect2, destroySelect2, applyAllValidations } = useSelect2(formData, validationErrors);
 
 const validateForm = () => {
     Object.keys(validationErrors).forEach(key => delete validationErrors[key]);
@@ -210,12 +192,9 @@ const validateForm = () => {
 const goBack = () => router.push('/empresas/actividades-economicas/listas-actividades-economicas');
 
 const handleSubmit = async () => {
-    syncFromSelect2(selectConfigs.value);
-
     if (!validateForm()) {
-        applyAllValidations(selectConfigs.value);
         await nextTick();
-        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid');
         if (firstError) {
             if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(firstError.tagName)) firstError.setAttribute('tabindex', '-1');
             firstError.focus({ preventScroll: true });
@@ -268,16 +247,9 @@ onMounted(async () => {
             }
         }
     } finally {
-        setTimeout(async () => {
-            isViewLoading.value = false;
-            await nextTick();
-            initSelect2(selectConfigs.value);
-            setSelect2Values(selectConfigs.value);
-        }, 400);
+        isViewLoading.value = false;
     }
 });
-
-onUnmounted(() => destroySelect2(selectConfigs.value));
 </script>
 
 <style scoped>
@@ -314,13 +286,7 @@ onUnmounted(() => destroySelect2(selectConfigs.value));
 }
 
 /* ==================== SELECT2 VALIDATION ==================== */
-:deep(.is-invalid-select2 .select2-selection) {
-    border-color: #dc3545 !important;
-}
 
-:deep(.is-valid-select2 .select2-selection) {
-    border-color: #198754 !important;
-}
 
 .invalid-feedback {
     display: block;
@@ -331,45 +297,10 @@ onUnmounted(() => destroySelect2(selectConfigs.value));
 }
 
 /* ==================== SELECT2 UI FIXES ==================== */
-:deep(.select2-container .select2-selection--single) {
-    height: 38px;
-    border: 1px solid #ced4da;
-    border-radius: 0.25rem;
-    background-color: #fff;
-    display: flex;
-    align-items: center;
-    padding: 0;
-    box-shadow: none;
-    outline: none;
-    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-}
 
-:deep(.select2-container .select2-selection--single:focus),
-:deep(.select2-container--open .select2-selection--single) {
-    border-color: #86b7fe;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-}
 
-:deep(.select2-container .select2-selection--single .select2-selection__rendered) {
-    color: #212529;
-    font-size: 1rem;
-    font-weight: 400;
-    line-height: 1.5;
-    padding-left: 0.75rem;
-    padding-right: 2rem;
-}
 
-:deep(.select2-container .select2-selection--single .select2-selection__arrow) {
-    height: 36px;
-    right: 8px;
-}
 
-:deep(.select2-dropdown) {
-    border: 1px solid #86b7fe;
-    border-radius: 0.25rem;
-    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
-    font-size: 1rem;
-}
 
 /* ===== BOTONES ===== */
 .btn {

@@ -32,14 +32,10 @@
                         <div class="col-12 col-sm-6 col-md-4 col-lg-3" v-if="isSuperAdmin">
                             <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-company_uuid">Empresa
                                 Propietaria/Asignada</label>
-                            <select id="f-company_uuid" :aria-invalid="!!validationErrors['company_uuid']" :aria-describedby="validationErrors['company_uuid'] ? 'f-company_uuid-error' : undefined" ref="companySelect" v-model="formData.company_uuid" class="form-control w-100"
-                                :class="{ 'is-invalid': validationErrors.company_uuid }">
-                                <option value="">Seleccionar empresa</option>
-                                <option v-for="opt in store.catalogs?.companies || []" :key="opt.uuid"
-                                    :value="opt.uuid">
-                                    {{ opt.business_name || opt.name || opt.company_name }}
-                                </option>
-                            </select>
+                            <PrimeSelect :input-id="'f-company_uuid'" v-model="formData.company_uuid"
+                                :options="store.catalogs?.companies || []" option-value="uuid" option-label="business_name"
+                                placeholder="Seleccionar empresa" showClear filter class="w-100"
+                                :invalid="!!validationErrors['company_uuid']" />
                             <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block" id="f-company_uuid-error" role="alert">{{
                                 validationErrors.company_uuid }}</div>
                         </div>
@@ -121,13 +117,10 @@
 
                         <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                             <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-vehicle_uuid">Vehículo</label>
-                            <select id="f-vehicle_uuid" :aria-invalid="!!validationErrors['vehicle_uuid']" :aria-describedby="validationErrors['vehicle_uuid'] ? 'f-vehicle_uuid-error' : undefined" ref="vehicleSelect" v-model="formData.vehicle_uuid" class="form-control w-100" :disabled="!!wizardUuid"
-                                :class="{ 'is-invalid': validationErrors.vehicle_uuid }">
-                                <option value="">Seleccionar vehículo</option>
-                                <option v-for="opt in uniqueVehicles" :key="opt.uuid" :value="opt.uuid">
-                                    {{ opt.vehicle_license_plate }}
-                                </option>
-                            </select>
+                            <PrimeSelect :input-id="'f-vehicle_uuid'" v-model="formData.vehicle_uuid"
+                                :options="uniqueVehicles" option-value="uuid" option-label="vehicle_license_plate"
+                                placeholder="Seleccionar vehículo" showClear filter class="w-100" :disabled="!!wizardUuid"
+                                :invalid="!!validationErrors['vehicle_uuid']" />
                             <div v-if="validationErrors.vehicle_uuid" class="invalid-feedback d-block" id="f-vehicle_uuid-error" role="alert">{{
                                 validationErrors.vehicle_uuid }}</div>
                         </div>
@@ -148,11 +141,10 @@
 
                         <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                             <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-status">Estado</label>
-                            <select id="f-status" :aria-invalid="!!validationErrors['status']" :aria-describedby="validationErrors['status'] ? 'f-status-error' : undefined" ref="statusSelect" v-model="formData.status" class="form-select w-100"
-                                :class="{ 'is-invalid': validationErrors.status }">
-                                <option value="1">Activo</option>
-                                <option value="0">Inactivo</option>
-                            </select>
+                            <PrimeSelect :input-id="'f-status'" v-model="formData.status"
+                                :options="[{ label: 'Activo', value: '1' }, { label: 'Inactivo', value: '0' }]"
+                                option-label="label" option-value="value" class="w-100"
+                                :invalid="!!validationErrors['status']" />
                             <div v-if="validationErrors.status" class="invalid-feedback d-block" id="f-status-error" role="alert">{{
                                 validationErrors.status }}</div>
                         </div>
@@ -195,13 +187,12 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } from 'vue';
+import { ref, reactive, computed, onMounted, nextTick, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { toast } from '@/utils/toast.js';
 import { useOperationCardsStore } from '../store/operationCards.store.js';
 import { useVehiclesStore } from '@/features/vehicles/store/vehicles.store.js';
 import { usePermissionsStore, useUserStore } from '@store';
-import { useSelect2 } from '@/hooks/useSelect2.js';
 import { useNoAutocomplete } from '@/hooks/useNoAutocomplete.js';
 import BasePageHeader from '@/components/BasePageHeader.vue';
 import BaseFormActions from '@/components/BaseFormActions.vue';
@@ -297,19 +288,6 @@ watch(() => formData.vehicle_uuid, async (newVal) => {
     }
 });
 
-// Refs de Select2
-const statusSelect = ref(null);
-const companySelect = ref(null);
-const vehicleSelect = ref(null);
-
-const selectConfigs = computed(() => [
-    { ref: statusSelect, field: 'status', placeholder: 'Seleccionar estado' },
-    { ref: companySelect, field: 'company_uuid', placeholder: 'Seleccionar empresa' },
-    { ref: vehicleSelect, field: 'vehicle_uuid', placeholder: 'Seleccionar vehículo' },
-]);
-
-const { initSelect2, setValues: setSelect2Values, syncFromSelect2, destroySelect2, applyAllValidations } = useSelect2(formData, validationErrors);
-
 // Sin sugerencias del navegador en el asistente (salvo N° interno)
 const cardFormRef = ref(null);
 useNoAutocomplete(cardFormRef, { except: ['internal_number'] });
@@ -346,14 +324,12 @@ const goBack = () => {
 };
 
 const handleSubmit = async () => {
-    syncFromSelect2(selectConfigs.value);
     // En modo asistente el vehículo queda fijado al que originó el flujo
     if (wizardUuid.value) formData.vehicle_uuid = wizardUuid.value;
 
     if (!validateForm()) {
-        applyAllValidations(selectConfigs.value);
         await nextTick();
-        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid');
         if (firstError) {
             if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(firstError.tagName)) firstError.setAttribute('tabindex', '-1');
             firstError.focus({ preventScroll: true });
@@ -459,16 +435,10 @@ onMounted(async () => {
             }
         }
     } finally {
-        setTimeout(async () => {
-            isViewLoading.value = false;
-            await nextTick();
-            initSelect2(selectConfigs.value);
-            setSelect2Values(selectConfigs.value);
-        }, 400);
+        isViewLoading.value = false;
     }
 });
 
-onUnmounted(() => destroySelect2(selectConfigs.value));
 </script>
 
 <style scoped>

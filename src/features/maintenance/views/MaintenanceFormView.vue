@@ -30,14 +30,10 @@
                         </div>                            
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label required" for="vehicle_uuid">Vehículo</label>
-                                <select id="f-vehicle_uuid" :aria-invalid="!!validationErrors['vehicle_uuid']" :aria-describedby="validationErrors['vehicle_uuid'] ? 'f-vehicle_uuid-error' : undefined" ref="vehicleSelect" v-model="formData.vehicle_uuid" class="form-control select2-input w-100"
-                                    :class="{ 'is-invalid': validationErrors.vehicle_uuid }">
-                                    <option value="">Seleccione...</option>
-                                    <option v-for="opt in store.catalogs.vehicles" :key="opt.uuid" :value="opt.uuid">
-                                        {{ opt.vehicle_license_plate }} {{ opt.internal_number ?
-                                            `(${opt.internal_number})` : '' }}
-                                    </option>
-                                </select>
+                                <PrimeSelect :input-id="'vehicle_uuid'" v-model="formData.vehicle_uuid"
+                                    :options="store.catalogs.vehicles" option-value="uuid"
+                                    option-label="vehicle_license_plate" placeholder="Seleccione..." showClear filter
+                                    class="w-100" :invalid="!!validationErrors['vehicle_uuid']" />
                                 <div v-if="validationErrors.vehicle_uuid" class="invalid-feedback d-block" id="f-vehicle_uuid-error" role="alert">{{
                                     validationErrors.vehicle_uuid }}</div>
                             </div>
@@ -48,11 +44,10 @@
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label" for="transmission_type">Tipo de Transmisión</label>
-                                <select id="f-transmission_type" :aria-invalid="!!validationErrors['transmission_type']" :aria-describedby="validationErrors['transmission_type'] ? 'f-transmission_type-error' : undefined" ref="transmissionTypeSelect" v-model="formData.transmission_type" class="form-control select2-input w-100">
-                                    <option value="">Seleccionar</option>
-                                    <option value="Mecánica">Mecánica</option>
-                                    <option value="Automática">Automática</option>
-                                </select>
+                                <PrimeSelect :input-id="'transmission_type'" v-model="formData.transmission_type"
+                                    :options="[{ label: 'Mecánica', value: 'Mecánica' }, { label: 'Automática', value: 'Automática' }]"
+                                    option-label="label" option-value="value" placeholder="Seleccionar" showClear filter
+                                    class="w-100" :invalid="!!validationErrors['transmission_type']" />
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label" for="number_of_speeds">Número de Velocidades</label>
@@ -61,19 +56,17 @@
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label" for="bearing_type">Tipo de Rodamiento</label>
-                                <select id="f-bearing_type" :aria-invalid="!!validationErrors['bearing_type']" :aria-describedby="validationErrors['bearing_type'] ? 'f-bearing_type-error' : undefined" ref="bearingTypeSelect" v-model="formData.bearing_type" class="form-control select2-input w-100">
-                                    <option value="">Seleccionar</option>
-                                    <option value="4X4">4X4</option>
-                                    <option value="4X2">4X2</option>
-                                </select>
+                                <PrimeSelect :input-id="'bearing_type'" v-model="formData.bearing_type"
+                                    :options="[{ label: '4X4', value: '4X4' }, { label: '4X2', value: '4X2' }]"
+                                    option-label="label" option-value="value" placeholder="Seleccionar" showClear filter
+                                    class="w-100" :invalid="!!validationErrors['bearing_type']" />
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label" for="rear_suspension">Suspensión Trasera</label>
-                                <select id="f-rear_suspension" :aria-invalid="!!validationErrors['rear_suspension']" :aria-describedby="validationErrors['rear_suspension'] ? 'f-rear_suspension-error' : undefined" ref="rearSuspensionSelect" v-model="formData.rear_suspension" class="form-control select2-input w-100">
-                                    <option value="">Seleccionar</option>
-                                    <option value="Muelle">Muelle</option>
-                                    <option value="Amortiguador">Amortiguador</option>
-                                </select>
+                                <PrimeSelect :input-id="'rear_suspension'" v-model="formData.rear_suspension"
+                                    :options="[{ label: 'Muelle', value: 'Muelle' }, { label: 'Amortiguador', value: 'Amortiguador' }]"
+                                    option-label="label" option-value="value" placeholder="Seleccionar" showClear filter
+                                    class="w-100" :invalid="!!validationErrors['rear_suspension']" />
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label" for="number_of_tires">Número de Llantas</label>
@@ -97,11 +90,10 @@
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label" for="rear_brake_type">Frenos Traseros</label>
-                                <select id="f-rear_brake_type" :aria-invalid="!!validationErrors['rear_brake_type']" :aria-describedby="validationErrors['rear_brake_type'] ? 'f-rear_brake_type-error' : undefined" ref="rearBrakeTypeSelect" v-model="formData.rear_brake_type" class="form-control select2-input w-100">
-                                    <option value="">Seleccionar</option>
-                                    <option value="Disco">Disco</option>
-                                    <option value="Tambor">Tambor</option>
-                                </select>
+                                <PrimeSelect :input-id="'rear_brake_type'" v-model="formData.rear_brake_type"
+                                    :options="[{ label: 'Disco', value: 'Disco' }, { label: 'Tambor', value: 'Tambor' }]"
+                                    option-label="label" option-value="value" placeholder="Seleccionar" showClear filter
+                                    class="w-100" :invalid="!!validationErrors['rear_brake_type']" />
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label" for="number_of_windows">Número de Ventanas</label>
@@ -124,13 +116,10 @@
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label required" for="maintenance_type">Tipo de Mantenimiento</label>
-                                <select id="f-maintenance_type" :aria-invalid="!!validationErrors['maintenance_type']" :aria-describedby="validationErrors['maintenance_type'] ? 'f-maintenance_type-error' : undefined" ref="maintenanceTypeSelect" v-model="formData.maintenance_type" class="form-control select2-input w-100"
-                                    :class="{ 'is-invalid': validationErrors.maintenance_type }">
-                                    <option value="">Seleccione...</option>
-                                    <option value="PREVENTIVA">Preventiva</option>
-                                    <option value="CORRECTIVA">Correctiva</option>
-                                    <option value="OTRO">Otro</option>
-                                </select>
+                                <PrimeSelect :input-id="'maintenance_type'" v-model="formData.maintenance_type"
+                                    :options="[{ label: 'Preventiva', value: 'PREVENTIVA' }, { label: 'Correctiva', value: 'CORRECTIVA' }, { label: 'Otro', value: 'OTRO' }]"
+                                    option-label="label" option-value="value" placeholder="Seleccione..." showClear filter
+                                    class="w-100" :invalid="!!validationErrors['maintenance_type']" />
                                 <div v-if="validationErrors.maintenance_type" class="invalid-feedback d-block" id="f-maintenance_type-error" role="alert">{{
                                     validationErrors.maintenance_type }}</div>
                             </div>
@@ -155,13 +144,10 @@
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label required" for="status">Estado</label>
-                                <select id="f-status" :aria-invalid="!!validationErrors['status']" :aria-describedby="validationErrors['status'] ? 'f-status-error' : undefined" ref="statusSelect" v-model="formData.status" class="form-control select2-input w-100"
-                                    :class="{ 'is-invalid': validationErrors.status }">
-                                    <option value="">Seleccione...</option>
-                                    <option value="Pendiente">Pendiente</option>
-                                    <option value="Finalizado">Finalizado</option>
-                                    <option value="Anulado">Anulado</option>
-                                </select>
+                                <PrimeSelect :input-id="'status'" v-model="formData.status"
+                                    :options="[{ label: 'Pendiente', value: 'Pendiente' }, { label: 'Finalizado', value: 'Finalizado' }, { label: 'Anulado', value: 'Anulado' }]"
+                                    option-label="label" option-value="value" placeholder="Seleccione..." showClear filter
+                                    class="w-100" :invalid="!!validationErrors['status']" />
                                 <div v-if="validationErrors.status" class="invalid-feedback d-block" id="f-status-error" role="alert">{{
                                     validationErrors.status }}</div>
                             </div>
@@ -216,12 +202,10 @@
                             <input type="hidden" v-if="!isSuperAdmin" v-model="formData.company_uuid" />
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3" v-if="isSuperAdmin">
                                 <label class="form-label required" for="company_uuid">Empresa</label>
-                                <select id="f-company_uuid" :aria-invalid="!!validationErrors['company_uuid']" :aria-describedby="validationErrors['company_uuid'] ? 'f-company_uuid-error' : undefined" ref="companySelect" v-model="formData.company_uuid" class="form-control select2-input w-100"
-                                    :class="{ 'is-invalid': validationErrors.company_uuid }">
-                                    <option value="">Seleccione...</option>
-                                    <option v-for="opt in store.catalogs.companies" :key="opt.uuid" :value="opt.uuid">{{
-                                        opt.business_name || opt.name }}</option>
-                                </select>
+                                <PrimeSelect :input-id="'company_uuid'" v-model="formData.company_uuid"
+                                    :options="store.catalogs.companies" option-value="uuid"
+                                    :option-label="(opt) => opt.business_name || opt.name" placeholder="Seleccione..."
+                                    showClear filter class="w-100" :invalid="!!validationErrors['company_uuid']" />
                                 <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block" id="f-company_uuid-error" role="alert">{{
                                     validationErrors.company_uuid }}</div>
                             </div>
@@ -283,13 +267,11 @@
                                                         type="number" step="0.01" autocomplete="off" />
                                                 </td>
                                                 <td>
-                                                    <select v-model="part.provider_uuid" class="form-select form-select-sm w-100">
-                                                        <option value="">Ninguno</option>
-                                                        <option v-for="opt in store.catalogs.thirdParties"
-                                                            :key="opt.uuid" :value="opt.uuid">{{ opt.first_name ||
-                                                                opt.trade_name }}
-                                                        </option>
-                                                    </select>
+                                                    <PrimeSelect v-model="part.provider_uuid"
+                                                        :input-id="`f-parts-${index}-provider_uuid`"
+                                                        :options="store.catalogs.thirdParties" option-value="uuid"
+                                                        :option-label="(opt) => opt.first_name || opt.trade_name"
+                                                        placeholder="Ninguno" showClear filter class="w-100" />
                                                 </td>
                                                 <td>
                                                     <input v-model="part.notes" class="form-control form-control-sm"
@@ -332,12 +314,11 @@
 
 <script setup>
 import { toast } from '@/utils/toast.js';
-import { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } from 'vue';
+import { ref, reactive, computed, onMounted, nextTick, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import apiClient from '@/services/api/client.js';
 import { useMaintenanceStore } from '../store/maintenance.store.js';
 import { usePermissionsStore, useUserStore } from '@store';
-import { useSelect2 } from '@/hooks/useSelect2.js';
 import BasePageHeader from '@/components/BasePageHeader.vue';
 import BaseFormActions from '@/components/BaseFormActions.vue';
 import Swal from 'sweetalert2';
@@ -391,29 +372,6 @@ const formData = reactive({
     parts: []
 });
 
-// Refs de Select2
-const companySelect = ref(null);
-const vehicleSelect = ref(null);
-const maintenanceTypeSelect = ref(null);
-const statusSelect = ref(null);
-const transmissionTypeSelect = ref(null);
-const bearingTypeSelect = ref(null);
-const rearSuspensionSelect = ref(null);
-const rearBrakeTypeSelect = ref(null);
-
-const selectConfigs = computed(() => [
-    { ref: companySelect, field: 'company_uuid', placeholder: 'Seleccionar empresa' },
-    { ref: vehicleSelect, field: 'vehicle_uuid', placeholder: 'Seleccionar vehículo' },
-    { ref: maintenanceTypeSelect, field: 'maintenance_type', placeholder: 'Tipo de mantenimiento' },
-    { ref: statusSelect, field: 'status', placeholder: 'Seleccionar estado' },
-    { ref: transmissionTypeSelect, field: 'transmission_type', placeholder: 'Seleccionar tipo de transmisión' },
-    { ref: bearingTypeSelect, field: 'bearing_type', placeholder: 'Seleccionar tipo de rodamiento' },
-    { ref: rearSuspensionSelect, field: 'rear_suspension', placeholder: 'Seleccionar suspensión trasera' },
-    { ref: rearBrakeTypeSelect, field: 'rear_brake_type', placeholder: 'Seleccionar frenos traseros' }
-]);
-
-const { initSelect2, setValues: setSelect2Values, syncFromSelect2, destroySelect2, applyAllValidations } = useSelect2(formData, validationErrors);
-
 const addPart = () => {
     formData.parts.push({
         part_name: '',
@@ -455,8 +413,6 @@ watch(() => formData.vehicle_uuid, async (newVal, oldVal) => {
                 formData.front_brake_type = vehicleData.front_brake_type || '';
                 formData.rear_brake_type = vehicleData.rear_brake_type || '';
                 formData.number_of_windows = vehicleData.number_of_windows || '';
-
-                setSelect2Values(selectConfigs.value);
             }
         } catch (err) {
             console.error('Error fetching vehicle technical details:', err);
@@ -502,12 +458,9 @@ const partsErrorMessages = computed(() => {
 const goBack = () => router.push('/mantenimiento');
 
 const handleSubmit = async () => {
-    syncFromSelect2(selectConfigs.value);
-
     if (!validateForm()) {
-        applyAllValidations(selectConfigs.value);
         await nextTick();
-        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid');
         if (firstError) {
             if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(firstError.tagName)) firstError.setAttribute('tabindex', '-1');
             firstError.focus({ preventScroll: true });
@@ -580,16 +533,9 @@ onMounted(async () => {
             formData.maintenance_date = new Date().toISOString().substring(0, 10);
         }
     } finally {
-        setTimeout(async () => {
-            isViewLoading.value = false;
-            await nextTick();
-            initSelect2(selectConfigs.value);
-            setSelect2Values(selectConfigs.value);
-        }, 400);
+        isViewLoading.value = false;
     }
 });
-
-onUnmounted(() => destroySelect2(selectConfigs.value));
 </script>
 
 <style scoped>
@@ -626,13 +572,7 @@ onUnmounted(() => destroySelect2(selectConfigs.value));
 }
 
 /* ==================== SELECT2 VALIDATION ==================== */
-:deep(.is-invalid-select2 .select2-selection) {
-    border-color: #dc3545 !important;
-}
 
-:deep(.is-valid-select2 .select2-selection) {
-    border-color: #198754 !important;
-}
 
 .invalid-feedback {
     display: block;
@@ -643,45 +583,10 @@ onUnmounted(() => destroySelect2(selectConfigs.value));
 }
 
 /* ==================== SELECT2 UI FIXES ==================== */
-:deep(.select2-container .select2-selection--single) {
-    height: 38px;
-    border: 1px solid #ced4da;
-    border-radius: 0.25rem;
-    background-color: #fff;
-    display: flex;
-    align-items: center;
-    padding: 0;
-    box-shadow: none;
-    outline: none;
-    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-}
 
-:deep(.select2-container .select2-selection--single:focus),
-:deep(.select2-container--open .select2-selection--single) {
-    border-color: #86b7fe;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-}
 
-:deep(.select2-container .select2-selection--single .select2-selection__rendered) {
-    color: #212529;
-    font-size: 1rem;
-    font-weight: 400;
-    line-height: 1.5;
-    padding-left: 0.75rem;
-    padding-right: 2rem;
-}
 
-:deep(.select2-container .select2-selection--single .select2-selection__arrow) {
-    height: 36px;
-    right: 8px;
-}
 
-:deep(.select2-dropdown) {
-    border: 1px solid #86b7fe;
-    border-radius: 0.25rem;
-    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
-    font-size: 1rem;
-}
 
 /* ===== BOTONES ===== */
 .btn {

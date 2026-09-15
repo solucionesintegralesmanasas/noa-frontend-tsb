@@ -68,13 +68,9 @@ export default defineConfig(({ mode }) => {
             if (id.includes('node_modules/dayjs') || id.includes('node_modules/vue-i18n')) {
               return 'vendor-utils';
             }
-            // Alertas, firmas y legacy UI (cargan bajo demanda)
+            // Alertas y firmas (cargan bajo demanda)
             if (id.includes('node_modules/sweetalert2') || id.includes('node_modules/signature_pad') || id.includes('node_modules/vue-toastification')) {
               return 'vendor-feedback';
-            }
-            // UI utilities
-            if (id.includes('node_modules/select2') || id.includes('node_modules/jquery')) {
-              return 'vendor-ui';
             }
           }
         }

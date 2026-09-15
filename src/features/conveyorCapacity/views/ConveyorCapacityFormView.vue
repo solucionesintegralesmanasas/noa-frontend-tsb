@@ -28,14 +28,10 @@
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label required" for="enabling_resolution_uuid">Resolución
                                     Habilitante</label>
-                                <select id="f-enabling_resolution_uuid" :aria-invalid="!!validationErrors['enabling_resolution_uuid']" :aria-describedby="validationErrors['enabling_resolution_uuid'] ? 'f-enabling_resolution_uuid-error' : undefined" ref="resolutionSelect" v-model="formData.enabling_resolution_uuid" class="form-control select2-input w-100"
-                                    :class="{ 'is-invalid': validationErrors.enabling_resolution_uuid }">
-                                    <option value="">Seleccione una resolución...</option>
-                                    <option v-for="opt in store.catalogs.enabling_resolutions" :key="opt.uuid"
-                                        :value="opt.uuid">
-                                        {{ opt.resolution_number }}
-                                    </option>
-                                </select>
+                                <PrimeSelect :input-id="'f-enabling_resolution_uuid'" v-model="formData.enabling_resolution_uuid"
+                                    :options="store.catalogs.enabling_resolutions" option-value="uuid" option-label="resolution_number"
+                                    placeholder="Seleccione una resolución..." showClear filter class="w-100"
+                                    :invalid="!!validationErrors.enabling_resolution_uuid" />
                                 <div v-if="validationErrors.enabling_resolution_uuid" class="invalid-feedback d-block" id="f-enabling_resolution_uuid-error" role="alert">
                                     {{ validationErrors.enabling_resolution_uuid }}
                                 </div>
@@ -55,11 +51,10 @@
                                 <label class="form-label required" for="statusSelect">
                                     Estado de Habilitación
                                 </label>
-                                <select id="f-status" :aria-invalid="!!validationErrors['status']" :aria-describedby="validationErrors['status'] ? 'f-status-error' : undefined" ref="statusSelect" v-model="formData.status" class="form-control select2-input w-100"
-                                    :class="{ 'is-invalid': validationErrors.status }">
-                                    <option value="1">Habilitado</option>
-                                    <option value="0">Deshabilitado</option>
-                                </select>
+                                <PrimeSelect :input-id="'f-status'" v-model="formData.status"
+                                    :options="[{ label: 'Habilitado', value: '1' }, { label: 'Deshabilitado', value: '0' }]"
+                                    option-label="label" option-value="value" class="w-100"
+                                    :invalid="!!validationErrors.status" />
                                 <div v-if="validationErrors.status" class="invalid-feedback d-block" id="f-status-error" role="alert">
                                     {{ validationErrors.status }}
                                 </div>
@@ -155,11 +150,10 @@ import { toast } from '@/utils/toast.js';
  * @module conveyorCapacity/FormView
  */
 
-import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, reactive, computed, onMounted, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useConveyorCapacityStore } from '../store/conveyorCapacity.store.js';
 import { usePermissionsStore } from '@store';
-import { useSelect2 } from '@/hooks/useSelect2.js';
 import BasePageHeader from '@/components/BasePageHeader.vue';
 import BaseFormActions from '@/components/BaseFormActions.vue';
 
@@ -216,34 +210,6 @@ const formData = reactive({
 });
 
 /**
- * Referencias a los elementos Select2 del formulario.
- * @type {import('vue').Ref<HTMLSelectElement|null>}
- */
-const resolutionSelect = ref(null);
-const statusSelect = ref(null);
-
-/**
- * Configuración de los controles Select2.
- * Cada entrada vincula la referencia del DOM, el campo del formData y el placeholder.
- * @type {import('vue').ComputedRef<Array<Object>>}
- */
-const selectConfigs = computed(() => [
-    { ref: resolutionSelect, field: 'enabling_resolution_uuid', placeholder: 'Seleccione una resolución...' },
-    { ref: statusSelect, field: 'status', placeholder: 'Seleccionar estado' },
-]);
-
-/**
- * Hook de Select2 que provee métodos para inicializar, sincronizar y destruir los controles.
- * @type {Object}
- * @property {Function} initSelect2 - Inicializa todos los Select2.
- * @property {Function} setValues - Establece valores desde formData a los Select2.
- * @property {Function} syncFromSelect2 - Sincroniza valores de Select2 a formData.
- * @property {Function} destroySelect2 - Destruye todas las instancias de Select2.
- * @property {Function} applyAllValidations - Aplica clases de validación a los Select2.
- */
-const { initSelect2, setValues: setSelect2Values, syncFromSelect2, destroySelect2, applyAllValidations } = useSelect2(formData, validationErrors);
-
-/**
  * Valida los campos obligatorios del formulario.
  * Para campos numéricos usa comparación explícita contra '', null y undefined.
  * @returns {boolean} True si el formulario es válido.
@@ -289,12 +255,9 @@ const goBack = () => router.push('/empresas/capacidad-transportadora');
  * @returns {Promise<void>}
  */
 const handleSubmit = async () => {
-    syncFromSelect2(selectConfigs.value);
-
     if (!validateForm()) {
-        applyAllValidations(selectConfigs.value);
         await nextTick();
-        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid');
         if (firstError) {
             if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(firstError.tagName)) firstError.setAttribute('tabindex', '-1');
             firstError.focus({ preventScroll: true });
@@ -323,7 +286,7 @@ const handleSubmit = async () => {
 };
 
 /**
- * Hook del ciclo de vida: carga catálogos, datos del registro (si edita) e inicializa Select2.
+ * Hook del ciclo de vida: carga catálogos y datos del registro (si edita).
  */
 onMounted(async () => {
     isViewLoading.value = true;
@@ -343,19 +306,9 @@ onMounted(async () => {
             }
         }
     } finally {
-        setTimeout(async () => {
-            isViewLoading.value = false;
-            await nextTick();
-            initSelect2(selectConfigs.value);
-            setSelect2Values(selectConfigs.value);
-        }, 400);
+        isViewLoading.value = false;
     }
 });
-
-/**
- * Hook del ciclo de vida: destruye instancias de Select2 al desmontar.
- */
-onUnmounted(() => destroySelect2(selectConfigs.value));
 </script>
 
 <style scoped>
@@ -392,13 +345,7 @@ onUnmounted(() => destroySelect2(selectConfigs.value));
 }
 
 /* ==================== SELECT2 VALIDATION ==================== */
-:deep(.is-invalid-select2 .select2-selection) {
-    border-color: #dc3545 !important;
-}
 
-:deep(.is-valid-select2 .select2-selection) {
-    border-color: #198754 !important;
-}
 
 .invalid-feedback {
     display: block;
@@ -409,45 +356,10 @@ onUnmounted(() => destroySelect2(selectConfigs.value));
 }
 
 /* ==================== SELECT2 UI FIXES ==================== */
-:deep(.select2-container .select2-selection--single) {
-    height: 38px;
-    border: 1px solid #ced4da;
-    border-radius: 0.25rem;
-    background-color: #fff;
-    display: flex;
-    align-items: center;
-    padding: 0;
-    box-shadow: none;
-    outline: none;
-    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-}
 
-:deep(.select2-container .select2-selection--single:focus),
-:deep(.select2-container--open .select2-selection--single) {
-    border-color: #86b7fe;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-}
 
-:deep(.select2-container .select2-selection--single .select2-selection__rendered) {
-    color: #212529;
-    font-size: 1rem;
-    font-weight: 400;
-    line-height: 1.5;
-    padding-left: 0.75rem;
-    padding-right: 2rem;
-}
 
-:deep(.select2-container .select2-selection--single .select2-selection__arrow) {
-    height: 36px;
-    right: 8px;
-}
 
-:deep(.select2-dropdown) {
-    border: 1px solid #86b7fe;
-    border-radius: 0.25rem;
-    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
-    font-size: 1rem;
-}
 
 /* ===== BOTONES ===== */
 .btn {
