@@ -10,19 +10,13 @@
   <title>NOA Transportes</title>
 
   <!-- Falcon Config -->
-  <script src="/assets/js/config.js"></script>
-  <script src="/vendors/simplebar/simplebar.min.js"></script>
+  <script src="/assets/js/config.js" defer></script>
+  <script src="/vendors/simplebar/simplebar.min.js" defer></script>
 
   <!-- Falcon Theme Styles -->
-  <link href="/vendors/jquery-toast-plugin/jquery.toast.min.css" rel="stylesheet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
-  <link
-    href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,500,600,700%7cPoppins:300,400,500,600,700,800,900&amp;display=swap"
-    rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Serif+Display:ital@0;1&family=Open+Sans:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="/vendors/simplebar/simplebar.min.css" rel="stylesheet" />
   <link href="/vendors/FontAwesome-pro/css/all.min.css" rel="stylesheet" />
   <link href="/assets/css/theme.min.css" rel="stylesheet" id="style-default">
@@ -140,12 +134,12 @@
   </main>
   <script type="module" src="/src/main.js"></script>
 
-  <!-- Falcon Scripts -->
-  <script src="/vendors/popper/popper.min.js"></script>
-  <script src="/vendors/bootstrap/bootstrap.min.js"></script>
-  <script src="/vendors/anchorjs/anchor.min.js"></script>
-  <script src="/vendors/is/is.min.js"></script>
-  <script src="/vendors/lodash/lodash.min.js"></script>
+  <!-- Falcon Scripts (diferidos: no bloquean el parser, mantienen orden) -->
+  <script src="/vendors/popper/popper.min.js" defer></script>
+  <script src="/vendors/bootstrap/bootstrap.min.js" defer></script>
+  <script src="/vendors/anchorjs/anchor.min.js" defer></script>
+  <script src="/vendors/is/is.min.js" defer></script>
+  <script src="/vendors/lodash/lodash.min.js" defer></script>
   <script>
     // Vue administra los nodos <i>; Font Awesome no debe sustituirlos por SVG.
     window.FontAwesomeConfig = {
@@ -153,8 +147,8 @@
       observeMutations: false
     };
   </script>
-  <script src="/vendors/fontawesome/all.min.js"></script>
-  <script src="/assets/js/theme.js"></script>
+  <script src="/vendors/fontawesome/all.min.js" defer></script>
+  <script src="/assets/js/theme.js" defer></script>
 </body>
 
 </html>

@@ -1,33 +1,40 @@
-import Swal from 'sweetalert2';
+// SweetAlert2 se carga de forma diferida para no bloquear el arranque:
+// el primer toast importa el chunk bajo demanda y lo reutiliza después.
+let ToastPromise = null;
 
-const Toast = Swal.mixin({
-    toast: true,
-    position: 'top-end',
-    showConfirmButton: false,
-    timer: 3000,
-    timerProgressBar: true,
-    showClass: { popup: 'toast-slide-in' },
-    hideClass: { popup: 'toast-slide-out' },
-    customClass: { popup: 'toast-thin', timerProgressBar: 'toast-thin-bar' },
-    didOpen: (t) => {
-        if (t) {
-            t.onmouseenter = () => {
-                try {
-                    if (typeof Swal.stopTimer === 'function') Swal.stopTimer();
-                } catch {
-                    // Ignorar error si el timer ya se cerró
+function getToast() {
+    if (!ToastPromise) {
+        ToastPromise = import('sweetalert2').then(({ default: Swal }) => Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            showClass: { popup: 'toast-slide-in' },
+            hideClass: { popup: 'toast-slide-out' },
+            customClass: { popup: 'toast-thin', timerProgressBar: 'toast-thin-bar' },
+            didOpen: (t) => {
+                if (t) {
+                    t.onmouseenter = () => {
+                        try {
+                            if (typeof Swal.stopTimer === 'function') Swal.stopTimer();
+                        } catch {
+                            // Ignorar error si el timer ya se cerró
+                        }
+                    };
+                    t.onmouseleave = () => {
+                        try {
+                            if (typeof Swal.resumeTimer === 'function') Swal.resumeTimer();
+                        } catch {
+                            // Ignorar error si el timer ya se cerró
+                        }
+                    };
                 }
-            };
-            t.onmouseleave = () => {
-                try {
-                    if (typeof Swal.resumeTimer === 'function') Swal.resumeTimer();
-                } catch {
-                    // Ignorar error si el timer ya se cerró
-                }
-            };
-        }
+            }
+        }));
     }
-});
+    return ToastPromise;
+}
 
 let lastToastKey = '';
 let lastToastTime = 0;
@@ -38,7 +45,7 @@ let lastToastTime = 0;
  * @param {string} text - Descripción del mensaje.
  * @param {string} icon - Ícono (success, error, warning, info, question).
  */
-export const toast = (title, text, icon = 'info') => {
+export const toast = async (title, text, icon = 'info') => {
     const key = `${title || ''}:${text || ''}:${icon}`;
     const now = Date.now();
     // Evitar ráfagas de toasts idénticos en menos de 800ms
@@ -62,6 +69,7 @@ export const toast = (title, text, icon = 'info') => {
     }
 
     try {
+        const Toast = await getToast();
         const result = Toast.fire({
             icon: icon,
             title: cleanTitle,

@@ -43,7 +43,8 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: 'dist',
       emptyOutDir: true,
-      chunkSizeWarningLimit: 600,
+      chunkSizeWarningLimit: 500,
+      reportCompressedSize: false,
       rollupOptions: {
         output: {
           manualChunks(id) {
@@ -55,8 +56,8 @@ export default defineConfig(({ mode }) => {
             if (id.includes('node_modules/primevue') || id.includes('node_modules/@primeuix') || id.includes('node_modules/primeicons')) {
               return 'vendor-primevue';
             }
-            // HTTP + seguridad
-            if (id.includes('node_modules/axios') || id.includes('node_modules/crypto-js')) {
+            // HTTP (axios; crypto-js sin uso en src, fuera del bundle inicial)
+            if (id.includes('node_modules/axios')) {
               return 'vendor-http';
             }
             // Capacitor nativo (no crítico en web)

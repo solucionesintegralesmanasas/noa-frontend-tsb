@@ -104,13 +104,13 @@ export async function registerPlugins(app) {
 }
 
 /**
- * Espera la hidratación de estados persistidos (máximo 2s).
+ * Espera la hidratación de estados persistidos (máximo 1s).
  * Usa watch de Vue para detectar cambios reactivos de forma inmediata y no quemar CPU.
  * @param {Object} store - Instancia del store de Pinia.
- * @param {number} [timeoutMs=2000] - Tiempo de espera máximo en milisegundos.
+ * @param {number} [timeoutMs=1000] - Tiempo de espera máximo en milisegundos.
  * @returns {Promise<void>}
  */
-async function waitForStoreHydration(store, timeoutMs = 2000) {
+async function waitForStoreHydration(store, timeoutMs = 1000) {
     if (!store || store.isHydrated) return;
 
     return new Promise((resolve) => {
@@ -153,7 +153,10 @@ function inicializarMonitoreoConectividad() {
         if (online && reachable) logger.info("Conexión restaurada");
         else logger.warn("Conexión perdida");
     });
-    verifyConnection().catch(err => logger.warn("Error en chequeo de conectividad", err));
+    // Chequeo inicial diferido: no bloquea el primer pintado
+    setTimeout(() => {
+        verifyConnection().catch(err => logger.warn("Error en chequeo de conectividad", err));
+    }, 2500);
 }
 
 /**
