@@ -21,7 +21,7 @@
                             <i class="fad fa-search text-muted" />
                         </span>
                         <input v-model="searchQuery" class="form-control form-control-sm border-start-0 shadow-none"
-                            type="search" placeholder="Buscar..." @input="debouncedSearch" />
+                            type="search" placeholder="Buscar..." aria-label="Buscar tercero" @input="debouncedSearch" />
                         <button v-if="searchQuery" class="btn btn-outline-secondary border-start-0" type="button"
                             title="Limpiar búsqueda" @click="clearSearch">
                             <i class="fad fa-times" />
@@ -130,16 +130,16 @@
                                 <template #body="{ data }">
                                     <div class="btn-group btn-group-sm" role="group">
                                         <button v-if="canView" class="btn btn-falcon-default" type="button"
-                                            title="Ver detalle" @click="goToDetail(data.uuid)">
+                                            title="Ver detalle" :aria-label="`Ver detalle de ${data.trade_name}`" @click="goToDetail(data.uuid)">
                                             <i class="fad fa-eye text-primary" style="font-size:14px;" />
                                         </button>
                                         <button v-if="canUpdate" class="btn btn-falcon-default" type="button"
-                                            title="Editar" @click="goToEdit(data.uuid)">
+                                            title="Editar" :aria-label="`Editar ${data.trade_name}`" @click="goToEdit(data.uuid)">
                                             <i class="fad fa-edit text-warning" style="font-size:14px;" />
                                         </button>
                                         <button
                                             v-if="store.typeFilter === 'is_driver' || data.is_driver || (data.roles && data.roles.includes('is_driver'))"
-                                            class="btn btn-falcon-default" type="button" title="Gestión de Licencias"
+                                            class="btn btn-falcon-default" type="button" title="Gestión de Licencias" :aria-label="`Gestionar licencias de ${data.trade_name}`"
                                             @click="openLicensesModal(data.uuid, data.company_uuid)">
                                             <!-- Icono dinámico basado en las licencias cargadas (eager loaded) -->
                                             <i v-if="!data.driver_licenses || data.driver_licenses.length === 0"
@@ -153,24 +153,24 @@
                                         </button>
                                         <button
                                             v-if="store.typeFilter === 'is_driver' || store.typeFilter === 'is_employee' || data.is_driver || data.is_employee"
-                                            class="btn btn-falcon-default" type="button" title="Seguridad Social"
+                                            class="btn btn-falcon-default" type="button" title="Seguridad Social" :aria-label="`Seguridad social de ${data.trade_name}`"
                                             @click="openSocialSecurityModal(data.uuid, data.company_uuid)">
                                             <i class="fad fa-shield-alt text-success" style="font-size:14px;" />
                                         </button>
                                         <button
                                             v-if="store.typeFilter === 'is_driver' || data.is_driver || (data.roles && data.roles.includes('is_driver'))"
-                                            class="btn btn-falcon-default" type="button" title="Ver Ficha Técnica"
+                                            class="btn btn-falcon-default" type="button" title="Ver Ficha Técnica" :aria-label="`Ver ficha técnica de ${data.trade_name}`"
                                             @click="goToTechnicalSheet(data.uuid, data.company_uuid)">
                                             <i class="fad fa-file-pdf text-danger" style="font-size:14px;" />
                                         </button>
                                         <button
                                             v-if="store.typeFilter === 'is_driver' || data.is_driver || (data.roles && data.roles.includes('is_driver'))"
-                                            class="btn btn-falcon-default" type="button" title="Proyectos"
+                                            class="btn btn-falcon-default" type="button" title="Proyectos" :aria-label="`Proyectos de ${data.trade_name}`"
                                             @click="goToProjects(data)">
                                             <i class="fad fa-briefcase text-primary" style="font-size:14px;" />
                                         </button>
                                         <button v-if="canDelete" class="btn btn-falcon-default" type="button"
-                                            title="Eliminar" @click="handleDelete(data)">
+                                            title="Eliminar" :aria-label="`Eliminar ${data.trade_name}`" @click="handleDelete(data)">
                                             <i class="fad fa-trash text-danger" style="font-size:14px;" />
                                         </button>
                                     </div>
@@ -197,7 +197,7 @@
                         <i class="fad fa-id-card me-2" />Historial de Licencias del Conductor
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Close" />
+                        aria-label="Cerrar" />
                 </div>
                 <div class="modal-body p-0">
                     <!-- Formulario nueva licencia / edición -->
@@ -345,7 +345,7 @@
                         <i class="fad fa-shield-alt me-2" />Seguridad Social (PILA)
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Close" />
+                        aria-label="Cerrar" />
                 </div>
                 <div class="modal-body p-0">
                     <!-- Botón para mostrar formulario -->

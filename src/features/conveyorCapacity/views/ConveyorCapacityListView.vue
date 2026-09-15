@@ -22,7 +22,7 @@
                         </span>
                         <input v-model="searchQuery" class="form-control form-control-sm border-start-0 shadow-none"
                             type="search" placeholder="Buscar por tipo de vehículo o resolución..."
-                            @input="debouncedSearch" />
+                            aria-label="Buscar capacidad de arrastre" @input="debouncedSearch" />
                         <button v-if="searchQuery" class="btn btn-outline-secondary border-start-0" type="button"
                             title="Limpiar búsqueda" @click="clearSearch">
                             <i class="fad fa-times" />
@@ -160,11 +160,11 @@
                                 <template #body="{ data }">
                                     <div class="btn-group btn-group-sm" role="group">
                                         <button v-if="can('conveyor_capacities.update')" class="btn btn-falcon-default"
-                                            type="button" title="Editar" @click="goToEdit(data.uuid)">
+                                            type="button" title="Editar" :aria-label="`Editar ${data.vehicle_type}`" @click="goToEdit(data.uuid)">
                                             <i class="fad fa-edit text-warning" style="font-size:14px;" />
                                         </button>
                                         <button v-if="can('conveyor_capacities.delete')" class="btn btn-falcon-default"
-                                            type="button" title="Eliminar" @click="handleDelete(data)">
+                                            type="button" title="Eliminar" :aria-label="`Eliminar ${data.vehicle_type}`" @click="handleDelete(data)">
                                             <i class="fad fa-trash text-danger" style="font-size:14px;" />
                                         </button>
                                     </div>

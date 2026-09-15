@@ -19,7 +19,7 @@
                             <i class="fad fa-search text-muted" />
                         </span>
                         <input v-model="searchQuery" class="form-control form-control-sm border-start-0 shadow-none"
-                            type="search" placeholder="Buscar..." @input="debouncedSearch" />
+                            type="search" placeholder="Buscar..." aria-label="Buscar mantenimiento" @input="debouncedSearch" />
                         <button v-if="searchQuery" class="btn btn-outline-secondary border-start-0" type="button"
                             title="Limpiar búsqueda" @click="clearSearch">
                             <i class="fad fa-times" />
@@ -125,11 +125,11 @@
                                                 </div>
                                                 <div class="d-flex justify-content-end gap-1 mt-1">
                                                     <button v-if="can('maintenance.update')" class="btn btn-sm btn-falcon-default py-0 px-2"
-                                                        type="button" title="Editar" @click="goToEdit(m.uuid)">
+                                                        type="button" title="Editar" :aria-label="`Editar ${m.service_description}`" @click="goToEdit(m.uuid)">
                                                         <i class="fad fa-edit text-warning" style="font-size:11px;" />
                                                     </button>
                                                     <button v-if="can('maintenance.delete')" class="btn btn-sm btn-falcon-default py-0 px-2"
-                                                        type="button" title="Eliminar" @click="handleDelete(m)">
+                                                        type="button" title="Eliminar" :aria-label="`Eliminar ${m.service_description}`" @click="handleDelete(m)">
                                                         <i class="fad fa-trash text-danger" style="font-size:11px;" />
                                                     </button>
                                                 </div>
@@ -143,7 +143,7 @@
                                 <template #body="{ data }">
                                     <div class="btn-group btn-group-sm" role="group">
                                         <button v-if="data.vehicle" class="btn btn-falcon-default"
-                                            type="button" title="Mantenimiento PDF" @click="downloadMaintenanceHistoryPdf(data.vehicle)">
+                                            type="button" title="Mantenimiento PDF" :aria-label="`Descargar PDF de mantenimiento de ${data.vehicle?.vehicle_license_plate}`" @click="downloadMaintenanceHistoryPdf(data.vehicle)">
                                             <i class="fad fa-tools text-success" style="font-size:14px;" />
                                         </button>
                                     </div>

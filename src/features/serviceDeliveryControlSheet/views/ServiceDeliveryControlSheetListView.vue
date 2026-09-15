@@ -57,7 +57,7 @@
                         </span>
                         <input v-model="searchQuery" class="form-control form-control-sm border-start-0 shadow-none"
                             type="search" placeholder="Buscar por ruta, vehículo, conductor..."
-                            @input="debouncedSearch" />
+                            aria-label="Buscar hoja de control" @input="debouncedSearch" />
                         <button v-if="searchQuery" class="btn btn-outline-secondary border-start-0" type="button"
                             title="Limpiar" @click="clearSearch">
                             <i class="fad fa-times" />
@@ -195,11 +195,11 @@
                                 <template #body="{ data }">
                                     <div class="btn-group btn-group-sm" role="group">
                                         <button v-if="permissions.view" class="btn btn-falcon-default" type="button"
-                                            title="Ver detalle" @click="goToDetail(data.uuid)">
+                                            title="Ver detalle" :aria-label="`Ver detalle de ${data.vehicle_license_plate}`" @click="goToDetail(data.uuid)">
                                             <i class="fad fa-eye text-primary" style="font-size:14px;" />
                                         </button>
                                         <button class="btn btn-falcon-default" type="button"
-                                            title="Descargar PDF Diario" @click="downloadDaily(data.uuid)"
+                                            title="Descargar PDF Diario" :aria-label="`Descargar PDF diario de ${data.vehicle_license_plate}`" @click="downloadDaily(data.uuid)"
                                             :disabled="downloadingDaily === data.uuid">
                                             <span v-if="downloadingDaily === data.uuid"
                                                 class="spinner-border spinner-border-sm text-danger"
@@ -207,7 +207,7 @@
                                             <i v-else class="fad fa-file-pdf text-danger" style="font-size:14px;" />
                                         </button>
                                         <button v-if="canShareCoordinatorLink && !isServicioCerrado(data)" class="btn btn-falcon-default" type="button"
-                                            title="Compartir firma del coordinador (1 hora)" @click="shareCoordinatorLink(data.uuid)"
+                                            title="Compartir firma del coordinador (1 hora)" :aria-label="`Compartir firma del coordinador de ${data.vehicle_license_plate}`" @click="shareCoordinatorLink(data.uuid)"
                                             :disabled="sharingLink === data.uuid">
                                             <span v-if="sharingLink === data.uuid"
                                                 class="spinner-border spinner-border-sm text-primary"
@@ -215,15 +215,15 @@
                                             <i v-else class="fad fa-share-alt text-primary" style="font-size:14px;" />
                                         </button>
                                         <button v-if="!isServicioCerrado(data)" class="btn btn-falcon-default" type="button"
-                                            title="Continuar servicio" @click="goToControl(data.uuid)">
+                                            title="Continuar servicio" :aria-label="`Continuar servicio de ${data.vehicle_license_plate}`" @click="goToControl(data.uuid)">
                                             <i class="fad fa-steering-wheel text-success" style="font-size:14px;" />
                                         </button>
                                         <button v-if="permissions.edit && !isServicioCerrado(data)" class="btn btn-falcon-default" type="button"
-                                            title="Editar" @click="goToEdit(data.uuid)">
+                                            title="Editar" :aria-label="`Editar ${data.vehicle_license_plate}`" @click="goToEdit(data.uuid)">
                                             <i class="fad fa-edit text-warning" style="font-size:14px;" />
                                         </button>
                                         <button v-if="permissions.delete && !isServicioCerrado(data)" class="btn btn-falcon-default" type="button"
-                                            title="Eliminar" @click="handleDelete(data)">
+                                            title="Eliminar" :aria-label="`Eliminar ${data.vehicle_license_plate}`" @click="handleDelete(data)">
                                             <i class="fad fa-trash text-danger" style="font-size:14px;" />
                                         </button>
                                     </div>

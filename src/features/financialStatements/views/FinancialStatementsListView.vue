@@ -21,7 +21,7 @@
                             <i class="fad fa-search text-muted" />
                         </span>
                         <input v-model="searchQuery" class="form-control form-control-sm border-start-0 shadow-none"
-                            type="search" placeholder="Buscar por empresa o año..." @input="debouncedSearch" />
+                            type="search" placeholder="Buscar por empresa o año..." aria-label="Buscar estado financiero" @input="debouncedSearch" />
                         <button v-if="searchQuery" class="btn btn-outline-secondary border-start-0" type="button"
                             title="Limpiar búsqueda" @click="clearSearch">
                             <i class="fad fa-times" />
@@ -114,16 +114,16 @@
                                 <template #body="{ data }">
                                     <div class="btn-group btn-group-sm" role="group">
                                         <button v-if="can('financial_statements.profile')"
-                                            class="btn btn-falcon-default" type="button" title="Ver detalle"
+                                            class="btn btn-falcon-default" type="button" title="Ver detalle" :aria-label="`Ver detalle de ${data.fiscal_year}`"
                                             @click="goToDetail(data.uuid)">
                                             <i class="fad fa-eye text-primary" style="font-size:14px;" />
                                         </button>
                                         <button v-if="can('financial_statements.update')" class="btn btn-falcon-default"
-                                            type="button" title="Editar" @click="goToEdit(data.uuid)">
+                                            type="button" title="Editar" :aria-label="`Editar ${data.fiscal_year}`" @click="goToEdit(data.uuid)">
                                             <i class="fad fa-edit text-warning" style="font-size:14px;" />
                                         </button>
                                         <button v-if="can('financial_statements.delete')" class="btn btn-falcon-default"
-                                            type="button" title="Eliminar" @click="handleDelete(data)">
+                                            type="button" title="Eliminar" :aria-label="`Eliminar ${data.fiscal_year}`" @click="handleDelete(data)">
                                             <i class="fad fa-trash text-danger" style="font-size:14px;" />
                                         </button>
                                     </div>

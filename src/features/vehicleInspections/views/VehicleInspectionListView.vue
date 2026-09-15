@@ -68,7 +68,7 @@
                             <i class="fad fa-search text-muted" />
                         </span>
                         <input v-model="searchQuery" class="form-control form-control-sm border-start-0 shadow-none"
-                            type="search" placeholder="Buscar..." @input="debouncedSearch" />
+                            type="search" placeholder="Buscar..." aria-label="Buscar inspección" @input="debouncedSearch" />
                         <button v-if="searchQuery" class="btn btn-outline-secondary border-start-0" type="button"
                             title="Limpiar búsqueda" @click="clearSearch">
                             <i class="fad fa-times" />
@@ -180,34 +180,34 @@
                             <Column header="Acciones" class="text-center" style="min-width:170px; width: 170px;">
                                 <template #body="{ data }">
                                     <div class="btn-group btn-group-sm" role="group">
-                                        <button class="btn btn-falcon-default" type="button" title="Ver historial"
+                                        <button class="btn btn-falcon-default" type="button" title="Ver historial" :aria-label="`Ver historial de ${data.vehicle?.vehicle_license_plate}`"
                                             @click="openHistory(data)">
                                             <i class="fad fa-history text-info" style="font-size:14px;" />
                                         </button>
-                                        <button class="btn btn-falcon-default" type="button" title="Abrir PDF"
+                                        <button class="btn btn-falcon-default" type="button" title="Abrir PDF" :aria-label="`Abrir PDF de ${data.vehicle?.vehicle_license_plate}`"
                                             @click="downloadPdf(data.uuid)" :disabled="downloadingPdf === data.uuid">
                                             <span v-if="downloadingPdf === data.uuid"
                                                 class="spinner-border spinner-border-sm text-danger"
                                                 style="width: 14px; height: 14px;"></span>
                                             <i v-else class="fad fa-file-pdf text-danger" style="font-size:14px;" />
                                         </button>
-                                        <button v-if="isAdmin" class="btn btn-falcon-default" type="button" title="Firmar inspección"
+                                        <button v-if="isAdmin" class="btn btn-falcon-default" type="button" title="Firmar inspección" :aria-label="`Firmar inspección de ${data.vehicle?.vehicle_license_plate}`"
                                             @click="openSignaturePad(data)">
                                             <i class="fad fa-signature text-success" style="font-size:14px;" />
                                         </button>
-                                        <button v-if="isAdmin" class="btn btn-falcon-default" type="button" title="Compartir link de firma"
+                                        <button v-if="isAdmin" class="btn btn-falcon-default" type="button" title="Compartir link de firma" :aria-label="`Compartir link de firma de ${data.vehicle?.vehicle_license_plate}`"
                                             @click="generatePublicSignLink(data.uuid)">
                                             <i class="fad fa-share-alt text-primary" style="font-size:14px;" />
                                         </button>
                                         <button
                                             v-if="can('vehicleInspections.update') && isSameDay(data.inspection_date)"
-                                            class="btn btn-falcon-default" type="button" title="Editar"
+                                            class="btn btn-falcon-default" type="button" title="Editar" :aria-label="`Editar inspección de ${data.vehicle?.vehicle_license_plate}`"
                                             @click="goToEdit(data.uuid)">
                                             <i class="fad fa-edit text-warning" style="font-size:14px;" />
                                         </button>
                                         <button
                                             v-if="can('vehicleInspections.delete') && isSameDay(data.inspection_date)"
-                                            class="btn btn-falcon-default" type="button" title="Eliminar"
+                                            class="btn btn-falcon-default" type="button" title="Eliminar" :aria-label="`Eliminar inspección de ${data.vehicle?.vehicle_license_plate}`"
                                             @click="handleDelete(data)">
                                             <i class="fad fa-trash text-danger" style="font-size:14px;" />
                                         </button>

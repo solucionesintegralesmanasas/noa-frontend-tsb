@@ -21,7 +21,7 @@
                             <i class="fad fa-search text-muted" />
                         </span>
                         <input v-model="searchQuery" class="form-control form-control-sm border-start-0 shadow-none"
-                            type="search" placeholder="Buscar..." @input="debouncedSearch" />
+                            type="search" placeholder="Buscar..." aria-label="Buscar vehículo" @input="debouncedSearch" />
                         <button v-if="searchQuery" class="btn btn-outline-secondary border-start-0" type="button"
                             title="Limpiar" @click="clearSearch">
                             <i class="fad fa-times" />
@@ -161,23 +161,23 @@
                                 v-if="can('vehicles.profile') || can('vehicles.update') || can('vehicles.change_branch') || can('vehicles.delete')">
                                 <template #body="{ data }">
                                     <div class="btn-group btn-group-sm" role="group">
-                                         <button class="btn btn-falcon-default" type="button" title="Ver detalle"
+                                         <button class="btn btn-falcon-default" type="button" title="Ver detalle" :aria-label="`Ver detalle de ${data.vehicle_license_plate}`"
                                              v-if="can('vehicles.profile')" @click="goToDetail(data.uuid)">
                                              <i class="fad fa-eye text-primary" style="font-size:14px;" />
                                          </button>
-                                         <button class="btn btn-falcon-default" type="button" title="Editar"
+                                         <button class="btn btn-falcon-default" type="button" title="Editar" :aria-label="`Editar ${data.vehicle_license_plate}`"
                                              v-if="can('vehicles.update')" @click="goToEdit(data.uuid)">
                                              <i class="fad fa-edit text-warning" style="font-size:14px;" />
                                          </button>
-                                         <button class="btn btn-falcon-default" type="button" title="Cambiar Sede"
+                                         <button class="btn btn-falcon-default" type="button" title="Cambiar Sede" :aria-label="`Cambiar sede de ${data.vehicle_license_plate}`"
                                              v-if="can('vehicles.change_branch')" @click="handleChangeBranch(data)">
                                              <i class="fad fa-building text-info" style="font-size:14px;" />
                                          </button>
-                                         <button class="btn btn-falcon-default" type="button" title="Proyección de Mantenimiento"
+                                         <button class="btn btn-falcon-default" type="button" title="Proyección de Mantenimiento" :aria-label="`Proyección de mantenimiento de ${data.vehicle_license_plate}`"
                                              v-if="can('maintenance.forecast')" @click="goToForecast(data.uuid)">
                                              <i class="fad fa-calendar-check text-success" style="font-size:14px;" />
                                          </button>
-                                         <button class="btn btn-falcon-default" type="button" title="Eliminar"
+                                         <button class="btn btn-falcon-default" type="button" title="Eliminar" :aria-label="`Eliminar ${data.vehicle_license_plate}`"
                                              v-if="can('vehicles.delete')" @click="handleDelete(data)">
                                              <i class="fad fa-trash text-danger" style="font-size:14px;" />
                                          </button>

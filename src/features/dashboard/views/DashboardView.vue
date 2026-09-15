@@ -58,11 +58,11 @@
                             </div>
                             <div class="d-flex">
                                 <div class="d-flex">
-                                    <p class="font-sans-serif lh-1 mb-1 fs-5 pe-2">{{ stat.value }}</p>
+                                    <p class="stat-value font-sans-serif lh-1 mb-1 fs-5 pe-2">{{ stat.value }}</p>
                                     <div class="d-flex flex-column">
                                         <span class="me-1 fas"
                                             :class="stat.trend >= 0 ? 'fa-caret-up text-success' : 'fa-caret-down text-danger'"></span>
-                                        <p class="fs-11 mb-0 text-nowrap">{{ Math.abs(stat.trend) }}%</p>
+                                        <p class="stat-trend mb-0 text-nowrap">{{ Math.abs(stat.trend) }}%</p>
                                     </div>
                                 </div>
                             </div>
@@ -513,6 +513,21 @@ onBeforeUnmount(() => {
 
 .fs-3 {
     font-size: 1.75rem !important;
+}
+
+/* Valores e indicadores de las tarjetas de estadísticas.
+   Se usa tamaño entero (no 11.11px de .fs-11) para evitar el renderizado
+   borroso/pixelado y cifras tabulares para que no salten al cambiar. */
+.stat-value {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+}
+
+.stat-trend {
+    font-size: 12px;
+    line-height: 1.1;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
 }
 
 /* Margins & Paddings */

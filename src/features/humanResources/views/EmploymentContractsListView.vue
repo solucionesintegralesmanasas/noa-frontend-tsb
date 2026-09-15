@@ -115,15 +115,15 @@
                                 <template #body="{ data }">
                                     <div class="btn-group btn-group-sm" role="group">
                                         <button v-if="can('employmentContracts.show')" class="btn btn-falcon-default" type="button"
-                                            title="Ver detalle" @click="goToDetail(data.uuid)">
+                                            title="Ver detalle" :aria-label="`Ver detalle de ${data.thirdParty?.first_name}`" @click="goToDetail(data.uuid)">
                                             <i class="fad fa-eye text-primary" style="font-size:14px;" />
                                         </button>
                                         <button v-if="can('employmentContracts.update')" class="btn btn-falcon-default" type="button"
-                                            title="Editar" @click="goToEdit(data.uuid)">
+                                            title="Editar" :aria-label="`Editar ${data.thirdParty?.first_name}`" @click="goToEdit(data.uuid)">
                                             <i class="fad fa-edit text-warning" style="font-size:14px;" />
                                         </button>
                                         <button v-if="can('employmentContracts.destroy')" class="btn btn-falcon-default"
-                                            type="button" title="Eliminar" @click="handleDelete(data)">
+                                            type="button" title="Eliminar" :aria-label="`Eliminar ${data.thirdParty?.first_name}`" @click="handleDelete(data)">
                                             <i class="fad fa-trash text-danger" style="font-size:14px;" />
                                         </button>
                                     </div>

@@ -20,7 +20,7 @@
                             <i class="fad fa-search text-muted" />
                         </span>
                         <input v-model="searchQuery" class="form-control form-control-sm border-start-0 shadow-none"
-                            type="search" placeholder="Buscar..." @input="debouncedSearch" />
+                            type="search" placeholder="Buscar..." aria-label="Buscar convenio" @input="debouncedSearch" />
                         <button v-if="searchQuery" class="btn btn-outline-secondary border-start-0" type="button"
                             title="Limpiar búsqueda" @click="clearSearch">
                             <i class="fad fa-times" />
@@ -131,7 +131,7 @@
                             <Column header="Acciones" class="text-center" style="min-width:140px; width: 140px;">
                                 <template #body="{ data }">
                                     <div class="btn-group btn-group-sm" role="group">
-                                        <button class="btn btn-falcon-default" type="button" title="Ver PDF"
+                                        <button class="btn btn-falcon-default" type="button" title="Ver PDF" :aria-label="`Ver PDF de ${data.contracting_entity_name}`"
                                             @click="downloadPdf(data.uuid)" :disabled="downloadingPdf === data.uuid">
                                             <span v-if="downloadingPdf === data.uuid"
                                                 class="spinner-border spinner-border-sm text-primary"
@@ -139,12 +139,12 @@
                                             <i v-else class="fad fa-file-pdf text-primary" style="font-size:14px;" />
                                         </button>
                                         <button v-if="can('business_collaboration_agreements.update')"
-                                            class="btn btn-falcon-default" type="button" title="Editar"
+                                            class="btn btn-falcon-default" type="button" title="Editar" :aria-label="`Editar ${data.contracting_entity_name}`"
                                             @click="goToEdit(data.uuid)">
                                             <i class="fad fa-edit text-warning" style="font-size:14px;" />
                                         </button>
                                         <button v-if="can('business_collaboration_agreements.delete')"
-                                            class="btn btn-falcon-default" type="button" title="Eliminar"
+                                            class="btn btn-falcon-default" type="button" title="Eliminar" :aria-label="`Eliminar ${data.contracting_entity_name}`"
                                             @click="handleDelete(data)">
                                             <i class="fad fa-trash text-danger" style="font-size:14px;" />
                                         </button>

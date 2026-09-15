@@ -240,28 +240,28 @@
                                     <div class="d-flex justify-content-center align-items-center gap-1">
                                         <button v-if="can('affiliate_admin_charges.update') && !['PAGADO', 'ANULADO'].includes(data.status)"
                                             class="btn btn-falcon-default btn-action" @click="handlePay(data)"
-                                            title="Pagar Mensualidad" data-bs-toggle="tooltip" data-bs-placement="top">
+                                            title="Pagar Mensualidad" :aria-label="`Pagar mensualidad de ${data.payment_reference}`" data-bs-toggle="tooltip" data-bs-placement="top">
                                             <i class="fad fa-hand-holding-usd text-success"></i>
                                         </button>
                                         <button v-if="['PAGADO', 'PENDIENTE'].includes(data.status)" class="btn btn-falcon-default btn-action" @click="handleDownloadReceipt(data.uuid)"
-                                            title="Descargar Recibo" data-bs-toggle="tooltip" data-bs-placement="top">
+                                            title="Descargar Recibo" :aria-label="`Descargar recibo de ${data.payment_reference}`" data-bs-toggle="tooltip" data-bs-placement="top">
                                             <i class="fad fa-file-pdf text-danger"></i>
                                         </button>
                                         <button v-if="can('affiliate_admin_charges.profile')" class="btn btn-falcon-default btn-action"
-                                            @click="viewVehicleHistory(data)" title="Historial de Vehículo"
+                                            @click="viewVehicleHistory(data)" title="Historial de Vehículo" :aria-label="`Historial del vehículo ${data.payment_reference}`"
                                             data-bs-toggle="tooltip" data-bs-placement="top">
                                             <i class="fad fa-history text-info"></i>
                                         </button>
                                         <button v-if="can('affiliate_admin_charges.profile')" class="btn btn-falcon-default btn-action" @click="goToDetail(data.uuid)"
-                                            title="Visualizar" data-bs-toggle="tooltip" data-bs-placement="top">
+                                            title="Visualizar" :aria-label="`Ver detalle de ${data.payment_reference}`" data-bs-toggle="tooltip" data-bs-placement="top">
                                             <i class="fad fa-eye text-primary"></i>
                                         </button>
                                         <button v-if="can('affiliate_admin_charges.update')" class="btn btn-falcon-default btn-action" @click="goToEdit(data.uuid)"
-                                            title="Editar" data-bs-toggle="tooltip" data-bs-placement="top">
+                                            title="Editar" :aria-label="`Editar ${data.payment_reference}`" data-bs-toggle="tooltip" data-bs-placement="top">
                                             <i class="fad fa-edit text-warning"></i>
                                         </button>
                                         <button v-if="can('affiliate_admin_charges.delete')" class="btn btn-falcon-default btn-action" @click="handleDelete(data)"
-                                            title="Eliminar" data-bs-toggle="tooltip" data-bs-placement="top">
+                                            title="Eliminar" :aria-label="`Eliminar ${data.payment_reference}`" data-bs-toggle="tooltip" data-bs-placement="top">
                                             <i class="fad fa-trash text-danger"></i>
                                         </button>
                                     </div>
@@ -327,7 +327,7 @@
                         <i class="fad fa-history text-info me-2"></i>Historial de Pagos: {{ historyVehicle }}
                     </h5>
                     <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
+                        aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body p-0">
                     <div class="table-responsive scrollbar">

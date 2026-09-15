@@ -17,7 +17,7 @@
                     <h6 class="mb-0 fw-medium text-nowrap">Búsqueda</h6>
                     <div class="input-group input-group-sm w-100" style="max-width: 420px;">
                         <span class="input-group-text bg-light border-end-0"><i class="fad fa-search text-muted" /></span>
-                        <input v-model="searchQuery" class="form-control border-start-0" type="search" placeholder="Buscar por nombre o email..." @input="onSearchInput" />
+                        <input v-model="searchQuery" class="form-control border-start-0" type="search" placeholder="Buscar por nombre o email..." aria-label="Buscar usuario" @input="onSearchInput" />
                         <button v-if="searchQuery" class="btn btn-outline-secondary border-start-0" type="button" @click="clearSearch"><i class="fad fa-times" /></button>
                     </div>
                 </div>

@@ -78,7 +78,9 @@ export function useAccessibleForm(initialState = {}, validationSchema = {}) {
         return valid;
     };
 
-    const errorId = (key) => (errors[key] ? `${key}-error` : undefined);
+    // Convención del proyecto: los mensajes de error usan `f-<campo>-error`.
+    const fieldId = (key) => `f-${String(key).replace(/\./g, '-')}`;
+    const errorId = (key) => (errors[key] ? `${fieldId(key)}-error` : undefined);
 
     /**
      * Atributos ARIA para un campo: `{ 'aria-invalid', 'aria-describedby' }`.
@@ -94,6 +96,7 @@ export function useAccessibleForm(initialState = {}, validationSchema = {}) {
         const firstKey = Object.keys(errors)[0];
         if (!firstKey) return;
         const target =
+            scope.querySelector(`#${CSS.escape(fieldId(firstKey))}`) ||
             scope.querySelector(`#${CSS.escape(firstKey)}`) ||
             scope.querySelector('[aria-invalid="true"]') ||
             scope.querySelector('.is-invalid, .is-invalid-select2, .p-invalid');
@@ -138,6 +141,7 @@ export function useAccessibleForm(initialState = {}, validationSchema = {}) {
         validateAndFocus,
         focusFirstError,
         fieldAria,
+        fieldId,
         errorId,
         submit,
         reset,

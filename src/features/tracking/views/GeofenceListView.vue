@@ -94,7 +94,7 @@ onMounted(async () => {
                                 <i class="fad fa-search text-muted" />
                             </span>
                             <input v-model="searchQuery" class="form-control form-control-sm border-start-0 shadow-none"
-                                type="search" placeholder="Buscar geocerca por nombre..." />
+                                type="search" placeholder="Buscar geocerca por nombre..." aria-label="Buscar geocerca" />
                             <button v-if="searchQuery" class="btn btn-outline-secondary border-start-0" type="button"
                                 title="Limpiar" @click="clearSearch">
                                 <i class="fad fa-times" />
@@ -234,11 +234,11 @@ onMounted(async () => {
                                 <Column header="Acciones" style="text-align:center">
                                     <template #body="{ data }">
                                         <div class="btn-group btn-group-sm" role="group">
-                                            <button class="btn btn-falcon-default" type="button" title="Editar"
+                                            <button class="btn btn-falcon-default" type="button" title="Editar" :aria-label="`Editar ${data.name}`"
                                                 @click="goToEdit(data)">
                                                 <i class="fad fa-edit text-primary" style="font-size:14px;" />
                                             </button>
-                                            <button class="btn btn-falcon-default" type="button" title="Eliminar"
+                                            <button class="btn btn-falcon-default" type="button" title="Eliminar" :aria-label="`Eliminar ${data.name}`"
                                                 @click="confirmDelete(data)">
                                                 <i class="fad fa-trash text-danger" style="font-size:14px;" />
                                             </button>

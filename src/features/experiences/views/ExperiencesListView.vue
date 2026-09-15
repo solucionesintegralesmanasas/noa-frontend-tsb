@@ -20,7 +20,7 @@
                             <i class="fad fa-search text-muted" />
                         </span>
                         <input v-model="searchQuery" class="form-control form-control-sm border-start-0 shadow-none"
-                            type="search" autocomplete="off" placeholder="Buscar por cliente o empresa..." @input="debouncedSearch" />
+                            type="search" autocomplete="off" placeholder="Buscar por cliente o empresa..." aria-label="Buscar experiencia" @input="debouncedSearch" />
                         <button v-if="searchQuery" class="btn btn-outline-secondary border-start-0" type="button"
                             title="Limpiar búsqueda" @click="clearSearch">
                             <i class="fad fa-times" />
@@ -148,11 +148,11 @@
                                 <template #body="{ data }">
                                     <div class="d-flex flex-wrap gap-2 justify-content-center">
                                         <button v-if="can('experiences.update')" class="btn btn-sm btn-falcon-default"
-                                            type="button" title="Editar" @click="goToEdit(data.uuid)">
+                                            type="button" title="Editar" :aria-label="`Editar ${data.customer_name}`" @click="goToEdit(data.uuid)">
                                             <i class="fad fa-edit text-warning" style="font-size:14px;" />
                                         </button>
                                         <button v-if="can('experiences.delete')" class="btn btn-sm btn-falcon-default"
-                                            type="button" title="Eliminar" @click="handleDelete(data)">
+                                            type="button" title="Eliminar" :aria-label="`Eliminar ${data.customer_name}`" @click="handleDelete(data)">
                                             <i class="fad fa-trash text-danger" style="font-size:14px;" />
                                         </button>
                                     </div>

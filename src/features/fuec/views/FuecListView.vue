@@ -19,7 +19,7 @@
                             <i class="fad fa-search text-muted" />
                         </span>
                         <input v-model="searchQuery" class="form-control form-control-sm border-start-0 shadow-none"
-                            type="search" placeholder="Buscar..." @input="debouncedSearch" />
+                            type="search" placeholder="Buscar..." aria-label="Buscar FUEC" @input="debouncedSearch" />
                         <button v-if="searchQuery" class="btn btn-outline-secondary border-start-0" type="button"
                             title="Limpiar búsqueda" @click="clearSearch">
                             <i class="fad fa-times" />
@@ -147,19 +147,19 @@
                                 <template #body="{ data }">
                                     <div class="btn-group btn-group-sm" role="group">
                                         <button v-if="can('fuec.profile')" class="btn btn-falcon-default" type="button"
-                                            title="Ver detalle" @click="goToDetail(data.uuid)">
+                                            title="Ver detalle" :aria-label="`Ver detalle de ${data.number_fuec}`" @click="goToDetail(data.uuid)">
                                             <i class="fad fa-eye text-primary" style="font-size:14px;" />
                                         </button>
                                         <button class="btn btn-falcon-default" type="button"
-                                            title="Descargar PDF (Servidor)" @click="downloadPdfServer(data)">
+                                            title="Descargar PDF (Servidor)" :aria-label="`Descargar PDF de ${data.number_fuec}`" @click="downloadPdfServer(data)">
                                             <i class="fad fa-file-pdf text-danger" style="font-size:14px;" />
                                         </button>
                                         <button v-if="can('fuec.update')" class="btn btn-falcon-default" type="button"
-                                            title="Editar" @click="goToEdit(data.uuid)">
+                                            title="Editar" :aria-label="`Editar ${data.number_fuec}`" @click="goToEdit(data.uuid)">
                                             <i class="fad fa-edit text-warning" style="font-size:14px;" />
                                         </button>
                                         <button v-if="can('fuec.delete')" class="btn btn-falcon-default" type="button"
-                                            title="Eliminar" @click="handleDelete(data)">
+                                            title="Eliminar" :aria-label="`Eliminar ${data.number_fuec}`" @click="handleDelete(data)">
                                             <i class="fad fa-trash text-danger" style="font-size:14px;" />
                                         </button>
                                     </div>

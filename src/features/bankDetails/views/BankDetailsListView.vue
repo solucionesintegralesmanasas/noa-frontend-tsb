@@ -21,7 +21,7 @@
                         </span>
                         <input v-model="searchQuery" class="form-control form-control-sm border-start-0 shadow-none"
                             type="search" placeholder="Buscar por banco, cuenta o titular..."
-                            @input="debouncedSearch" />
+                            aria-label="Buscar cuenta bancaria" @input="debouncedSearch" />
                         <button v-if="searchQuery" class="btn btn-outline-secondary border-start-0" type="button"
                             title="Limpiar búsqueda" @click="clearSearch">
                             <i class="fad fa-times" />
@@ -139,15 +139,15 @@
                                 <template #body="{ data }">
                                     <div class="btn-group btn-group-sm" role="group">
                                         <button v-if="can('bank_details.profile')" class="btn btn-falcon-default"
-                                            type="button" title="Ver detalle" @click="goToDetail(data.uuid)">
+                                            type="button" title="Ver detalle" :aria-label="`Ver detalle de ${data.bank_name}`" @click="goToDetail(data.uuid)">
                                             <i class="fad fa-eye text-primary" style="font-size:14px;" />
                                         </button>
                                         <button v-if="can('bank_details.update')" class="btn btn-falcon-default"
-                                            type="button" title="Editar" @click="goToEdit(data.uuid)">
+                                            type="button" title="Editar" :aria-label="`Editar ${data.bank_name}`" @click="goToEdit(data.uuid)">
                                             <i class="fad fa-edit text-warning" style="font-size:14px;" />
                                         </button>
                                         <button v-if="can('bank_details.delete')" class="btn btn-falcon-default"
-                                            type="button" title="Eliminar" @click="handleDelete(data)">
+                                            type="button" title="Eliminar" :aria-label="`Eliminar ${data.bank_name}`" @click="handleDelete(data)">
                                             <i class="fad fa-trash text-danger" style="font-size:14px;" />
                                         </button>
                                     </div>

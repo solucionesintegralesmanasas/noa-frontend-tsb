@@ -23,7 +23,7 @@
                             <i class="fad fa-search text-muted" />
                         </span>
                         <input v-model="searchQuery" class="form-control form-control-sm border-start-0 shadow-none"
-                            type="search" placeholder="Buscar..." @input="debouncedSearch" />
+                            type="search" placeholder="Buscar..." aria-label="Buscar documento de vehículo" @input="debouncedSearch" />
                         <button v-if="searchQuery" class="btn btn-outline-secondary border-start-0" type="button"
                             title="Limpiar búsqueda" @click="clearSearch">
                             <i class="fad fa-times" />
@@ -128,16 +128,16 @@
                                 <Column header="Acciones" class="text-center" style="min-width:170px; width: 170px;">
                                     <template #body="{ data }">
                                         <div class="btn-group btn-group-sm" role="group">
-                                            <button class="btn btn-falcon-default" type="button" title="Ver pólizas"
+                                            <button class="btn btn-falcon-default" type="button" title="Ver pólizas" :aria-label="`Ver pólizas de ${data.vehicle?.vehicle_license_plate}`"
                                                 @click="openPoliciesModal(data)">
                                                 <i class="fad fa-eye text-primary" style="font-size:14px;" />
                                             </button>
-                                            <button class="btn btn-falcon-default" type="button" title="Editar"
+                                            <button class="btn btn-falcon-default" type="button" title="Editar" :aria-label="`Editar pólizas de ${data.vehicle?.vehicle_license_plate}`"
                                                 v-if="can('vehicle_documents.update')"
                                                 @click="goToEdit(data.policies?.[0]?.uuid || data.uuid)">
                                                 <i class="fad fa-edit text-warning" style="font-size:14px;" />
                                             </button>
-                                            <button class="btn btn-falcon-default" type="button" title="Eliminar"
+                                            <button class="btn btn-falcon-default" type="button" title="Eliminar" :aria-label="`Eliminar pólizas de ${data.vehicle?.vehicle_license_plate}`"
                                                 v-if="can('vehicle_documents.delete')"
                                                 @click="handleDeletePolicies(data)">
                                                 <i class="fad fa-trash text-danger" style="font-size:14px;" />
@@ -199,11 +199,11 @@
                                     v-if="can('vehicle_documents.update') || can('vehicle_documents.delete')">
                                     <template #body="{ data }">
                                         <div class="btn-group btn-group-sm" role="group">
-                                            <button class="btn btn-falcon-default" type="button" title="Editar"
+                                            <button class="btn btn-falcon-default" type="button" title="Editar" :aria-label="`Editar ${data.policy_number}`"
                                                 v-if="can('vehicle_documents.update')" @click="goToEdit(data.uuid)">
                                                 <i class="fad fa-edit text-warning" style="font-size:14px;" />
                                             </button>
-                                            <button class="btn btn-falcon-default" type="button" title="Eliminar"
+                                            <button class="btn btn-falcon-default" type="button" title="Eliminar" :aria-label="`Eliminar ${data.policy_number}`"
                                                 v-if="can('vehicle_documents.delete')" @click="handleDelete(data)">
                                                 <i class="fad fa-trash text-danger" style="font-size:14px;" />
                                             </button>

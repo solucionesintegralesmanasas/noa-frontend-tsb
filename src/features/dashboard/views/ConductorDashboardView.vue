@@ -826,6 +826,16 @@ onMounted(() => {
     font-weight: 700;
     color: #2c7be5;
     letter-spacing: 0.5px;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Los tamaños globales .fs-10 y .fs-11 son fraccionarios (13.33px y 11.11px)
+   y el texto pequeño se ve pixelado. Dentro del odómetro se usa 12px enteros
+   y cifras tabulares. */
+.odometer-box .fs-10,
+.odometer-box .fs-11 {
+    font-size: 12px !important;
+    font-variant-numeric: tabular-nums;
 }
 
 /* Indicador pulsante de servicio activo */
