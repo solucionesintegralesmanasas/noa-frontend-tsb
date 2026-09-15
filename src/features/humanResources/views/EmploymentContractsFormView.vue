@@ -34,7 +34,7 @@
                                     {{ opt.document_number }} - {{ opt.first_name }} {{ opt.last_name }} {{ opt.trade_name }}
                                 </option>
                             </select>
-                            <div v-if="validationErrors.third_party_uuid" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.third_party_uuid" class="invalid-feedback d-block" id="f-third_party_uuid-error" role="alert">
                                 {{ validationErrors.third_party_uuid }}
                             </div>
                         </div>
@@ -49,7 +49,7 @@
                                 <option value="PRESTACION_SERVICIOS">Prestación de Servicios</option>
                                 <option value="APRENDIZAJE">Aprendizaje</option>
                             </select>
-                            <div v-if="validationErrors.contract_type" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.contract_type" class="invalid-feedback d-block" id="f-contract_type-error" role="alert">
                                 {{ validationErrors.contract_type }}
                             </div>
                         </div>
@@ -62,7 +62,7 @@
                                 <option value="SUSPENDIDO">Suspendido</option>
                                 <option value="TERMINADO">Terminado</option>
                             </select>
-                            <div v-if="validationErrors.status" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.status" class="invalid-feedback d-block" id="f-status-error" role="alert">
                                 {{ validationErrors.status }}
                             </div>
                         </div>
@@ -78,7 +78,7 @@
                             <label class="form-label required" for="start_date">Fecha de inicio</label>
                             <input id="start_date" v-model="formData.start_date" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.start_date }" type="date" />
-                            <div v-if="validationErrors.start_date" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.start_date" class="invalid-feedback d-block" id="f-start_date-error" role="alert">
                                 {{ validationErrors.start_date }}
                             </div>
                         </div>
@@ -88,7 +88,7 @@
                             <label class="form-label" for="end_date">Fecha de finalización</label>
                             <input id="end_date" v-model="formData.end_date" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.end_date }" type="date" />
-                            <div v-if="validationErrors.end_date" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.end_date" class="invalid-feedback d-block" id="f-end_date-error" role="alert">
                                 {{ validationErrors.end_date }}
                             </div>
                         </div>
@@ -98,7 +98,7 @@
                             <label class="form-label required" for="base_salary">Salario Base</label>
                             <input id="base_salary" v-model="formData.base_salary" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.base_salary }" type="number" min="0" step="0.01" />
-                            <div v-if="validationErrors.base_salary" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.base_salary" class="invalid-feedback d-block" id="f-base_salary-error" role="alert">
                                 {{ validationErrors.base_salary }}
                             </div>
                         </div>
@@ -108,7 +108,7 @@
                             <label class="form-label" for="working_hours_per_week">Horas Semanales</label>
                             <input id="working_hours_per_week" v-model="formData.working_hours_per_week" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.working_hours_per_week }" type="number" min="1" max="168" />
-                            <div v-if="validationErrors.working_hours_per_week" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.working_hours_per_week" class="invalid-feedback d-block" id="f-working_hours_per_week-error" role="alert">
                                 {{ validationErrors.working_hours_per_week }}
                             </div>
                         </div>
@@ -120,7 +120,7 @@
                                 <option value="ORDINARIO">Ordinario</option>
                                 <option value="INTEGRAL">Integral</option>
                             </select>
-                            <div v-if="validationErrors.salary_type" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.salary_type" class="invalid-feedback d-block" id="f-salary_type-error" role="alert">
                                 {{ validationErrors.salary_type }}
                             </div>
                         </div>
@@ -132,7 +132,7 @@
                                 <option value="0">No</option>
                                 <option value="1">Sí</option>
                             </select>
-                            <div v-if="validationErrors.transport_subsidy_applies" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.transport_subsidy_applies" class="invalid-feedback d-block" id="f-transport_subsidy_applies-error" role="alert">
                                 {{ validationErrors.transport_subsidy_applies }}
                             </div>
                         </div>
@@ -142,7 +142,7 @@
                             <label class="form-label required" for="termination_reason">Motivo de Terminación</label>
                             <input id="termination_reason" v-model="formData.termination_reason" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.termination_reason }" type="text" />
-                            <div v-if="validationErrors.termination_reason" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.termination_reason" class="invalid-feedback d-block" id="f-termination_reason-error" role="alert">
                                 {{ validationErrors.termination_reason }}
                             </div>
                         </div>
@@ -210,7 +210,7 @@ const selectConfigs = computed(() => [
     { ref: transportSelect, field: 'transport_subsidy_applies', placeholder: 'Seleccionar' }
 ]);
 
-const { initSelect2, setValues: setSelect2Values, syncFromSelect2, destroySelect2 } = useSelect2(formData, validationErrors);
+const { initSelect2, setValues: setSelect2Values, syncFromSelect2, destroySelect2, applyAllValidations } = useSelect2(formData, validationErrors);
 
 const loadData = async () => {
     store.loading = true;
@@ -271,6 +271,16 @@ const handleSubmit = async () => {
             const errors = error.response.data.errors;
             for (const key in errors) {
                 validationErrors[key] = errors[key][0];
+            }
+            applyAllValidations(selectConfigs.value);
+            await nextTick();
+            const firstKey = Object.keys(validationErrors)[0];
+            const target = (firstKey && document.getElementById(`f-${firstKey}`))
+                || document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+            if (target) {
+                if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(target.tagName)) target.setAttribute('tabindex', '-1');
+                target.focus({ preventScroll: true });
+                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
             toast.error('Por favor, revisa los errores en el formulario.');
         } else {

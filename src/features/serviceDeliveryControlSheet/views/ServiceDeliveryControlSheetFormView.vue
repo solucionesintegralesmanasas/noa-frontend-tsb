@@ -46,7 +46,7 @@
                                 <option v-for="opt in store.catalogs.companies" :key="opt.uuid" :value="opt.uuid">{{
                                     opt.business_name }}</option>
                             </select>
-                            <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block">{{
+                            <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block" id="f-company_uuid-error" role="alert">{{
                                 validationErrors.company_uuid }}</div>
                         </div>
 
@@ -58,7 +58,7 @@
                                     {{ opt.project_name }}
                                 </option>
                             </select>
-                            <div v-if="validationErrors.project_uuid" class="invalid-feedback d-block">{{
+                            <div v-if="validationErrors.project_uuid" class="invalid-feedback d-block" id="f-project_uuid-error" role="alert">{{
                                 validationErrors.project_uuid }}</div>
                             <div v-if="proyectoSeleccionado" class="form-text text-muted small">
                                 Vigencia: {{ formatFecha(proyectoSeleccionado.start_date) }} al
@@ -73,7 +73,7 @@
                                 class="form-control"
                                 :class="{ 'is-invalid': validationErrors.official_name_and_surname }" type="text"
                                 placeholder="Se autocompleta al elegir el conductor" autocomplete="off" />
-                            <div v-if="validationErrors.official_name_and_surname" class="invalid-feedback d-block">{{
+                            <div v-if="validationErrors.official_name_and_surname" class="invalid-feedback d-block" id="f-official_name_and_surname-error" role="alert">{{
                                 validationErrors.official_name_and_surname }}</div>
                         </div>
 
@@ -86,7 +86,7 @@
                                 <option value="CON_VEHICULO_CONTRATADO">Con vehículo contratado</option>
                                 <option value="EXTERNO_PLATAFORMA">Vehículo externo de plataforma</option>
                             </select>
-                            <div v-if="validationErrors.type_of_control_sheet" class="invalid-feedback d-block">{{
+                            <div v-if="validationErrors.type_of_control_sheet" class="invalid-feedback d-block" id="f-type_of_control_sheet-error" role="alert">{{
                                 validationErrors.type_of_control_sheet }}</div>
                         </div>
 
@@ -94,10 +94,12 @@
                             <label class="form-label required" for="start_date">Fecha de inicio del servicio</label>
                             <input id="start_date" v-model="formData.start_date" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.start_date || validationErrors.service_date }"
+                                :aria-invalid="!!(validationErrors.start_date || validationErrors.service_date)"
+                                :aria-describedby="validationErrors.start_date ? 'f-start_date-error' : (validationErrors.service_date ? 'f-service_date-error' : undefined)"
                                 type="date" autocomplete="off" :max="formData.end_date || undefined" />
-                            <div v-if="validationErrors.start_date" class="invalid-feedback d-block">{{
+                            <div v-if="validationErrors.start_date" class="invalid-feedback d-block" id="f-start_date-error" role="alert">{{
                                 validationErrors.start_date }}</div>
-                            <div v-else-if="validationErrors.service_date" class="invalid-feedback d-block">{{
+                            <div v-else-if="validationErrors.service_date" class="invalid-feedback d-block" id="f-service_date-error" role="alert">{{
                                 validationErrors.service_date }}</div>
                         </div>
 
@@ -106,7 +108,7 @@
                             <input id="end_date" v-model="formData.end_date" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.end_date }" type="date" autocomplete="off"
                                 :min="formData.start_date || undefined" />
-                            <div v-if="validationErrors.end_date" class="invalid-feedback d-block">{{
+                            <div v-if="validationErrors.end_date" class="invalid-feedback d-block" id="f-end_date-error" role="alert">{{
                                 validationErrors.end_date }}</div>
                             <div class="form-text text-muted small">Opcional. Si es igual a la fecha de inicio, es un
                                 servicio de un solo día.</div>
@@ -126,7 +128,7 @@
                                 <option value="1">Activo</option>
                                 <option value="0">Inactivo</option>
                             </select>
-                            <div v-if="validationErrors.is_active" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.is_active" class="invalid-feedback d-block" id="f-is_active-error" role="alert">
                                 {{ validationErrors.is_active }}
                             </div>
                         </div>
@@ -135,7 +137,7 @@
                             <input id="daily_route" v-model="formData.daily_route" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.daily_route }" type="text"
                                 placeholder="Ej: Recorrido Norte - Sur, entrega cliente X..." autocomplete="off" />
-                            <div v-if="validationErrors.daily_route" class="invalid-feedback d-block">{{
+                            <div v-if="validationErrors.daily_route" class="invalid-feedback d-block" id="f-daily_route-error" role="alert">{{
                                 validationErrors.daily_route }}</div>
                         </div>
 
@@ -162,7 +164,7 @@
                                     <option v-for="opt in store.catalogs.fuecs" :key="opt.uuid" :value="opt.uuid">{{
                                         opt.fuec_number ?? opt.uuid }}</option>
                                 </select>
-                                <div v-if="validationErrors.fuec_uuid" class="invalid-feedback d-block">{{
+                                <div v-if="validationErrors.fuec_uuid" class="invalid-feedback d-block" id="f-fuec_uuid-error" role="alert">{{
                                     validationErrors.fuec_uuid }}</div>
                             </div>
                             <div class="col-12 col-sm-6 col-xl-3">
@@ -172,7 +174,7 @@
                                     <option v-for="opt in vehiculosFiltrados" :key="opt.uuid" :value="opt.uuid">{{
                                         opt.vehicle_license_plate }}</option>
                                 </select>
-                                <div v-if="validationErrors.vehicle_uuid" class="invalid-feedback d-block">{{
+                                <div v-if="validationErrors.vehicle_uuid" class="invalid-feedback d-block" id="f-vehicle_uuid-error" role="alert">{{
                                     validationErrors.vehicle_uuid }}</div>
                             </div>
 
@@ -184,7 +186,7 @@
                                     <option v-for="opt in conductoresFiltrados" :key="opt.uuid" :value="opt.uuid">{{
                                         opt.first_name }} {{ opt.last_name }}</option>
                                 </select>
-                                <div v-if="validationErrors.third_party_uuid" class="invalid-feedback d-block">{{
+                                <div v-if="validationErrors.third_party_uuid" class="invalid-feedback d-block" id="f-third_party_uuid-error" role="alert">{{
                                     validationErrors.third_party_uuid }}</div>
                                 <div class="form-check form-switch mt-2" v-if="formData.project_uuid">
                                     <input class="form-check-input" type="checkbox" id="showAllDrivers" v-model="mostrarTodos">
@@ -206,7 +208,7 @@
                                 <input id="vehicle_license_plate" v-model="formData.vehicle_license_plate" class="form-control"
                                     :class="{ 'is-invalid': validationErrors.vehicle_license_plate }" type="text"
                                     placeholder="Ej: ABC123" autocomplete="off" style="text-transform: uppercase" />
-                                <div v-if="validationErrors.vehicle_license_plate" class="invalid-feedback d-block">{{
+                                <div v-if="validationErrors.vehicle_license_plate" class="invalid-feedback d-block" id="f-vehicle_license_plate-error" role="alert">{{
                                     validationErrors.vehicle_license_plate }}</div>
                             </div>
                             <div class="col-12 col-sm-6 col-xl-4">
@@ -214,7 +216,7 @@
                                 <input id="driver_name_and_surname" v-model="formData.driver_name_and_surname" class="form-control"
                                     :class="{ 'is-invalid': validationErrors.driver_name_and_surname }" type="text"
                                     placeholder="Nombre y apellido" autocomplete="off" />
-                                <div v-if="validationErrors.driver_name_and_surname" class="invalid-feedback d-block">{{
+                                <div v-if="validationErrors.driver_name_and_surname" class="invalid-feedback d-block" id="f-driver_name_and_surname-error" role="alert">{{
                                     validationErrors.driver_name_and_surname }}</div>
                             </div>
                             <div class="col-12 col-sm-6 col-xl-2">
@@ -514,6 +516,8 @@ watch(() => formData.type_of_control_sheet, async () => {
 
 
 // --- VALIDACION Y SUBMIT ---
+const isEmpty = (v) => v === null || v === undefined || (typeof v === 'string' ? v.trim() === '' : !v);
+
 const validateForm = () => {
     Object.keys(validationErrors).forEach(key => delete validationErrors[key]);
 
@@ -524,7 +528,7 @@ const validateForm = () => {
     // Recorrido del servicio: opcional (el conductor registra los recorridos en la operación)
 
     required.forEach(field => {
-        if (!formData[field]) validationErrors[field] = 'Este campo es obligatorio';
+        if (isEmpty(formData[field])) validationErrors[field] = 'Este campo es obligatorio';
     });
 
     // Si start_date está presente pero service_date no (caso creación), sincronizar
@@ -648,8 +652,13 @@ const handleSubmit = async () => {
 
     if (!validateForm()) {
         applyAllValidations(selectConfigs.value);
-        const firstError = document.querySelector('.is-invalid, .is-invalid-select2');
-        if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        await nextTick();
+        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+        if (firstError) {
+            if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(firstError.tagName)) firstError.setAttribute('tabindex', '-1');
+            firstError.focus({ preventScroll: true });
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return toast('Atención', 'Revisa los campos obligatorios', 'warning');
     }
 

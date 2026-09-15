@@ -38,7 +38,7 @@
                             <input id="project_name" v-model="formData.project_name" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.project_name }" type="text" autocomplete="off"
                                 placeholder="Ej: Proyecto Ruta Norte 2026" maxlength="255" />
-                            <div v-if="validationErrors.project_name" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.project_name" class="invalid-feedback d-block" id="f-project_name-error" role="alert">
                                 {{ validationErrors.project_name }}
                             </div>
                         </div>
@@ -48,7 +48,7 @@
                             <input id="start_date" v-model="formData.start_date" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.start_date }" type="date"
                                 :max="formData.completion_date || undefined" />
-                            <div v-if="validationErrors.start_date" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.start_date" class="invalid-feedback d-block" id="f-start_date-error" role="alert">
                                 {{ validationErrors.start_date }}
                             </div>
                         </div>
@@ -58,7 +58,7 @@
                             <input id="completion_date" v-model="formData.completion_date" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.completion_date }" type="date"
                                 :min="formData.start_date || undefined" />
-                            <div v-if="validationErrors.completion_date" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.completion_date" class="invalid-feedback d-block" id="f-completion_date-error" role="alert">
                                 {{ validationErrors.completion_date }}
                             </div>
                         </div>
@@ -68,7 +68,7 @@
                             <input id="project_value" v-model="formData.project_value" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.project_value }" type="number" min="0"
                                 step="0.01" placeholder="0.00" />
-                            <div v-if="validationErrors.project_value" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.project_value" class="invalid-feedback d-block" id="f-project_value-error" role="alert">
                                 {{ validationErrors.project_value }}
                             </div>
                         </div>
@@ -78,7 +78,7 @@
                             <input id="purchase_order" v-model="formData.purchase_order" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.purchase_order }" type="text"
                                 autocomplete="off" placeholder="OC-2026-001" maxlength="255" />
-                            <div v-if="validationErrors.purchase_order" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.purchase_order" class="invalid-feedback d-block" id="f-purchase_order-error" role="alert">
                                 {{ validationErrors.purchase_order }}
                             </div>
                         </div>
@@ -124,7 +124,7 @@
                                 accept="application/pdf,.pdf" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.purchase_order_file }"
                                 @change="onPurchaseFileChange" />
-                            <div v-if="validationErrors.purchase_order_file" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.purchase_order_file" class="invalid-feedback d-block" id="f-purchase_order_file-error" role="alert">
                                 {{ validationErrors.purchase_order_file }}
                             </div>
                         </div>
@@ -173,11 +173,11 @@
                                         class="w-100" style="width:100%;" />
                                 </div>
                                 <div class="col-12 col-md-2">
-                                    <label class="form-label small text-muted mb-1 d-block">Estado</label>
+                                    <span class="form-label small text-muted mb-1 d-block" :id="`row-${row.key}-active-caption`">Estado</span>
                                     <div class="form-check form-switch ps-0 d-flex align-items-center m-0"
                                         style="height: 37px;">
                                         <input :id="`row-${row.key}-active`" v-model="row.is_active" type="checkbox"
-                                            class="form-check-input ms-0" role="switch">
+                                            class="form-check-input ms-0" role="switch" :aria-labelledby="`row-${row.key}-active-caption row-${row.key}-active`">
                                         <label class="form-check-label small ms-2 mb-0"
                                             :for="`row-${row.key}-active`">
                                             <span :class="row.is_active ? '' : 'text-danger fw-medium'">
@@ -189,14 +189,14 @@
                                 <div class="col-12 col-md-2">
                                     <button type="button" class="btn btn-sm btn-falcon-danger w-100"
                                         :disabled="formData.assignments.length === 1" @click="removeAssignment(index)">
-                                        <i class="fal fa-trash me-1" />Quitar
+                                        <i class="fal fa-trash me-1" aria-hidden="true" />Quitar
                                     </button>
                                 </div>
                             </div>
 
-                            <div v-if="validationErrors.assignments" class="invalid-feedback d-block mt-0">
+                            <div v-if="validationErrors.assignments" class="invalid-feedback d-block mt-0" id="f-assignments-error" role="alert">
                                 <span v-for="(msg, i) in validationErrors.assignments" :key="i" class="d-block">
-                                    <i class="fad fa-exclamation-circle me-1"></i>{{ msg }}
+                                    <i class="fad fa-exclamation-circle me-1" aria-hidden="true"></i>{{ msg }}
                                 </span>
                             </div>
                         </div>
@@ -230,7 +230,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useProjectsStore } from '../store/projects.store.js';
 import { usePermissionsStore, useUserStore } from '@store';
@@ -412,8 +412,13 @@ const handleSubmit = async () => {
     validationErrors.value = errors;
 
     if (Object.keys(errors).length) {
-        const firstError = document.querySelector('.is-invalid, .invalid-feedback');
-        if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        await nextTick();
+        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+        if (firstError) {
+            if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(firstError.tagName)) firstError.setAttribute('tabindex', '-1');
+            firstError.focus({ preventScroll: true });
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return await toast('Atención', 'Revisa los campos obligatorios', 'warning');
     }
 

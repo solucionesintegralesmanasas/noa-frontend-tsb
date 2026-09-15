@@ -39,7 +39,7 @@
                                                 <option value="NATURAL">Natural</option>
                                                 <option value="JURIDICA">Jurídica</option>
                                             </select>
-                                            <div v-show="validationErrors.person_type" class="invalid-feedback d-block">
+                                            <div v-if="validationErrors.person_type" class="invalid-feedback d-block" id="f-person_type-error" role="alert">
                                                 {{ validationErrors.person_type }}
                                             </div>
                                         </div>
@@ -52,7 +52,7 @@
                                                     {{ opt.name }}
                                                 </option>
                                             </select>
-                                            <div v-show="validationErrors.document_type_uuid" class="invalid-feedback d-block">
+                                            <div v-if="validationErrors.document_type_uuid" class="invalid-feedback d-block" id="f-document_type_uuid-error" role="alert">
                                                 {{ validationErrors.document_type_uuid }}
                                             </div>
                                         </div>
@@ -62,7 +62,7 @@
                                             <input id="document_number" v-model="formData.document_number" class="form-control"
                                                 :class="{ 'is-invalid': validationErrors.document_number }" type="text" autocomplete="off"
                                                 placeholder="Ingresa el número de documento" />
-                                            <div v-show="validationErrors.document_number" class="invalid-feedback d-block">
+                                            <div v-if="validationErrors.document_number" class="invalid-feedback d-block" id="f-document_number-error" role="alert">
                                                 {{ validationErrors.document_number }}
                                             </div>
                                         </div>
@@ -73,7 +73,7 @@
                                                 :class="{ 'is-invalid': validationErrors.nit_check_digit }" type="text" autocomplete="off"
                                                 :disabled="formData.person_type !== 'JURIDICA'"
                                                 placeholder="Solo para personas jurídicas" />
-                                            <div v-show="validationErrors.nit_check_digit" class="invalid-feedback d-block">
+                                            <div v-if="validationErrors.nit_check_digit" class="invalid-feedback d-block" id="f-nit_check_digit-error" role="alert">
                                                 {{ validationErrors.nit_check_digit }}
                                             </div>
                                         </div>
@@ -97,7 +97,7 @@
                                     <input id="first_name" v-model="formData.first_name" class="form-control"
                                         :class="{ 'is-invalid': validationErrors.first_name }" type="text" autocomplete="off"
                                         placeholder="Nombres propios (personas naturales)" />
-                                    <div v-show="validationErrors.first_name" class="invalid-feedback d-block">
+                                    <div v-if="validationErrors.first_name" class="invalid-feedback d-block" id="f-first_name-error" role="alert">
                                         {{ validationErrors.first_name }}
                                     </div>
                                 </div>
@@ -106,7 +106,7 @@
                                     <input id="last_name" v-model="formData.last_name" class="form-control"
                                         :class="{ 'is-invalid': validationErrors.last_name }" type="text" autocomplete="off"
                                         placeholder="Apellidos (personas naturales)" />
-                                    <div v-show="validationErrors.last_name" class="invalid-feedback d-block">
+                                    <div v-if="validationErrors.last_name" class="invalid-feedback d-block" id="f-last_name-error" role="alert">
                                         {{ validationErrors.last_name }}
                                     </div>
                                 </div>
@@ -115,7 +115,7 @@
                                     <input id="trade_name" v-model="formData.trade_name" class="form-control"
                                         :class="{ 'is-invalid': validationErrors.trade_name }" type="text" autocomplete="off"
                                         placeholder="Nombre comercial o razón social" />
-                                    <div v-show="validationErrors.trade_name" class="invalid-feedback d-block">
+                                    <div v-if="validationErrors.trade_name" class="invalid-feedback d-block" id="f-trade_name-error" role="alert">
                                         {{ validationErrors.trade_name }}
                                     </div>
                                 </div>
@@ -129,7 +129,7 @@
                                     <input id="company_name" v-model="formData.company_name" class="form-control"
                                         :class="{ 'is-invalid': validationErrors.company_name }" type="text" autocomplete="off"
                                         placeholder="Razón social legal completa" />
-                                    <div v-show="validationErrors.company_name" class="invalid-feedback d-block">
+                                    <div v-if="validationErrors.company_name" class="invalid-feedback d-block" id="f-company_name-error" role="alert">
                                         {{ validationErrors.company_name }}
                                     </div>
                                 </div>
@@ -148,7 +148,7 @@
                             <label class="form-label required" for="email">Correo Electrónico</label>
                             <input id="email" v-model="formData.email" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.email }" type="email" placeholder="correo@ejemplo.com" />
-                            <div v-show="validationErrors.email" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.email" class="invalid-feedback d-block" id="f-email-error" role="alert">
                                 {{ validationErrors.email }}
                             </div>
                         </div>
@@ -157,7 +157,7 @@
                             <label class="form-label" for="phone">Teléfono</label>
                             <input id="phone" v-model="formData.phone" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.phone }" type="text" autocomplete="off" placeholder="Teléfono de contacto" />
-                            <div v-show="validationErrors.phone" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.phone" class="invalid-feedback d-block" id="f-phone-error" role="alert">
                                 {{ validationErrors.phone }}
                             </div>
                         </div>
@@ -167,7 +167,7 @@
                             <input id="address" v-model="formData.address" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.address }" type="text" autocomplete="off"
                                 placeholder="Dirección de residencia o establecimiento" />
-                            <div v-show="validationErrors.address" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.address" class="invalid-feedback d-block" id="f-address-error" role="alert">
                                 {{ validationErrors.address }}
                             </div>
                         </div>
@@ -180,7 +180,7 @@
                                     {{ opt.name }}
                                 </option>
                             </select>
-                            <div v-show="validationErrors.municipality_uuid" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.municipality_uuid" class="invalid-feedback d-block" id="f-municipality_uuid-error" role="alert">
                                 {{ validationErrors.municipality_uuid }}
                             </div>
                         </div>
@@ -198,7 +198,7 @@
                             <input id="bank_account_number" v-model="formData.bank_account_number" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.bank_account_number }" type="text" autocomplete="off"
                                 placeholder="Número de cuenta" />
-                            <div v-show="validationErrors.bank_account_number" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.bank_account_number" class="invalid-feedback d-block" id="f-bank_account_number-error" role="alert">
                                 {{ validationErrors.bank_account_number }}
                             </div>
                         </div>
@@ -211,7 +211,7 @@
                                 <option value="CORRIENTE">Corriente</option>
                                 <option value="MONEDA_EXTRANJERA">Moneda Extranjera</option>
                             </select>
-                            <div v-show="validationErrors.bank_account_type" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.bank_account_type" class="invalid-feedback d-block" id="f-bank_account_type-error" role="alert">
                                 {{ validationErrors.bank_account_type }}
                             </div>
                         </div>
@@ -221,7 +221,7 @@
                             <input id="bank_name" v-model="formData.bank_name" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.bank_name }" type="text" autocomplete="off"
                                 placeholder="Nombre de la entidad financiera" />
-                            <div v-show="validationErrors.bank_name" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.bank_name" class="invalid-feedback d-block" id="f-bank_name-error" role="alert">
                                 {{ validationErrors.bank_name }}
                             </div>
                         </div>
@@ -244,7 +244,7 @@
                                 <option value="05">Gran Contribuyente (05)</option>
                                 <option value="42">Autorretenedor (42)</option>
                             </select>
-                            <div v-show="validationErrors.tax_regime" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.tax_regime" class="invalid-feedback d-block" id="f-tax_regime-error" role="alert">
                                 {{ validationErrors.tax_regime }}
                             </div>
                         </div>
@@ -257,7 +257,7 @@
                                     {{ opt.name }}
                                 </option>
                             </select>
-                            <div v-show="validationErrors.tax_responsibility_uuid" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.tax_responsibility_uuid" class="invalid-feedback d-block" id="f-tax_responsibility_uuid-error" role="alert">
                                 {{ validationErrors.tax_responsibility_uuid }}
                             </div>
                         </div>
@@ -272,33 +272,33 @@
                                     {{ opt.business_name }}
                                 </option>
                             </select>
-                            <div v-show="validationErrors.company_uuid" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block" id="f-company_uuid-error" role="alert">
                                 {{ validationErrors.company_uuid }}
                             </div>
                         </div>
 
                             <div :class="bottomRowColClass">
                                 <label class="form-label required" for="partyTypes">Tipo de Tercero</label>
-                                <PrimeMultiSelect v-model="formData.partyTypes" :options="partyTypeOptions"
+                                <PrimeMultiSelect :input-id="'f-partyTypes'" :invalid="!!validationErrors['partyTypes']" v-model="formData.partyTypes" :options="partyTypeOptions"
                                     option-value="value" option-label="label"
                                     :placeholder="isEmployeeSelected ? 'Empleado (solo)' : 'Seleccione tipo(s)'" class="w-100"
                                     :selectionLimit="isEmployeeSelected ? 1 : null" :maxSelectedLabels="isEmployeeSelected ? 1 : 3"
                                     :class="{'p-invalid': validationErrors.partyTypes}" />
                                 <small v-if="isEmployeeSelected" class="text-info d-block mt-1" style="font-size:.72rem"><i class="fas fa-info-circle me-1"></i>Empleado solo puede tener el tipo Empleado.</small>
-                                <div v-show="validationErrors.partyTypes" class="text-danger small mt-1">
+                                <div v-if="validationErrors.partyTypes" class="text-danger small mt-1" id="f-partyTypes-error" role="alert">
                                     {{ validationErrors.partyTypes }}
                                 </div>
                             </div>
 
                             <div :class="bottomRowColClass">
                                 <label class="form-label" for="rbacRoles">Roles de Acceso</label>
-                                <PrimeMultiSelect v-model="formData.rbacRoles" :options="filteredRbacRoleOptions"
+                                <PrimeMultiSelect :input-id="'f-rbacRoles'" :invalid="!!validationErrors['rbacRoles']" v-model="formData.rbacRoles" :options="filteredRbacRoleOptions"
                                     option-value="value" option-label="label"
                                     :placeholder="isEmployeeSelected ? 'Seleccione un único rol' : 'Seleccione rol(es) de usuario'" class="w-100"
                                     :selectionLimit="isEmployeeSelected ? 1 : null" :maxSelectedLabels="isEmployeeSelected ? 1 : 3"
                                     :class="{'p-invalid': validationErrors.rbacRoles}" />
                                 <small v-if="isEmployeeSelected" class="text-info d-block mt-1" style="font-size:.72rem"><i class="fas fa-info-circle me-1"></i>Empleado solo puede tener un único rol (cualquiera, no ligado al tipo).</small>
-                                <div v-show="validationErrors.rbacRoles" class="text-danger small mt-1">
+                                <div v-if="validationErrors.rbacRoles" class="text-danger small mt-1" id="f-rbacRoles-error" role="alert">
                                     {{ validationErrors.rbacRoles }}
                                 </div>
                             </div>
@@ -309,7 +309,7 @@
                                 <option value="1">Activo</option>
                                 <option value="0">Inactivo</option>
                             </select>
-                            <div v-show="validationErrors.is_active" class="invalid-feedback d-block">
+                            <div v-if="validationErrors.is_active" class="invalid-feedback d-block" id="f-is_active-error" role="alert">
                                 {{ validationErrors.is_active }}
                             </div>
                         </div>
@@ -335,7 +335,7 @@
                                     <label class="form-label required" for="license_number">Número de Licencia</label>
                                     <input type="text" autocomplete="off" id="license_number" v-model="formData.license_number" class="form-control"
                                         :class="{ 'is-invalid': validationErrors.license_number }" placeholder="Número">
-                                    <div v-show="validationErrors.license_number" class="invalid-feedback d-block">
+                                    <div v-if="validationErrors.license_number" class="invalid-feedback d-block" id="f-license_number-error" role="alert">
                                         {{ validationErrors.license_number }}
                                     </div>
                                 </div>
@@ -347,7 +347,7 @@
                                         <option value="C2">C2</option>
                                         <option value="C3">C3</option>
                                     </select>
-                                    <div v-show="validationErrors.license_category" class="invalid-feedback d-block">
+                                    <div v-if="validationErrors.license_category" class="invalid-feedback d-block" id="f-license_category-error" role="alert">
                                         {{ validationErrors.license_category }}
                                     </div>
                                 </div>
@@ -355,7 +355,7 @@
                                     <label class="form-label required" for="license_issue_date">Fecha Expedición</label>
                                     <input type="date" id="license_issue_date" v-model="formData.license_issue_date"
                                         class="form-control" :class="{ 'is-invalid': validationErrors.license_issue_date }" placeholder="YYYY-MM-DD">
-                                    <div v-show="validationErrors.license_issue_date" class="invalid-feedback d-block">
+                                    <div v-if="validationErrors.license_issue_date" class="invalid-feedback d-block" id="f-license_issue_date-error" role="alert">
                                         {{ validationErrors.license_issue_date }}
                                     </div>
                                 </div>
@@ -363,7 +363,7 @@
                                     <label class="form-label required" for="license_expiration_date">Fecha Expiración</label>
                                     <input type="date" id="license_expiration_date" v-model="formData.license_expiration_date"
                                         class="form-control" :class="{ 'is-invalid': validationErrors.license_expiration_date }" placeholder="YYYY-MM-DD">
-                                    <div v-show="validationErrors.license_expiration_date" class="invalid-feedback d-block">
+                                    <div v-if="validationErrors.license_expiration_date" class="invalid-feedback d-block" id="f-license_expiration_date-error" role="alert">
                                         {{ validationErrors.license_expiration_date }}
                                     </div>
                                 </div>
@@ -376,14 +376,14 @@
                                                 + ' ' + (a.last_name || '') }}
                                         </option>
                                     </select>
-                                    <div v-show="validationErrors.affiliate_uuid" class="invalid-feedback d-block">
+                                    <div v-if="validationErrors.affiliate_uuid" class="invalid-feedback d-block" id="f-affiliate_uuid-error" role="alert">
                                         {{ validationErrors.affiliate_uuid }}
                                     </div>
                                 </div>
                                 <div class="col-12 col-sm-6 col-md-4 col-lg-4" v-else>
                                     <label class="form-label fw-medium text-success">Afiliado Asignado</label>
                                     <div class="d-flex align-items-center gap-2 p-2 border rounded bg-light" style="height: 38px;">
-                                        <i class="fad fa-badge-check text-success"></i>
+                                        <i class="fad fa-badge-check text-success" aria-hidden="true"></i>
                                         <span class="small fw-semibold text-dark">Auto-afiliado (Él mismo)</span>
                                     </div>
                                 </div>
@@ -392,7 +392,7 @@
                                     <input type="text" autocomplete="off" id="license_restrictions" v-model="formData.license_restrictions"
                                         class="form-control" :class="{ 'is-invalid': validationErrors.license_restrictions }"
                                         placeholder="Ej: Lentes, limitación auditiva...">
-                                    <div v-show="validationErrors.license_restrictions" class="invalid-feedback d-block">
+                                    <div v-if="validationErrors.license_restrictions" class="invalid-feedback d-block" id="f-license_restrictions-error" role="alert">
                                         {{ validationErrors.license_restrictions }}
                                     </div>
                                 </div>
@@ -404,7 +404,7 @@
                                         <option value="VENCIDA">Vencida</option>
                                         <option value="CANCELADA">Cancelada</option>
                                     </select>
-                                    <div v-show="validationErrors.license_status" class="invalid-feedback d-block">
+                                    <div v-if="validationErrors.license_status" class="invalid-feedback d-block" id="f-license_status-error" role="alert">
                                         {{ validationErrors.license_status }}
                                     </div>
                                 </div>
@@ -461,7 +461,7 @@ import { toast } from '@/utils/toast.js';
  * @resource {ThirdParty}
  */
 
-import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue';
+import { ref, reactive, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useThirdPartiesStore } from '../store/thirdParties.store.js';
 import { usePermissionsStore, useUserStore } from '@store';
@@ -653,36 +653,51 @@ function mapRuesRegistroThirdParty(registro) {
     if (registro.razon_social) formData.company_name = registro.razon_social;
 }
 
+const isEmpty = (v) => v === null || v === undefined || (typeof v === 'string' ? v.trim() === '' : !v);
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const focusFirstError = async (fieldKey) => {
+    await nextTick();
+    const byId = fieldKey ? document.getElementById(`f-${String(fieldKey).replace(/\./g, '-')}`) : null;
+    const target = byId || document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+    if (target) {
+        if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(target.tagName)) target.setAttribute('tabindex', '-1');
+        target.focus({ preventScroll: true });
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+};
+
 const validateForm = () => {
     Object.keys(validationErrors).forEach(key => delete validationErrors[key]);
 
     // Validar requeridos según el JSON
-    if (!formData.company_uuid) validationErrors.company_uuid = 'Este campo es obligatorio';
-    if (!formData.person_type) validationErrors.person_type = 'Este campo es obligatorio';
-    if (!formData.document_type_uuid) validationErrors.document_type_uuid = 'Este campo es obligatorio';
-    if (!formData.document_number) validationErrors.document_number = 'Este campo es obligatorio';
+    if (isEmpty(formData.company_uuid)) validationErrors.company_uuid = 'Este campo es obligatorio';
+    if (isEmpty(formData.person_type)) validationErrors.person_type = 'Este campo es obligatorio';
+    if (isEmpty(formData.document_type_uuid)) validationErrors.document_type_uuid = 'Este campo es obligatorio';
+    if (isEmpty(formData.document_number)) validationErrors.document_number = 'Este campo es obligatorio';
 
     if (formData.person_type === 'JURIDICA') {
-        if (!formData.company_name) validationErrors.company_name = 'Este campo es obligatorio';
+        if (isEmpty(formData.company_name)) validationErrors.company_name = 'Este campo es obligatorio';
 
         // Limpiar campos que no aplican para enviarlos vacíos
         formData.first_name = null;
         formData.last_name = null;
         formData.trade_name = null;
     } else {
-        if (!formData.first_name) validationErrors.first_name = 'Este campo es obligatorio';
-        if (!formData.last_name) validationErrors.last_name = 'Este campo es obligatorio';
+        if (isEmpty(formData.first_name)) validationErrors.first_name = 'Este campo es obligatorio';
+        if (isEmpty(formData.last_name)) validationErrors.last_name = 'Este campo es obligatorio';
 
         // Limpiar campos que no aplican
         formData.company_name = null;
     }
 
-    if (!formData.email) validationErrors.email = 'Este campo es obligatorio';
-    if (!formData.municipality_uuid) validationErrors.municipality_uuid = 'Este campo es obligatorio';
-    if (!formData.tax_regime) validationErrors.tax_regime = 'Este campo es obligatorio';
-    if (!formData.tax_responsibility_uuid) validationErrors.tax_responsibility_uuid = 'Este campo es obligatorio';
-    if (!formData.is_active) validationErrors.is_active = 'Este campo es obligatorio';
-    if (!formData.partyTypes || formData.partyTypes.length === 0) validationErrors.partyTypes = 'Debe seleccionar al menos un tipo de tercero';
+    if (isEmpty(formData.email)) validationErrors.email = 'Este campo es obligatorio';
+    else if (!EMAIL_RE.test(String(formData.email))) validationErrors.email = 'El correo electrónico no tiene un formato válido';
+    if (isEmpty(formData.municipality_uuid)) validationErrors.municipality_uuid = 'Este campo es obligatorio';
+    if (isEmpty(formData.tax_regime)) validationErrors.tax_regime = 'Este campo es obligatorio';
+    if (isEmpty(formData.tax_responsibility_uuid)) validationErrors.tax_responsibility_uuid = 'Este campo es obligatorio';
+    if (isEmpty(formData.is_active)) validationErrors.is_active = 'Este campo es obligatorio';
+    if (isEmpty(formData.partyTypes) || formData.partyTypes.length === 0) validationErrors.partyTypes = 'Debe seleccionar al menos un tipo de tercero';
 
     // Regla: Empleado solo puede tener un único tipo y un único rol (independientes)
     if (isEmployeeSelected.value) {
@@ -696,13 +711,13 @@ const validateForm = () => {
 
     // Validar licencia si es conductor (solo al crear)
     if (formData.partyTypes && formData.partyTypes.includes('is_driver') && !isEditMode.value) {
-        if (!isOwnerDriver.value && !formData.affiliate_uuid) {
+        if (!isOwnerDriver.value && isEmpty(formData.affiliate_uuid)) {
             validationErrors.affiliate_uuid = 'Debe asignar el conductor a un afiliado';
         }
-        if (!formData.license_number) validationErrors.license_number = 'El número de licencia es obligatorio';
-        if (!formData.license_category) validationErrors.license_category = 'La categoría es obligatoria';
-        if (!formData.license_issue_date) validationErrors.license_issue_date = 'La fecha de expedición es obligatoria';
-        if (!formData.license_expiration_date) {
+        if (isEmpty(formData.license_number)) validationErrors.license_number = 'El número de licencia es obligatorio';
+        if (isEmpty(formData.license_category)) validationErrors.license_category = 'La categoría es obligatoria';
+        if (isEmpty(formData.license_issue_date)) validationErrors.license_issue_date = 'La fecha de expedición es obligatoria';
+        if (isEmpty(formData.license_expiration_date)) {
             validationErrors.license_expiration_date = 'La fecha de expiración es obligatoria';
         } else if (formData.license_issue_date && formData.license_expiration_date) {
             const issueDate = new Date(formData.license_issue_date);
@@ -711,7 +726,7 @@ const validateForm = () => {
                 validationErrors.license_expiration_date = 'La fecha de expiración debe ser posterior a la fecha de expedición';
             }
         }
-        if (!formData.license_status) validationErrors.license_status = 'El estado de la licencia es obligatorio';
+        if (isEmpty(formData.license_status)) validationErrors.license_status = 'El estado de la licencia es obligatorio';
     } else if (!isEditMode.value) {
         // Limpiar para que no se envíen si no es conductor
         formData.affiliate_uuid = null;
@@ -770,8 +785,7 @@ const handleSubmit = async () => {
     formData.roles = [...new Set(formData.rbacRoles || [])];
 
     if (!validateForm()) {
-        const firstError = document.querySelector('.is-invalid');
-        if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        await focusFirstError(Object.keys(validationErrors)[0]);
         return toast('Atención', 'Revisa los campos obligatorios', 'warning');
     }
 
@@ -833,8 +847,7 @@ const handleSubmit = async () => {
             }
 
             if (hasErrors) {
-                const firstError = document.querySelector('.is-invalid');
-                if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                await focusFirstError(Object.keys(validationErrors)[0]);
                 toast('Atención', 'Hay errores de validación. Por favor revisa los campos señalados en el formulario.', 'warning');
                 return;
             }

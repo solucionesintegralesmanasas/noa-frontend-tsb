@@ -30,7 +30,7 @@
                         </div>                            
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label required" for="vehicle_uuid">Vehículo</label>
-                                <select ref="vehicleSelect" v-model="formData.vehicle_uuid" class="form-control select2-input w-100"
+                                <select id="f-vehicle_uuid" :aria-invalid="!!validationErrors['vehicle_uuid']" :aria-describedby="validationErrors['vehicle_uuid'] ? 'f-vehicle_uuid-error' : undefined" ref="vehicleSelect" v-model="formData.vehicle_uuid" class="form-control select2-input w-100"
                                     :class="{ 'is-invalid': validationErrors.vehicle_uuid }">
                                     <option value="">Seleccione...</option>
                                     <option v-for="opt in store.catalogs.vehicles" :key="opt.uuid" :value="opt.uuid">
@@ -38,7 +38,7 @@
                                             `(${opt.internal_number})` : '' }}
                                     </option>
                                 </select>
-                                <div v-if="validationErrors.vehicle_uuid" class="invalid-feedback d-block">{{
+                                <div v-if="validationErrors.vehicle_uuid" class="invalid-feedback d-block" id="f-vehicle_uuid-error" role="alert">{{
                                     validationErrors.vehicle_uuid }}</div>
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
@@ -48,7 +48,7 @@
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label" for="transmission_type">Tipo de Transmisión</label>
-                                <select ref="transmissionTypeSelect" v-model="formData.transmission_type" class="form-control select2-input w-100">
+                                <select id="f-transmission_type" :aria-invalid="!!validationErrors['transmission_type']" :aria-describedby="validationErrors['transmission_type'] ? 'f-transmission_type-error' : undefined" ref="transmissionTypeSelect" v-model="formData.transmission_type" class="form-control select2-input w-100">
                                     <option value="">Seleccionar</option>
                                     <option value="Mecánica">Mecánica</option>
                                     <option value="Automática">Automática</option>
@@ -61,7 +61,7 @@
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label" for="bearing_type">Tipo de Rodamiento</label>
-                                <select ref="bearingTypeSelect" v-model="formData.bearing_type" class="form-control select2-input w-100">
+                                <select id="f-bearing_type" :aria-invalid="!!validationErrors['bearing_type']" :aria-describedby="validationErrors['bearing_type'] ? 'f-bearing_type-error' : undefined" ref="bearingTypeSelect" v-model="formData.bearing_type" class="form-control select2-input w-100">
                                     <option value="">Seleccionar</option>
                                     <option value="4X4">4X4</option>
                                     <option value="4X2">4X2</option>
@@ -69,7 +69,7 @@
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label" for="rear_suspension">Suspensión Trasera</label>
-                                <select ref="rearSuspensionSelect" v-model="formData.rear_suspension" class="form-control select2-input w-100">
+                                <select id="f-rear_suspension" :aria-invalid="!!validationErrors['rear_suspension']" :aria-describedby="validationErrors['rear_suspension'] ? 'f-rear_suspension-error' : undefined" ref="rearSuspensionSelect" v-model="formData.rear_suspension" class="form-control select2-input w-100">
                                     <option value="">Seleccionar</option>
                                     <option value="Muelle">Muelle</option>
                                     <option value="Amortiguador">Amortiguador</option>
@@ -97,7 +97,7 @@
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label" for="rear_brake_type">Frenos Traseros</label>
-                                <select ref="rearBrakeTypeSelect" v-model="formData.rear_brake_type" class="form-control select2-input w-100">
+                                <select id="f-rear_brake_type" :aria-invalid="!!validationErrors['rear_brake_type']" :aria-describedby="validationErrors['rear_brake_type'] ? 'f-rear_brake_type-error' : undefined" ref="rearBrakeTypeSelect" v-model="formData.rear_brake_type" class="form-control select2-input w-100">
                                     <option value="">Seleccionar</option>
                                     <option value="Disco">Disco</option>
                                     <option value="Tambor">Tambor</option>
@@ -118,20 +118,20 @@
                                 <input id="mileage" v-model="formData.mileage" class="form-control"
                                     :class="{ 'is-invalid': validationErrors.mileage }" type="number" autocomplete="off"
                                     placeholder="Ej: 45000" />
-                                <div v-if="validationErrors.mileage" class="invalid-feedback d-block">{{
+                                <div v-if="validationErrors.mileage" class="invalid-feedback d-block" id="f-mileage-error" role="alert">{{
                                     validationErrors.mileage }}
                                 </div>
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label required" for="maintenance_type">Tipo de Mantenimiento</label>
-                                <select ref="maintenanceTypeSelect" v-model="formData.maintenance_type" class="form-control select2-input w-100"
+                                <select id="f-maintenance_type" :aria-invalid="!!validationErrors['maintenance_type']" :aria-describedby="validationErrors['maintenance_type'] ? 'f-maintenance_type-error' : undefined" ref="maintenanceTypeSelect" v-model="formData.maintenance_type" class="form-control select2-input w-100"
                                     :class="{ 'is-invalid': validationErrors.maintenance_type }">
                                     <option value="">Seleccione...</option>
                                     <option value="PREVENTIVA">Preventiva</option>
                                     <option value="CORRECTIVA">Correctiva</option>
                                     <option value="OTRO">Otro</option>
                                 </select>
-                                <div v-if="validationErrors.maintenance_type" class="invalid-feedback d-block">{{
+                                <div v-if="validationErrors.maintenance_type" class="invalid-feedback d-block" id="f-maintenance_type-error" role="alert">{{
                                     validationErrors.maintenance_type }}</div>
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
@@ -139,7 +139,7 @@
                                     Mantenimiento</label>
                                 <input id="maintenance_date" v-model="formData.maintenance_date" class="form-control"
                                     :class="{ 'is-invalid': validationErrors.maintenance_date }" type="date" placeholder="YYYY-MM-DD" />
-                                <div v-if="validationErrors.maintenance_date" class="invalid-feedback d-block">{{
+                                <div v-if="validationErrors.maintenance_date" class="invalid-feedback d-block" id="f-maintenance_date-error" role="alert">{{
                                     validationErrors.maintenance_date }}</div>
                             </div>
                                                     
@@ -155,14 +155,14 @@
                             </div>
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label required" for="status">Estado</label>
-                                <select ref="statusSelect" v-model="formData.status" class="form-control select2-input w-100"
+                                <select id="f-status" :aria-invalid="!!validationErrors['status']" :aria-describedby="validationErrors['status'] ? 'f-status-error' : undefined" ref="statusSelect" v-model="formData.status" class="form-control select2-input w-100"
                                     :class="{ 'is-invalid': validationErrors.status }">
                                     <option value="">Seleccione...</option>
                                     <option value="Pendiente">Pendiente</option>
                                     <option value="Finalizado">Finalizado</option>
                                     <option value="Anulado">Anulado</option>
                                 </select>
-                                <div v-if="validationErrors.status" class="invalid-feedback d-block">{{
+                                <div v-if="validationErrors.status" class="invalid-feedback d-block" id="f-status-error" role="alert">{{
                                     validationErrors.status }}</div>
                             </div>
                             <div class="col-12">
@@ -171,7 +171,7 @@
                                 <textarea id="service_description" v-model="formData.service_description"
                                     class="form-control" :class="{ 'is-invalid': validationErrors.service_description }"
                                     rows="3" placeholder="Detalle de los trabajos realizados"></textarea>
-                                <div v-if="validationErrors.service_description" class="invalid-feedback d-block">{{
+                                <div v-if="validationErrors.service_description" class="invalid-feedback d-block" id="f-service_description-error" role="alert">{{
                                     validationErrors.service_description }}</div>
                         </div>
 
@@ -216,13 +216,13 @@
                             <input type="hidden" v-if="!isSuperAdmin" v-model="formData.company_uuid" />
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3" v-if="isSuperAdmin">
                                 <label class="form-label required" for="company_uuid">Empresa</label>
-                                <select ref="companySelect" v-model="formData.company_uuid" class="form-control select2-input w-100"
+                                <select id="f-company_uuid" :aria-invalid="!!validationErrors['company_uuid']" :aria-describedby="validationErrors['company_uuid'] ? 'f-company_uuid-error' : undefined" ref="companySelect" v-model="formData.company_uuid" class="form-control select2-input w-100"
                                     :class="{ 'is-invalid': validationErrors.company_uuid }">
                                     <option value="">Seleccione...</option>
                                     <option v-for="opt in store.catalogs.companies" :key="opt.uuid" :value="opt.uuid">{{
                                         opt.business_name || opt.name }}</option>
                                 </select>
-                                <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block">{{
+                                <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block" id="f-company_uuid-error" role="alert">{{
                                     validationErrors.company_uuid }}</div>
                             </div>
                         </div>
@@ -253,6 +253,10 @@
                                             <tr v-for="(part, index) in formData.parts" :key="index">
                                                 <td>
                                                     <input v-model="part.part_name" class="form-control form-control-sm"
+                                                        :id="`f-parts-${index}-part_name`"
+                                                        :aria-label="`Repuesto ${index + 1}: nombre`"
+                                                        :aria-invalid="!!validationErrors[`parts.${index}.part_name`]"
+                                                        :aria-describedby="validationErrors[`parts.${index}.part_name`] ? `f-parts-${index}-part_name-error` : undefined"
                                                         :class="{ 'is-invalid': validationErrors[`parts.${index}.part_name`] }"
                                                         type="text" autocomplete="off" placeholder="Nombre" />
                                                 </td>
@@ -262,11 +266,19 @@
                                                 </td>
                                                 <td>
                                                     <input v-model="part.quantity" class="form-control form-control-sm"
+                                                        :id="`f-parts-${index}-quantity`"
+                                                        :aria-label="`Repuesto ${index + 1}: cantidad`"
+                                                        :aria-invalid="!!validationErrors[`parts.${index}.quantity`]"
+                                                        :aria-describedby="validationErrors[`parts.${index}.quantity`] ? `f-parts-${index}-quantity-error` : undefined"
                                                         :class="{ 'is-invalid': validationErrors[`parts.${index}.quantity`] }"
                                                         type="number" step="0.01" autocomplete="off" />
                                                 </td>
                                                 <td>
                                                     <input v-model="part.unit_cost" class="form-control form-control-sm"
+                                                        :id="`f-parts-${index}-unit_cost`"
+                                                        :aria-label="`Repuesto ${index + 1}: costo unitario`"
+                                                        :aria-invalid="!!validationErrors[`parts.${index}.unit_cost`]"
+                                                        :aria-describedby="validationErrors[`parts.${index}.unit_cost`] ? `f-parts-${index}-unit_cost-error` : undefined"
                                                         :class="{ 'is-invalid': validationErrors[`parts.${index}.unit_cost`] }"
                                                         type="number" step="0.01" autocomplete="off" />
                                                 </td>
@@ -285,8 +297,8 @@
                                                 </td>
                                                 <td class="text-center">
                                                     <button type="button" class="btn btn-sm btn-danger px-2"
-                                                        @click="removePart(index)">
-                                                        <i class="fas fa-trash"></i>
+                                                        @click="removePart(index)" :aria-label="`Quitar repuesto ${index + 1}`">
+                                                        <i class="fas fa-trash" aria-hidden="true"></i>
                                                     </button>
                                                 </td>
                                             </tr>
@@ -296,6 +308,11 @@
                                             </tr>
                                         </tbody>
                                     </table>
+                                    <div v-if="partsErrorMessages.length" class="alert alert-danger py-2 mt-2" role="alert">
+                                        <ul class="mb-0 ps-3">
+                                            <li v-for="(msg, i) in partsErrorMessages" :key="i">{{ msg }}</li>
+                                        </ul>
+                                    </div>
                                 </div>
                                 <button type="button" class="btn btn-sm btn-outline-primary mt-2" @click="addPart">
                                     <i class="fas fa-plus me-1"></i> Agregar Repuesto
@@ -447,27 +464,40 @@ watch(() => formData.vehicle_uuid, async (newVal, oldVal) => {
     }
 });
 
+const isEmpty = (v) => v === null || v === undefined || (typeof v === 'string' ? v.trim() === '' : !v);
+
 const validateForm = () => {
     Object.keys(validationErrors).forEach(key => delete validationErrors[key]);
 
-    if (!formData.company_uuid) validationErrors.company_uuid = 'Este campo es obligatorio';
-    if (!formData.vehicle_uuid) validationErrors.vehicle_uuid = 'Este campo es obligatorio';
-    if (!formData.maintenance_type) validationErrors.maintenance_type = 'Este campo es obligatorio';
-    if (!formData.status) validationErrors.status = 'Este campo es obligatorio';
-    if (!formData.maintenance_date) validationErrors.maintenance_date = 'Este campo es obligatorio';
+    if (isEmpty(formData.company_uuid)) validationErrors.company_uuid = 'Este campo es obligatorio';
+    if (isEmpty(formData.vehicle_uuid)) validationErrors.vehicle_uuid = 'Este campo es obligatorio';
+    if (isEmpty(formData.maintenance_type)) validationErrors.maintenance_type = 'Este campo es obligatorio';
+    if (isEmpty(formData.status)) validationErrors.status = 'Este campo es obligatorio';
+    if (isEmpty(formData.maintenance_date)) validationErrors.maintenance_date = 'Este campo es obligatorio';
     if (formData.mileage === '' || formData.mileage === null || formData.mileage === undefined) {
         validationErrors.mileage = 'Este campo es obligatorio';
     }
-    if (!formData.service_description) validationErrors.service_description = 'Este campo es obligatorio';
+    if (isEmpty(formData.service_description)) validationErrors.service_description = 'Este campo es obligatorio';
 
     formData.parts.forEach((part, index) => {
-        if (!part.part_name) validationErrors[`parts.${index}.part_name`] = 'Obligatorio';
+        if (isEmpty(part.part_name)) validationErrors[`parts.${index}.part_name`] = 'Obligatorio';
         if (part.quantity === '' || part.quantity === null || part.quantity === undefined) validationErrors[`parts.${index}.quantity`] = 'Obligatorio';
         if (part.unit_cost === '' || part.unit_cost === null || part.unit_cost === undefined) validationErrors[`parts.${index}.unit_cost`] = 'Obligatorio';
     });
 
     return Object.keys(validationErrors).length === 0;
 };
+
+/** Mensajes de error de repuestos con contexto de fila (resumen anunciable). */
+const partsErrorMessages = computed(() => {
+    const fieldLabel = { part_name: 'nombre', quantity: 'cantidad', unit_cost: 'costo unitario' };
+    return Object.keys(validationErrors)
+        .filter((k) => k.startsWith('parts.'))
+        .map((k) => {
+            const [, idx, field] = k.split('.');
+            return `Repuesto ${Number(idx) + 1} (${fieldLabel[field] || field}): ${validationErrors[k]}`;
+        });
+});
 
 const goBack = () => router.push('/mantenimiento');
 
@@ -476,8 +506,13 @@ const handleSubmit = async () => {
 
     if (!validateForm()) {
         applyAllValidations(selectConfigs.value);
-        const firstError = document.querySelector('.is-invalid, .is-invalid-select2, .invalid-feedback');
-        if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        await nextTick();
+        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+        if (firstError) {
+            if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(firstError.tagName)) firstError.setAttribute('tabindex', '-1');
+            firstError.focus({ preventScroll: true });
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return toast('Atención', 'Revisa los campos obligatorios', 'warning');
     }
 

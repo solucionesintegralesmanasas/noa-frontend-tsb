@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useTrackingStore } from '../store/tracking.store';
@@ -203,6 +203,18 @@ function validate() {
 
 async function save() {
     if (!validate()) {
+        await nextTick();
+        const firstKey = Object.keys(validationErrors.value)[0];
+        // Los errores del mapa (center/polygon_points) llevan el foco al mapa
+        const mapKeys = { center: 'geofenceMap', polygon_points: 'geofenceMap' };
+        const targetId = (firstKey && mapKeys[firstKey]) || (firstKey ? `f-${firstKey}` : null);
+        const target = (targetId && document.getElementById(targetId))
+            || document.querySelector('[aria-invalid="true"], .is-invalid');
+        if (target) {
+            if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(target.tagName)) target.setAttribute('tabindex', '-1');
+            target.focus({ preventScroll: true });
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         toast.error('Revisa los campos del formulario');
         return;
     }
@@ -297,50 +309,56 @@ onBeforeUnmount(() => {
                             <div class="col-12 col-lg-5 col-xl-4">
                                 <div class="row g-3">
                                     <div class="col-12">
-                                        <label class="form-label required fw-medium" style="font-size: 0.9rem;">Nombre *</label>
-                                        <input type="text" autocomplete="off" class="form-control" v-model="form.name"
+                                        <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-name">Nombre</label>
+                                        <input type="text" autocomplete="off" class="form-control" id="f-name" v-model="form.name"
+                                            :aria-invalid="!!validationErrors.name"
+                                            :aria-describedby="validationErrors.name ? 'f-name-error' : undefined"
                                             :class="{
                                                 'is-invalid': validationErrors.name,
                                                 'is-valid': form.name && !validationErrors.name
                                             }"
                                             @input="validationErrors.name = null" placeholder="Ej: Terminal de transportes" />
-                                        <div v-if="validationErrors.name" class="invalid-feedback d-block">
+                                        <div v-if="validationErrors.name" class="invalid-feedback d-block" id="f-name-error" role="alert">
                                             {{ validationErrors.name }}
                                         </div>
                                     </div>
 
                                     <div class="col-12">
-                                        <label class="form-label fw-medium" style="font-size: 0.9rem;">Descripción</label>
-                                        <textarea class="form-control" v-model="form.description" rows="3"
+                                        <label class="form-label fw-medium" style="font-size: 0.9rem;" for="f-description">Descripción</label>
+                                        <textarea class="form-control" id="f-description" v-model="form.description" rows="3"
                                             placeholder="Detalle de la zona (opcional)"></textarea>
                                     </div>
 
                                     <div class="col-12">
-                                        <label class="form-label fw-medium" style="font-size: 0.9rem;">Tipo de zona</label>
-                                        <div class="btn-group w-100" role="group">
+                                        <label class="form-label fw-medium" style="font-size: 0.9rem;" id="f-type-label">Tipo de zona</label>
+                                        <div class="btn-group w-100" role="group" aria-labelledby="f-type-label">
                                             <button type="button" class="btn btn-sm"
                                                 :class="form.type === 'circle' ? 'btn-primary' : 'btn-outline-primary'"
+                                                :aria-pressed="form.type === 'circle'"
                                                 @click="selectType('circle')">
-                                                <i class="fad fa-circle me-1"></i> Círculo
+                                                <i class="fad fa-circle me-1" aria-hidden="true"></i> Círculo
                                             </button>
                                             <button type="button" class="btn btn-sm"
                                                 :class="form.type === 'polygon' ? 'btn-primary' : 'btn-outline-primary'"
+                                                :aria-pressed="form.type === 'polygon'"
                                                 @click="selectType('polygon')">
-                                                <i class="fad fa-draw-polygon me-1"></i> Polígono
+                                                <i class="fad fa-draw-polygon me-1" aria-hidden="true"></i> Polígono
                                             </button>
                                         </div>
                                     </div>
 
                                     <template v-if="form.type === 'circle'">
                                         <div class="col-12">
-                                            <label class="form-label required fw-medium" style="font-size: 0.9rem;">Radio (metros) *</label>
+                                            <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-radius">Radio (metros)</label>
                                             <div class="input-group">
-                                                <span class="input-group-text bg-light"><i class="fad fa-ruler-horizontal text-muted"></i></span>
+                                                <span class="input-group-text bg-light" aria-hidden="true"><i class="fad fa-ruler-horizontal text-muted"></i></span>
                                                 <input v-model.number="form.radius_meters" type="number" min="10" max="50000"
-                                                    class="form-control"
+                                                    id="f-radius" class="form-control"
+                                                    :aria-invalid="!!validationErrors.radius_meters"
+                                                    :aria-describedby="validationErrors.radius_meters ? 'f-radius-error' : undefined"
                                                     :class="{ 'is-invalid': validationErrors.radius_meters }" />
                                             </div>
-                                            <div v-if="validationErrors.radius_meters" class="invalid-feedback d-block">
+                                            <div v-if="validationErrors.radius_meters" class="invalid-feedback d-block" id="f-radius-error" role="alert">
                                                 {{ validationErrors.radius_meters }}
                                             </div>
                                         </div>
@@ -348,29 +366,29 @@ onBeforeUnmount(() => {
 
                                     <template v-if="form.type === 'polygon'">
                                         <div class="col-12">
-                                            <label class="form-label fw-medium" style="font-size: 0.9rem;">
+                                            <span class="form-label fw-medium d-block" style="font-size: 0.9rem;" id="f-polygon-caption">
                                                 Puntos del polígono
                                                 <span class="badge rounded-pill badge-subtle badge-subtle-primary ms-1">
                                                     {{ form.polygon_points.length }}
                                                 </span>
-                                            </label>
+                                            </span>
                                             <div v-if="form.polygon_points.length" class="border rounded-3 p-2"
-                                                style="max-height: 160px; overflow-y: auto;">
-                                                <div v-for="(point, index) in form.polygon_points" :key="index"
+                                                style="max-height: 160px; overflow-y: auto;" role="list" aria-labelledby="f-polygon-caption">
+                                                <div v-for="(point, index) in form.polygon_points" :key="index" role="listitem"
                                                     class="d-flex align-items-center justify-content-between py-1 border-bottom border-light small">
                                                     <span class="text-muted font-monospace">
                                                         {{ point.lat.toFixed(6) }}, {{ point.lng.toFixed(6) }}
                                                     </span>
                                                     <button type="button" class="btn btn-sm btn-falcon-default text-danger"
-                                                        @click="removePolygonPoint(index)">
-                                                        <i class="fad fa-times"></i>
+                                                        @click="removePolygonPoint(index)" :aria-label="`Quitar punto ${index + 1}`">
+                                                        <i class="fad fa-times" aria-hidden="true"></i>
                                                     </button>
                                                 </div>
                                             </div>
                                             <div v-else class="px-3 py-2 bg-light rounded-3 text-muted small">
-                                                <i class="fad fa-draw-polygon me-1"></i> Haz clic en el mapa para agregar puntos.
+                                                <i class="fad fa-draw-polygon me-1" aria-hidden="true"></i> Haz clic en el mapa para agregar puntos.
                                             </div>
-                                            <div v-if="validationErrors.polygon_points" class="invalid-feedback d-block">
+                                            <div v-if="validationErrors.polygon_points" class="invalid-feedback d-block" id="f-polygon-error" role="alert">
                                                 {{ validationErrors.polygon_points }}
                                             </div>
                                         </div>
@@ -391,7 +409,7 @@ onBeforeUnmount(() => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div v-if="validationErrors.center" class="invalid-feedback d-block">
+                                        <div v-if="validationErrors.center" class="invalid-feedback d-block" id="f-center-error" role="alert">
                                             {{ validationErrors.center }}
                                         </div>
                                     </div>
@@ -405,29 +423,29 @@ onBeforeUnmount(() => {
                                             <input class="form-check-input" type="checkbox" id="alert_enter"
                                                 v-model="form.alert_on_enter" />
                                             <label class="form-check-label small" for="alert_enter">
-                                                <i class="fad fa-sign-in-alt text-success me-1"></i> Alertar al ingresar a la zona
+                                                <i class="fad fa-sign-in-alt text-success me-1" aria-hidden="true"></i> Alertar al ingresar a la zona
                                             </label>
                                         </div>
                                         <div class="form-check form-switch mt-2">
                                             <input class="form-check-input" type="checkbox" id="alert_exit"
                                                 v-model="form.alert_on_exit" />
                                             <label class="form-check-label small" for="alert_exit">
-                                                <i class="fad fa-sign-out-alt text-danger me-1"></i> Alertar al salir de la zona
+                                                <i class="fad fa-sign-out-alt text-danger me-1" aria-hidden="true"></i> Alertar al salir de la zona
                                             </label>
                                         </div>
 
-                                        <label class="form-label fw-medium mt-3" style="font-size: 0.9rem;">Límite de velocidad</label>
+                                        <label class="form-label fw-medium mt-3" style="font-size: 0.9rem;" for="f-speed">Límite de velocidad</label>
                                         <div class="input-group">
-                                            <span class="input-group-text bg-light"><i class="fad fa-gauge-high text-muted"></i></span>
+                                            <span class="input-group-text bg-light" aria-hidden="true"><i class="fad fa-gauge-high text-muted"></i></span>
                                             <input v-model.number="form.max_speed_kmh" type="number" min="1" max="200"
-                                                class="form-control" placeholder="Opcional" />
+                                                id="f-speed" class="form-control" placeholder="Opcional" />
                                             <span class="input-group-text bg-light text-muted">km/h</span>
                                         </div>
 
                                         <div class="form-check form-switch mt-3">
                                             <input class="form-check-input" type="checkbox" id="is_active" v-model="form.is_active" />
                                             <label class="form-check-label small" for="is_active">
-                                                <i class="fad fa-toggle-on text-success me-1"></i> Zona activa
+                                                <i class="fad fa-toggle-on text-success me-1" aria-hidden="true"></i> Zona activa
                                             </label>
                                         </div>
                                     </div>
@@ -440,7 +458,7 @@ onBeforeUnmount(() => {
 
                             <div class="col-12 col-lg-7 col-xl-8">
                                 <div class="position-relative rounded-3 border border-light overflow-hidden" style="min-height: 520px;">
-                                    <div id="geofenceMap" class="w-100" style="height: 520px;"></div>
+                                    <div id="geofenceMap" class="w-100" style="height: 520px;" role="application" aria-label="Mapa de geocerca: haz clic para ubicar el centro o agregar puntos del polígono"></div>
 
                                     <div class="position-absolute top-0 start-0 p-2 z-2">
                                         <span class="badge bg-white bg-opacity-90 text-dark shadow-sm px-2 py-1">

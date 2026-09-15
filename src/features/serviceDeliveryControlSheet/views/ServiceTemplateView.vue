@@ -108,7 +108,7 @@
                                                 {{ s.daily_route || recorridosTextoDe(s) }} · {{ tipoCorto(s.type_of_control_sheet) }}{{ s.project?.project_name ? ' · ' + s.project.project_name : '' }}
                                             </option>
                                         </select>
-                                        <div v-if="validationErrors.servicioId" class="invalid-feedback d-block mt-1">
+                                        <div v-if="validationErrors.servicioId" class="invalid-feedback d-block mt-1" id="f-servicioId-error" role="alert">
                                             {{ validationErrors.servicioId }}
                                         </div>
                                     </div>
