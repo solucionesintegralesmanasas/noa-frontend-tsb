@@ -166,7 +166,12 @@ export class BaseService {
         const fullUrl = url.startsWith('http') ? url : `${this.resourcePath}${url}`;
         const cleanFileName = filename.endsWith('.pdf') ? filename : `${filename}.pdf`;
 
-        const response = await instance.get(fullUrl, { responseType: 'blob' });
+        let response;
+        try {
+            response = await instance.get(fullUrl, { responseType: 'blob' });
+        } catch (err) {
+            throw await this._blobErrorToMessage(err);
+        }
         const blob = new Blob([response.data], { type: 'application/pdf' });
 
         // ─── PLATAFORMA NATIVA (Android + iOS) ────────────────────────────
@@ -219,6 +224,59 @@ export class BaseService {
         link.click();
         document.body.removeChild(link);
         setTimeout(() => window.URL.revokeObjectURL(blobUrl), 10000);
+    }
+
+    /**
+     * Descarga un archivo Excel como blob en web y nativo.
+     */
+    async _downloadExcel(url, filename = 'reporte.xlsx') {
+        const instance = this._getInstance();
+        const fullUrl = url.startsWith('http') ? url : `${this.resourcePath}${url}`;
+        let response;
+        try {
+            response = await instance.get(fullUrl, { responseType: 'blob' });
+        } catch (err) {
+            throw await this._blobErrorToMessage(err);
+        }
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const blobUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 10000);
+    }
+
+    /**
+     * Convierte un error blob del backend en un Error con mensaje legible.
+     */
+    async _blobErrorToMessage(err) {
+        try {
+            const data = err?.response?.data;
+            if (data instanceof Blob) {
+                const texto = await data.text();
+                try {
+                    const json = JSON.parse(texto);
+                    const msg = json?.message || json?.error;
+                    if (msg) {
+                        const e = new Error(msg);
+                        e.response = err.response;
+                        return e;
+                    }
+                } catch {
+                    if (texto && texto.length < 500) {
+                        const e = new Error(texto);
+                        e.response = err.response;
+                        return e;
+                    }
+                }
+            }
+        } catch {
+            // cae al error original
+        }
+        return err;
     }
 
     // ─── CRUD base ────────────────────────────────────────────────────────
