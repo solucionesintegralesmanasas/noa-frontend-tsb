@@ -59,6 +59,15 @@ export const useTrackingStore = defineStore('tracking', {
             }
         },
 
+        async attachRouteMap(driverUuid, serviceDate, imageBase64) {
+            const response = await trackingService.saveRouteMapCapture({
+                third_party_uuid: driverUuid,
+                service_date: serviceDate,
+                image_base64: imageBase64,
+            });
+            return response.data?.data || response.data;
+        },
+
         async fetchGeofences() {
             this.loading = true;
             try {

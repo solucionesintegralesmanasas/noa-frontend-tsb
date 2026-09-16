@@ -26,7 +26,12 @@ const filteredDrivers = computed(() => {
         const name = `${d.driver?.first_name || ''} ${d.driver?.last_name || ''}`.toLowerCase();
         const plate = d.vehicle?.vehicle_license_plate || '';
         const doc = d.driver?.document_number || '';
-        return name.includes(term) || plate.includes(term) || doc.includes(term);
+        const project = (d.project?.project_name || d.planilla_dia?.project_name || '').toLowerCase();
+        const routesText = (d.planilla_dia?.routes || [])
+            .map((r) => `${r.origin || ''} ${r.destination || ''} ${r.funcionario_nombre || ''} ${r.funcionario_cc || ''}`)
+            .join(' ')
+            .toLowerCase();
+        return name.includes(term) || plate.includes(term) || doc.includes(term) || project.includes(term) || routesText.includes(term);
     });
 });
 
@@ -176,7 +181,7 @@ onBeforeUnmount(() => {
                                 <i class="fad fa-search text-muted" />
                             </span>
                             <input v-model="searchTerm" class="form-control border-start-0 shadow-none"
-                                type="search" placeholder="Buscar conductor, placa, documento..." />
+                                type="search" placeholder="Buscar conductor, placa, proyecto, funcionario, ruta..." />
                         </div>
                         <div class="scrollbar" style="max-height: 620px; overflow-y: auto;">
                             <DriverMarker v-for="driver in filteredDrivers" :key="driver.third_party_uuid"

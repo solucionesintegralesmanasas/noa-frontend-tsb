@@ -18,6 +18,7 @@ const startDate = ref(dayjs().subtract(7, 'day').format('YYYY-MM-DD'));
 const endDate = ref(dayjs().format('YYYY-MM-DD'));
 
 const loading = ref(false);
+const capturingMap = ref(false);
 let map = null;
 let polylineLayer = null;
 let startMarker = null;
@@ -110,6 +111,36 @@ function goBack() {
     router.push({ name: 'tracking.map' });
 }
 
+async function captureAndAttachMap() {
+    if (capturingMap.value) return;
+    if (!store.driverHistory.length) {
+        toast.error('No hay recorrido dibujado para capturar');
+        return;
+    }
+    capturingMap.value = true;
+    try {
+        const { default: html2canvas } = await import('html2canvas');
+        const mapEl = document.getElementById('historyMap');
+        if (!mapEl) {
+            toast.error('El mapa aún no está listo');
+            return;
+        }
+        const canvas = await html2canvas(mapEl, {
+            useCORS: true,
+            backgroundColor: '#ffffff',
+            scale: 2,
+            logging: false,
+        });
+        const dataUrl = canvas.toDataURL('image/png');
+        await store.attachRouteMap(driverUuid, startDate.value, dataUrl);
+        toast.success(`Captura pegada en la planilla del ${startDate.value}`);
+    } catch (err) {
+        toast.error('No se pudo capturar el mapa. Intenta de nuevo.');
+    } finally {
+        capturingMap.value = false;
+    }
+}
+
 watch([startDate, endDate], () => {
     if (startDate.value > endDate.value) {
         toast.error('La fecha de inicio no puede ser mayor que la de fin');
@@ -193,6 +224,15 @@ onMounted(async () => {
                             <div class="fs-3 fw-bold text-success">{{ totalPoints }}</div>
                             <div class="text-muted fs--2">puntos GPS</div>
                         </div>
+                        <button type="button" class="btn btn-falcon-default btn-sm"
+                            :disabled="capturingMap || !store.driverHistory.length"
+                            title="Captura el mapa visible y lo pega en la planilla del día de inicio"
+                            aria-label="Capturar mapa y pegarlo en la planilla del día"
+                            @click="captureAndAttachMap">
+                            <span v-if="capturingMap" class="spinner-border spinner-border-sm me-1" role="status"></span>
+                            <i v-else class="fad fa-camera me-1" aria-hidden="true"></i>
+                            {{ capturingMap ? 'Pegando...' : 'Pegar mapa en planilla' }}
+                        </button>
                     </div>
                 </div>
             </div>

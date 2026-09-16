@@ -29,6 +29,9 @@ export default {
     getDriverStats(uuid) {
         return this.client.get(`/tracking/driver/${uuid}/stats`);
     },
+    saveRouteMapCapture(data) {
+        return this.client.post('/control-sheets/service-delivery-control-sheets/route-map-capture', data);
+    },
 
     // Geocercas
     getGeofences(params) {
