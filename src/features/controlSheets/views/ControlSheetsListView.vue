@@ -1,11 +1,11 @@
-<template>
-    <BasePageHeader title="Listado de Planillas de Control" description="Gestión de planillas de control vehicular en el sistema."
+﻿<template>
+    <BasePageHeader title="Listado de Planillas de Control" description="GestiÃ³n de planillas de control vehicular en el sistema."
         icon="fad fa-clipboard-list text-primary" :show-refresh="true" :show-create="true" :show-bg="true"
         :loading="isViewLoading || store.loading" :compact="true"
         :breadcrumbs="[{ label: 'Planillas de Control' }, { label: 'Listado' }]" @refresh="refreshTable" @create="goToCreate"
         :canCreate="can('control_sheets.create')" />
 
-    <!-- BARRA DE BÚSQUEDA -->
+    <!-- BARRA DE BÃšSQUEDA -->
     <div class="card border-0 shadow-sm mb-3 fade-in-up" style="animation-delay: 0.1s;">
         <div class="bg-holder d-none d-lg-block bg-card"
             style="background-image:url(/assets/img/icons/spot-illustrations/corner-4.png);" />
@@ -14,7 +14,7 @@
                 class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-3 g-2 g-md-3">
                 <div
                     class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-2 flex-grow-1 g-2 g-md-3">
-                    <h6 class="mb-0 fw-medium text-nowrap">Búsqueda</h6>
+                    <h6 class="mb-0 fw-medium text-nowrap">BÃºsqueda</h6>
                     <div class="input-group input-group-sm w-100" style="max-width: 420px;">
                         <span class="input-group-text bg-light border-end-0">
                             <i class="fad fa-search text-muted" />
@@ -22,7 +22,7 @@
                         <input v-model="searchQuery" class="form-control form-control-sm border-start-0 shadow-none"
                             type="search" placeholder="Buscar por empresa o placa..." aria-label="Buscar hoja de control" @input="debouncedSearch" />
                         <button v-if="searchQuery" class="btn btn-outline-secondary border-start-0" type="button"
-                            title="Limpiar búsqueda" @click="clearSearch">
+                            title="Limpiar bÃºsqueda" @click="clearSearch">
                             <i class="fad fa-times" />
                         </button>
                     </div>
@@ -89,7 +89,7 @@
                     </div>
                 </div>
 
-                <!-- DATATABLE (Paginación Server-Side) -->
+                <!-- DATATABLE (PaginaciÃ³n Server-Side) -->
                 <div v-else class="card-body p-0">
                     <div class="table-responsive scrollbar">
                         <DataTable :value="store.items" lazy :paginator="true" :rows="store.pagination.itemsPerPage"
@@ -101,21 +101,24 @@
                             currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
                             emptyMessage="No se encontraron registros" @page="onPageChange">
 
-                            <Column v-if="isSuperAdmin" field="company.business_name" header="Empresa" sortable style="min-width: 180px;">
+                            <Column v-if="isSuperAdmin" header="Empresa / VehÃ­culo" sortable style="min-width: 180px;">
                                 <template #body="{ data }">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <i class="fad fa-building text-muted"></i>
-                                        <span class="text-dark fw-medium">{{ data.company?.business_name || '—' }}</span>
+                                    <div class="d-flex flex-column">
+                                        <span class="text-dark fw-medium text-truncate" style="max-width: 180px;" :title="data.company?.business_name">
+                                            <i class="fad fa-building text-muted me-1"></i>{{ data.company?.business_name || 'â€”' }}
+                                        </span>
+                                        <span class="text-muted mt-1 fw-bold" style="font-size: 0.85rem;">
+                                            <i class="fad fa-car-side text-muted me-1"></i>{{ data.vehicle?.vehicle_license_plate || 'â€”' }}
+                                        </span>
                                     </div>
                                 </template>
                             </Column>
 
-                            <Column field="vehicle.vehicle_license_plate" header="Vehículo" sortable>
+                            <Column v-else header="VehÃ­culo" sortable style="min-width: 140px;">
                                 <template #body="{ data }">
                                     <div class="d-flex align-items-center gap-2">
                                         <i class="fad fa-car-side text-muted"></i>
-                                        <span class="text-dark fw-medium">{{ data.vehicle?.vehicle_license_plate || '—'
-                                            }}</span>
+                                        <span class="text-dark fw-bold">{{ data.vehicle?.vehicle_license_plate || 'â€”' }}</span>
                                     </div>
                                 </template>
                             </Column>
@@ -124,12 +127,12 @@
                                 <template #body="{ data }">
                                     <span class="text-truncate d-inline-block"
                                         style="max-width: 200px; font-size:0.85rem;" :title="data.observations">
-                                        {{ data.observations || '—' }}
+                                        {{ data.observations || 'â€”' }}
                                     </span>
                                 </template>
                             </Column>
 
-                            <Column header="Documentos" class="text-center" style="width: 150px;">
+                            <Column header="Documentos" class="text-center" style="width: 120px;">
                                 <template #body="{ data }">
                                     <div v-if="data.media && data.media.length > 0"
                                         class="d-flex flex-wrap justify-content-center gap-1">
@@ -141,12 +144,12 @@
                                             <i class="fad fa-file-pdf text-danger" style="font-size: 13px;"></i>
                                         </a>
                                     </div>
-                                    <span v-else class="text-muted small">—</span>
+                                    <span v-else class="text-muted small">â€”</span>
                                 </template>
                             </Column>
 
                             <Column field="is_active" header="Estado" sortable class="text-center"
-                                style="width: 120px;">
+                                style="width: 110px;">
                                 <template #body="{ data }">
                                     <span class="badge rounded-pill badge-subtle"
                                         :class="data.is_active ? 'badge-subtle-success' : 'badge-subtle-warning'"
@@ -158,19 +161,19 @@
                                 </template>
                             </Column>
 
-                            <Column header="Acciones" class="text-center" style="min-width:140px; width: 140px;"
+                            <Column header="Acciones" class="text-center" style="width: 80px;"
                                 v-if="can('control_sheets.update') || can('control_sheets.delete')">
                                 <template #body="{ data }">
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <button v-if="can('control_sheets.update')" class="btn btn-falcon-default"
-                                            type="button" title="Editar" :aria-label="`Editar ${data.vehicle?.vehicle_license_plate}`" @click="goToEdit(data.uuid)">
-                                            <i class="fad fa-edit text-warning" style="font-size:14px;" />
-                                        </button>
-                                        <button v-if="can('control_sheets.delete')" class="btn btn-falcon-default"
-                                            type="button" title="Eliminar" :aria-label="`Eliminar ${data.vehicle?.vehicle_license_plate}`" @click="handleDelete(data)">
-                                            <i class="fad fa-trash text-danger" style="font-size:14px;" />
-                                        </button>
-                                    </div>
+                                    <!-- Más acciones (Inline Botones) -->
+                                    <button class="btn btn-falcon-default btn-sm px-2" type="button" title="Imprimir" @click="handlePrint(data)">
+                                        <i class="fad fa-print text-primary"></i>
+                                    </button>
+                                    <button v-if="permissions.edit" class="btn btn-falcon-default btn-sm px-2" type="button" title="Editar" @click="goToEdit(data.uuid)">
+                                        <i class="fad fa-edit text-warning"></i>
+                                    </button>
+                                    <button v-if="permissions.delete" class="btn btn-falcon-default btn-sm px-2" type="button" title="Eliminar" @click="handleDelete(data)">
+                                        <i class="fad fa-trash text-danger"></i>
+                                    </button>
                                 </template>
                             </Column>
 
@@ -201,7 +204,7 @@
                                             }}</strong> de <strong>{{ store.pagination.totalItems }}</strong> registros
                                     </small>
                                     <small class="text-muted" style="font-size:0.85rem;">
-                                        <i class="fad fa-pages me-1" /> Página <strong>{{ store.pagination.currentPage
+                                        <i class="fad fa-pages me-1" /> PÃ¡gina <strong>{{ store.pagination.currentPage
                                             }}</strong> de <strong>{{ store.pagination.totalPages }}</strong>
                                     </small>
                                 </div>
@@ -212,6 +215,8 @@
             </div>
         </div>
     </div>
+    <!-- MENÃš PRIMEVUE (Evita recortes en tablas/tarjetas) -->
+    
 </template>
 
 <script setup>
@@ -234,6 +239,7 @@ import NoaTableSpinner from '@/components/NoaTableSpinner.vue';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 
+
 const router = useRouter();
 const store = useControlSheetsStore();
 const permissionsStore = usePermissionsStore();
@@ -242,6 +248,8 @@ const isSuperAdmin = computed(() => permissionsStore.roles?.includes('SUPERADMIN
 
 const isViewLoading = ref(true);
 const searchQuery = ref('');
+
+
 
 const { debouncedSearch } = useTable({}, () => store.setGlobalFilter(searchQuery.value));
 const { confirmDelete, initTooltips, destroyTooltips } = useTableActions(store, router);
@@ -258,11 +266,11 @@ const goToCreate = () => router.push('/planillas-de-control-de-servicios/crear')
 const goToEdit = (uuid) => router.push(`/planillas-de-control-de-servicios/editar/${uuid}`);
 
 const handleDelete = (item) => confirmDelete(item, {
-    title: '¿Eliminar registro?',
-    html: `<p class="mb-2">¿Estás seguro de eliminar la planilla del vehículo <strong>"${item.vehicle?.vehicle_license_plate || 'este registro'}"</strong>?</p>
+    title: 'Â¿Eliminar registro?',
+    html: `<p class="mb-2">Â¿EstÃ¡s seguro de eliminar la planilla del vehÃ­culo <strong>"${item.vehicle?.vehicle_license_plate || 'este registro'}"</strong>?</p>
            <div class="alert alert-warning small mb-0 mt-2">
                <i class="fad fa-exclamation-triangle me-1"></i>
-               Esta acción no se puede deshacer.
+               Esta acciÃ³n no se puede deshacer.
            </div>`
 });
 
@@ -448,7 +456,7 @@ onUnmounted(() => destroyTooltips());
     padding: 0.25rem 0.75rem !important;
 }
 
-/* Input búsqueda */
+/* Input bÃºsqueda */
 .input-group:focus-within {
     box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, .15);
     border-radius: 0.25rem;
@@ -482,3 +490,6 @@ onUnmounted(() => destroyTooltips());
     background: #6c757d;
 }
 </style>
+
+
+

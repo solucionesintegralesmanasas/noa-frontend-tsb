@@ -91,7 +91,7 @@
                                 :class="{ 'is-invalid': validationErrors.start_date || validationErrors.service_date }"
                                 :aria-invalid="!!(validationErrors.start_date || validationErrors.service_date)"
                                 :aria-describedby="validationErrors.start_date ? 'f-start_date-error' : (validationErrors.service_date ? 'f-service_date-error' : undefined)"
-                                type="date" autocomplete="off" :max="formData.end_date || undefined" />
+                                type="date" autocomplete="off" :min="vigenciaMin || undefined" :max="vigenciaMax || formData.end_date || undefined" />
                             <div v-if="validationErrors.start_date" class="invalid-feedback d-block" id="f-start_date-error" role="alert">{{
                                 validationErrors.start_date }}</div>
                             <div v-else-if="validationErrors.service_date" class="invalid-feedback d-block" id="f-service_date-error" role="alert">{{
@@ -102,7 +102,7 @@
                             <label class="form-label" for="end_date">Fecha de fin del servicio</label>
                             <input id="end_date" v-model="formData.end_date" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.end_date }" type="date" autocomplete="off"
-                                :min="formData.start_date || undefined" />
+                                :min="formData.start_date || vigenciaMin || undefined" :max="vigenciaMax || undefined" />
                             <div v-if="validationErrors.end_date" class="invalid-feedback d-block" id="f-end_date-error" role="alert">{{
                                 validationErrors.end_date }}</div>
                             <div class="form-text text-muted small">Opcional. Si es igual a la fecha de inicio, es un
@@ -114,7 +114,13 @@
                                 <i class="fad fa-calendar-alt text-primary"></i>
                                 <span>Servicio programado para <strong>{{ diasServicio }} días</strong> (desde
                                     {{ formatFecha(formData.start_date) }} hasta {{ formatFecha(formData.end_date)
-                                    }}). Se generará una planilla diaria por cada día automáticamente.</span>
+                                    }}). Se generará una planilla diaria por cada día automáticamente. Solo los días cerrados salen en reportes.</span>
+                            </div>
+                        </div>
+                        <div v-if="fueraDeVigencia" class="col-12">
+                            <div class="alert alert-warning d-flex align-items-center gap-2 py-2 px-3 mb-0" role="alert">
+                                <i class="fad fa-exclamation-triangle"></i>
+                                <span>Las fechas están fuera de la vigencia del proyecto ({{ formatFecha(vigenciaMin) }} al {{ formatFecha(vigenciaMax) }}). El backend las rechazará.</span>
                             </div>
                         </div>
                         <div class="col-12 col-sm-6 col-lg-3">
@@ -382,6 +388,18 @@ const proyectoSeleccionado = computed(() => {
     if (fromList) return fromList;
     if (store.projectDetail && store.projectDetail.uuid === formData.project_uuid) return store.projectDetail;
     return null;
+});
+
+// Vigencia del proyecto como límites vivos de las fechas (solo cerradas fuera de vigencia se bloquean al guardar en backend).
+const vigenciaMin = computed(() => String(proyectoSeleccionado.value?.start_date || '').slice(0, 10) || undefined);
+const vigenciaMax = computed(() => String(proyectoSeleccionado.value?.completion_date || '').slice(0, 10) || undefined);
+const fueraDeVigencia = computed(() => {
+    if (!proyectoSeleccionado.value || !formData.start_date) return false;
+    const ini = String(formData.start_date).slice(0, 10);
+    const fin = String(formData.end_date || formData.start_date).slice(0, 10);
+    if (vigenciaMin.value && ini < vigenciaMin.value) return true;
+    if (vigenciaMax.value && fin > vigenciaMax.value) return true;
+    return false;
 });
 
 const asignacionesProyecto = computed(() => {

@@ -21,6 +21,7 @@ export const useServiceDeliveryControlSheetStore = defineStore('serviceDeliveryC
         projects: [],
         projectDetail: null,
         projectFilter: '',
+        soloCerradas: true,
         pagination: { currentPage: 1, itemsPerPage: 10, totalItems: 0, totalPages: 0 },
         search: '',
     }),
@@ -60,6 +61,7 @@ export const useServiceDeliveryControlSheetStore = defineStore('serviceDeliveryC
                     per_page: this.pagination.itemsPerPage,
                     search: this.search || undefined,
                     project_uuid: this.projectFilter || undefined,
+                    solo_cerradas: this.soloCerradas ? true : undefined,
                 });
                 const p = response?.data ?? response;
                 this.items = p.data ?? [];
@@ -261,6 +263,7 @@ export const useServiceDeliveryControlSheetStore = defineStore('serviceDeliveryC
         setPage(page) { this.pagination.currentPage = page; return this.fetchItems(); },
         setGlobalFilter(query) { this.search = query; this.pagination.currentPage = 1; return this.fetchItems(); },
         clearFilters() { this.search = ''; this.pagination.currentPage = 1; return this.fetchItems(); },
+        setSoloCerradas(value) { this.soloCerradas = !!value; this.pagination.currentPage = 1; return this.fetchItems(); },
 
         /**
          * Descarga y abre el PDF diario de un registro en una pestaña nueva.
@@ -284,6 +287,19 @@ export const useServiceDeliveryControlSheetStore = defineStore('serviceDeliveryC
                 await serviceDeliveryControlSheetService.downloadMonthlyPdf(params);
                 await toast('¡Éxito!', 'PDF mensual abierto correctamente', 'success');
             }, 'Error al descargar el PDF mensual');
+        },
+
+        /**
+         * Descarga un reporte filtrado solo con días cerrados en PDF o Excel.
+         * @param {string} tipo - rango|vehiculo|conductor|dia|mensual.
+         * @param {Object} params - Filtros del reporte.
+         * @param {string} formato - pdf|excel.
+         */
+        async downloadReport(tipo, params = {}, formato = 'pdf') {
+            return this._run(async () => {
+                await serviceDeliveryControlSheetService.downloadReport(tipo, params, formato);
+                await toast('¡Éxito!', `Reporte ${tipo} en ${formato.toUpperCase()} generado (solo cerradas)`, 'success');
+            }, 'Error al descargar el reporte');
         },
 
         /**

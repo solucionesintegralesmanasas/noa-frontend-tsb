@@ -220,6 +220,25 @@ class ServiceDeliveryControlSheetService extends BaseService {
         const queryStr = queryParams ? `?${queryParams}` : '';
         return this._downloadPdf(`/monthly/pdf${queryStr}`);
     }
+
+    /**
+     * Descarga un reporte filtrado solo con días cerrados.
+     * @param {string} tipo - rango|vehiculo|conductor|dia|mensual.
+     * @param {Object} params - Filtros del reporte.
+     * @param {string} formato - pdf|excel.
+     */
+    downloadReport(tipo, params = {}, formato = 'pdf') {
+        const limpios = {};
+        for (const [k, v] of Object.entries(params ?? {})) {
+            if (v === undefined || v === null || v === '' || v === 'undefined') continue;
+            limpios[k] = v;
+        }
+        const queryParams = new URLSearchParams(limpios).toString();
+        const queryStr = queryParams ? `?${queryParams}` : '';
+        const url = `/reports/${tipo}/${formato}${queryStr}`;
+        if (formato === 'excel') return this._downloadExcel(url);
+        return this._downloadPdf(url);
+    }
 }
 
 export default new ServiceDeliveryControlSheetService();
