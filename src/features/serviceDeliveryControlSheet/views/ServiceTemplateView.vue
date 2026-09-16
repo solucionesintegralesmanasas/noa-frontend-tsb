@@ -240,7 +240,7 @@
                     <div v-if="currentStep === 2" class="fade-in">
                         <!-- Alerta guía -->
                         <div class="alert alert-info bg-info bg-opacity-10 border-0 shadow-sm d-flex align-items-center gap-3 mb-3 rounded-3 text-dark">
-                            <div class="alert-icon-box bg-info bg-opacity-20 text-info rounded-circle p-2 fs-4">
+                            <div class="alert-icon-box bg-info bg-opacity-20 text-info flex-shrink-0">
                                 <i class="fad fa-info-circle"></i>
                             </div>
                             <div>
@@ -340,10 +340,7 @@
                             <div class="card-body p-3 p-md-4">
                                 <div v-if="!recorridosDia.length" class="alert alert-warning bg-warning bg-opacity-10 text-dark border-0 d-flex align-items-center gap-2 mb-3 rounded-3 py-2 px-3">
                                     <i class="fad fa-exclamation-triangle text-warning fs-5"></i>
-                                    <span class="fs-12 flex-fill">Sin recorridos cargados. Puede <strong>agregar un tramo</strong> o <strong>iniciar en disponibilidad</strong> para quedar en servicio sin recorridos.</span>
-                                    <button class="btn btn-warning btn-sm rounded-pill px-3 fw-semibold flex-shrink-0" @click="agregarRecorridoDia">
-                                        <i class="fas fa-plus me-1"></i> Agregar tramo
-                                    </button>
+                                    <span class="fs-12 flex-fill">Sin recorridos cargados. Puede <strong>agregar un tramo</strong> con el botón superior o <strong>iniciar en disponibilidad</strong> para quedar en servicio sin recorridos.</span>
                                 </div>
                                 <div v-for="(r, idx) in recorridosDia" :key="idx" class="border rounded-3 p-3 mb-2 bg-light bg-opacity-50">
                                     <div class="d-flex align-items-center justify-content-between mb-2">
@@ -472,6 +469,10 @@
                                         </span>
                                         <span class="badge bg-primary bg-opacity-10 text-primary px-2.5 py-1 fs-11 font-monospace">
                                             Salida: {{ formData.start_time }}
+                                        </span>
+                                        <span class="badge bg-dark bg-opacity-10 text-dark px-2.5 py-1 fs-11 font-monospace"
+                                            title="Fecha del servicio que estás haciendo">
+                                            <i class="fad fa-calendar-alt me-1"></i>{{ planillaActiva ? formatFecha(planillaActiva.service_date) : formatFecha(servicioSeleccionado?.service_date) }}
                                         </span>
                                     </div>
                                     <div class="d-flex align-items-center gap-2">
@@ -671,7 +672,7 @@
                     ─────────────────────────────────────────────────── -->
                     <div v-if="currentStep === 4" class="fade-in">
                         <div class="alert alert-warning bg-warning bg-opacity-10 border-0 text-dark shadow-sm d-flex align-items-center gap-3 mb-3 rounded-3">
-                            <div class="alert-icon-box bg-warning bg-opacity-20 text-warning rounded-circle p-2 fs-4">
+                            <div class="alert-icon-box bg-warning bg-opacity-20 text-warning flex-shrink-0">
                                 <i class="fad fa-exclamation-circle"></i>
                             </div>
                             <div>
@@ -711,7 +712,6 @@
                                     :class="recorridoSeleccionado === i
                                         ? (recorridoEstaCerrado(i) ? 'btn-secondary text-white opacity-75' : 'btn-primary')
                                         : (recorridoEstaCerrado(i) ? 'btn-outline-secondary opacity-75 text-decoration-line-through' : 'btn-outline-secondary')"
-                                    :disabled="recorridoEstaCerrado(i)"
                                     @click="seleccionarRecorrido(i)"
                                 >
                                     <i :class="recorridoEstaCerrado(i) ? 'fas fa-lock' : 'fas fa-route'"></i>
@@ -757,8 +757,9 @@
 
                                     <div class="row g-3">
                                         <div class="col-12 col-sm-6 col-md-3">
-                                            <label class="form-label required fw-medium text-700" style="font-size: 0.9rem;">
+                                            <label class="form-label fw-medium text-700" style="font-size: 0.9rem;">
                                                 <i class="fad fa-clock text-primary me-1"></i> Hora de Finalización
+                                                <span class="text-danger ms-1" title="Campo requerido">*</span>
                                             </label>
                                             <input
                                                 v-model="cierresRecorridos[recorridoSeleccionado].end_time"
@@ -770,8 +771,9 @@
                                         </div>
 
                                         <div class="col-12 col-sm-6 col-md-3">
-                                            <label class="form-label required fw-medium text-700" style="font-size: 0.9rem;">
+                                            <label class="form-label fw-medium text-700" style="font-size: 0.9rem;">
                                                 <i class="fad fa-tachometer-alt text-primary me-1"></i> Kilometraje Final
+                                                <span class="text-danger ms-1" title="Campo requerido">*</span>
                                             </label>
                                             <div class="input-group">
                                                 <input
@@ -790,7 +792,7 @@
                                             <label class="form-label fw-medium text-muted" style="font-size: 0.9rem;">
                                                 <i class="fad fa-road text-success me-1"></i> Recorrido Estimado
                                             </label>
-                                            <div class="p-2 rounded bg-light border text-center h-75 d-flex flex-column align-items-center justify-content-center">
+                                            <div class="form-control d-flex flex-column align-items-center justify-content-center bg-light border text-center" style="cursor: default; height: auto; min-height: 38px;">
                                                 <span class="fw-bold fs-14 text-primary font-monospace">
                                                     {{ kmEstimadoRecorrido(recorridoSeleccionado) }} km
                                                 </span>
@@ -979,16 +981,18 @@
                                 <div class="row g-3">
                                     <!-- Hora de Finalización -->
                                     <div class="col-12 col-sm-6 col-md-3">
-                                        <label class="form-label required fw-medium text-700" style="font-size: 0.9rem;">
+                                        <label class="form-label fw-medium text-700" style="font-size: 0.9rem;">
                                             <i class="fad fa-clock text-primary me-1"></i> Hora de Finalización
+                                            <span class="text-danger ms-1" title="Campo requerido">*</span>
                                         </label>
                                         <input v-model="formData.end_time" type="time" step="60" class="form-control font-monospace" />
                                     </div>
 
                                     <!-- Kilometraje Final -->
                                     <div class="col-12 col-sm-6 col-md-3">
-                                        <label class="form-label required fw-medium text-700" style="font-size: 0.9rem;">
+                                        <label class="form-label fw-medium text-700" style="font-size: 0.9rem;">
                                             <i class="fad fa-tachometer-alt text-primary me-1"></i> Kilometraje Final
+                                            <span class="text-danger ms-1" title="Campo requerido">*</span>
                                         </label>
                                         <div class="input-group">
                                             <input
@@ -1007,7 +1011,7 @@
                                         <label class="form-label fw-medium text-muted" style="font-size: 0.9rem;">
                                             <i class="fad fa-road text-success me-1"></i> Recorrido Estimado
                                         </label>
-                                        <div class="p-2 rounded bg-light border text-center h-75 d-flex align-items-center justify-content-center">
+                                        <div class="form-control d-flex align-items-center justify-content-center bg-light border text-center" style="cursor: default;">
                                             <span class="fw-bold fs-14 text-primary font-monospace">
                                                 {{ Math.max(0, (Number(formData.ending_kilometer || 0) - Number(formData.starting_kilometer || 0))) }} km
                                             </span>
@@ -1041,6 +1045,7 @@
                                         <input v-model="formData.end_novelty" type="text" class="form-control" placeholder="Sin novedad / reporte de entrega a satisfacción..." />
                                     </div>
                                 </div>
+
                             </div>
                         </div>
 
@@ -1091,14 +1096,14 @@
                                     <div class="col-6 col-md-3">
                                         <div class="bg-light p-3 rounded-3 border text-center">
                                             <small class="text-700 d-block text-uppercase fs-10 fw-semibold">Distancia Recorrida</small>
-                                            <span class="fw-bolder fs-4 text-primary font-monospace">{{ resumen.kmTotal }}</span>
+                                            <span class="fw-bold fs-5 text-primary font-monospace">{{ resumen.kmTotal }}</span>
                                             <span class="text-700 fs-11 ms-1">km</span>
                                         </div>
                                     </div>
                                     <div class="col-6 col-md-3">
                                         <div class="bg-light p-3 rounded-3 border text-center">
                                             <small class="text-700 d-block text-uppercase fs-10 fw-semibold">Tiempo Operativo</small>
-                                            <span class="fw-bolder fs-4 text-success font-monospace">{{ resumen.duracion }}</span>
+                                            <span class="fw-bold fs-5 text-success font-monospace">{{ resumen.duracion }}</span>
                                         </div>
                                     </div>
                                     <div class="col-6 col-md-3">
@@ -1190,7 +1195,7 @@
                         <div v-if="!rutasMulti" class="row g-3 mb-4">
                             <!-- Firma Funcionario (se oculta en disponibilidad: solo conductor + coordinador) -->
                             <div v-if="!esDisponibilidad" class="col-12 col-md-6">
-                                <div class="card border-0 shadow-sm h-100 signature-card">
+                                <div class="card border-0 shadow-sm h-100 signature-card d-flex flex-column">
                                     <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center justify-content-between">
                                         <div class="d-flex align-items-center gap-2">
                                             <i class="fad fa-user-check text-primary"></i>
@@ -1198,17 +1203,22 @@
                                         </div>
                                         <span class="badge bg-primary bg-opacity-10 text-primary">Requerido</span>
                                     </div>
-                                    <div class="card-body p-3">
+                                    <div class="card-body p-3 d-flex flex-column flex-grow-1">
                                         <div class="mb-3">
-                                            <label class="form-label required fw-medium text-700" style="font-size: 0.9rem;">Nombre Completo</label>
+                                            <label class="form-label fw-medium text-700" style="font-size: 0.9rem;">
+                                                Nombre Completo <span class="text-danger ms-1" title="Campo requerido">*</span>
+                                            </label>
                                             <input v-model="firma.funcionarioNombre" type="text" class="form-control" placeholder="Nombre de quien recibe el servicio" />
                                         </div>
 
-                                        <label class="form-label required fw-medium text-700" style="font-size: 0.9rem;">Trazo de Firma</label>
-                                        <div class="signature-pad-wrapper rounded border bg-white position-relative">
+                                        <label class="form-label fw-medium text-700" style="font-size: 0.9rem;">
+                                            Trazo de Firma <span class="text-danger ms-1" title="Campo requerido">*</span>
+                                        </label>
+                                        <div class="signature-pad-wrapper rounded border bg-white position-relative flex-grow-1" style="min-height: 150px;">
                                             <canvas ref="canvasFuncionarioRef" width="500" height="150" class="w-100 signature-canvas"></canvas>
-                                            <div v-if="firmaFuncionarioVacia" class="signature-hint position-absolute top-50 start-50 translate-middle text-muted fs-12 pointer-events-none">
-                                                <i class="fad fa-pen-alt me-1"></i> Firme aquí (táctil o mouse)
+                                            <div v-if="firmaFuncionarioVacia" class="signature-hint position-absolute top-50 start-50 translate-middle text-muted fs-12 pointer-events-none text-center w-100">
+                                                <i class="fad fa-pen-alt fs-4 mb-1 text-primary opacity-50"></i><br>
+                                                Firme aquí (táctil o mouse)
                                             </div>
                                         </div>
                                         <div class="text-end mt-2">
@@ -1222,7 +1232,7 @@
 
                             <!-- Firma Conductor -->
                             <div class="col-12" :class="{ 'col-md-6': !esDisponibilidad }">
-                                <div class="card border-0 shadow-sm h-100 signature-card">
+                                <div class="card border-0 shadow-sm h-100 signature-card d-flex flex-column">
                                     <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center justify-content-between">
                                         <div class="d-flex align-items-center gap-2">
                                             <i class="fad fa-steering-wheel text-success"></i>
@@ -1230,17 +1240,22 @@
                                         </div>
                                         <span class="badge bg-success bg-opacity-10 text-success">Requerido</span>
                                     </div>
-                                    <div class="card-body p-3">
+                                    <div class="card-body p-3 d-flex flex-column flex-grow-1">
                                         <div class="mb-3">
-                                            <label class="form-label required fw-medium text-700" style="font-size: 0.9rem;">Nombre del Conductor</label>
+                                            <label class="form-label fw-medium text-700" style="font-size: 0.9rem;">
+                                                Nombre del Conductor <span class="text-danger ms-1" title="Campo requerido">*</span>
+                                            </label>
                                             <input v-model="firma.conductorNombre" type="text" class="form-control" placeholder="Nombre completo del conductor" />
                                         </div>
 
-                                        <label class="form-label required fw-medium text-700" style="font-size: 0.9rem;">Trazo de Firma</label>
-                                        <div class="signature-pad-wrapper rounded border bg-white position-relative">
+                                        <label class="form-label fw-medium text-700" style="font-size: 0.9rem;">
+                                            Trazo de Firma <span class="text-danger ms-1" title="Campo requerido">*</span>
+                                        </label>
+                                        <div class="signature-pad-wrapper rounded border bg-white position-relative flex-grow-1" style="min-height: 150px;">
                                             <canvas ref="canvasConductorRef" width="500" height="150" class="w-100 signature-canvas"></canvas>
-                                            <div v-if="firmaConductorVacia" class="signature-hint position-absolute top-50 start-50 translate-middle text-muted fs-12 pointer-events-none">
-                                                <i class="fad fa-pen-alt me-1"></i> Firme aquí (táctil o mouse)
+                                            <div v-if="firmaConductorVacia" class="signature-hint position-absolute top-50 start-50 translate-middle text-muted fs-12 pointer-events-none text-center w-100">
+                                                <i class="fad fa-pen-alt fs-4 mb-1 text-primary opacity-50"></i><br>
+                                                Firme aquí (táctil o mouse)
                                             </div>
                                         </div>
                                         <div class="text-end mt-2">
@@ -1251,7 +1266,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div v-if="esDisponibilidad" class="col-12 col-md-6">
+                            <div v-if="esDisponibilidad" class="col-12">
                                 <div class="alert alert-warning bg-warning bg-opacity-10 text-dark border-0 shadow-sm d-flex align-items-center gap-2 mb-0 rounded-3 py-3 px-3 h-100">
                                     <i class="fad fa-user-hard-hat text-warning fs-4"></i>
                                     <span class="fs-12">
@@ -1869,7 +1884,8 @@ const planillaIndex = ref(0);
 const planillasDiarias = computed(() => {
     const s = servicioSeleccionado.value;
     if (!s) return [];
-    return Array.isArray(s.children) ? s.children.filter(c => c && c.uuid) : [];
+    const dias = Array.isArray(s.children) ? s.children.filter(c => c && c.uuid) : [];
+    return dias.sort((a, b) => String(a.service_date || '').localeCompare(String(b.service_date || '')));
 });
 
 const esMultiDia = computed(() => planillasDiarias.value.length > 0);
@@ -2245,7 +2261,11 @@ const goStep5 = () => {
     calcularResumen(formData.end_time);
     resumen.kmTotal = Math.max(0, Number(formData.ending_kilometer) - Number(formData.starting_kilometer));
 
-    if (!firma.funcionarioNombre) firma.funcionarioNombre = servicioSeleccionado.value?.official_name_and_surname || '';
+    // Pre-llenar con el funcionario registrado en el recorrido (no el conductor autocargado en official_name_and_surname)
+    if (!firma.funcionarioNombre) {
+        const ruta0 = recorridosPlanillaActiva.value?.[0];
+        firma.funcionarioNombre = (ruta0?.funcionario_nombre || '').trim();
+    }
     if (!firma.conductorNombre) firma.conductorNombre = conductorSeleccionadoNombre.value;
 
     goStep(5);
@@ -2976,6 +2996,22 @@ h1, h2, h3, h4, h5, h6,
 }
 
 /* ─── AVATAR / ICON SHAPES ──────────────────────────────────── */
+.alert-icon-box {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    min-height: 42px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    font-size: 1.25rem;
+    line-height: 1;
+}
+.alert-icon-box i {
+    line-height: 1;
+    display: block;
+}
 .avatar-circle {
     width: 32px;
     height: 32px;
