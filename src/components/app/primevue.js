@@ -10,6 +10,7 @@ import Column from 'primevue/column';
 import Select from 'primevue/select';
 import MultiSelect from 'primevue/multiselect';
 import Button from 'primevue/button';
+import Menu from 'primevue/menu';
 
 const primeVueOptions = {
     ripple: true,
@@ -48,4 +49,5 @@ export function installPrimeVue(app) {
     app.component('PrimeSelect', Select);
     app.component('PrimeMultiSelect', MultiSelect);
     app.component('PButton', Button);
+    app.component('Menu', Menu);
 }
