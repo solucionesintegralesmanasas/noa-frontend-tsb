@@ -303,6 +303,22 @@ onBeforeUnmount(() => {
             <span>{{ driverTracking.sendError }}. Reintentando automáticamente cada 10 s…</span>
         </div>
 
+        <div v-if="isTracking && driverTracking.useBackground"
+            class="card-footer bg-success bg-opacity-10 py-2 px-3 fs-11 text-success d-flex align-items-center gap-2">
+            <i class="fas fa-shield-alt" aria-hidden="true"></i>
+            <span>Rastreo en segundo plano activo: sigue transmitiendo aunque cierres la app{{ driverTracking.nativeQueued ? ` · ${driverTracking.nativeQueued} puntos en cola` : '' }}.</span>
+        </div>
+        <div v-if="isTracking && driverTracking.useBackground && driverTracking.batteryExempt === false"
+            class="card-footer bg-white py-2 px-3 fs-11 d-flex align-items-center justify-content-between gap-2">
+            <span class="text-warning d-flex align-items-center gap-2">
+                <i class="fas fa-battery-quarter" aria-hidden="true"></i>
+                <span>El sistema puede detener el GPS al cerrar la app. Toca para permitir sin restricciones.</span>
+            </span>
+            <button class="btn btn-sm btn-warning flex-shrink-0" type="button" @click="driverTracking.requestBatteryExemption()">
+                Permitir siempre
+            </button>
+        </div>
+
         <div v-if="!isTracking" class="card-footer bg-white py-2 px-3 fs-11 text-muted d-flex align-items-center justify-content-between">
             <span>
                 <i class="fas fa-circle-notch fa-spin text-primary me-1"></i>

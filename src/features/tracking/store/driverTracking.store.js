@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { Capacitor } from '@capacitor/core';
 import { Geolocation } from '@capacitor/geolocation';
 import trackingService from '../services/tracking.service';
+import backgroundTracking from '../services/backgroundTracking.service';
 import { useUserStore } from '@store';
 
 /**
@@ -30,6 +31,10 @@ export const useDriverTrackingStore = defineStore('driverTracking', {
         // Bloqueo por rechazo de validación del servidor (400/422): evita la tormenta
         // de reintentos automáticos. Se limpia al cambiar de vehículo o reintento manual.
         bloqueoSesion: '',
+        // Rastreo nativo en segundo plano (sobrevive con app cerrada).
+        useBackground: false,
+        nativeQueued: 0,
+        batteryExempt: true,
     }),
 
     getters: {
@@ -128,6 +133,8 @@ export const useDriverTrackingStore = defineStore('driverTracking', {
                 }
 
                 await this.startWatch();
+                // Elevar a segundo plano nativo: el servicio sigue con app cerrada.
+                await this.startBackgroundService();
                 return this.session;
             } catch (err) {
                 const status = err?.response?.status;
@@ -156,6 +163,18 @@ export const useDriverTrackingStore = defineStore('driverTracking', {
                 this.vehicleUuid = vehicleUuid;
             }
             if (projectUuid) this.projectUuid = projectUuid;
+            // Propagar al servicio nativo sin reiniciarlo (sigue con app cerrada).
+            if (this.useBackground && this.session?.uuid) {
+                try {
+                    const userStore = useUserStore();
+                    backgroundTracking.updateContext({
+                        sessionUuid: this.session.uuid,
+                        vehicleUuid: this.vehicleUuid,
+                        projectUuid: this.projectUuid,
+                        thirdPartyUuid: userStore.uuid_driver || userStore.third_party_uuid || null,
+                    });
+                } catch { /* el servicio conserva el último contexto */ }
+            }
         },
 
         async startWatch() {
@@ -230,6 +249,10 @@ export const useDriverTrackingStore = defineStore('driverTracking', {
 
         async sendLocationToServer(data) {
             if (!this.isTracking) return;
+            // Si el servicio nativo está activo, él publica al backend
+            // (sobrevive con app cerrada). El watch JS solo alimenta la UI
+            // para no duplicar POSTs.
+            if (this.useBackground) return;
             const now = Date.now();
             if (now - (this._lastSendAt || 0) < 10000) return;
             this._lastSendAt = now;
@@ -302,7 +325,8 @@ export const useDriverTrackingStore = defineStore('driverTracking', {
 
         /**
          * Cierre ordenado: primero POST /tracking/session/stop con token válido,
-         * luego clearWatch y limpieza local. Llamar ANTES de borrar el token.
+         * luego clearWatch + stop del servicio nativo y limpieza local.
+         * Llamar ANTES de borrar el token.
          */
         async stopGpsSession() {
             if (this.session?.uuid) {
@@ -312,9 +336,18 @@ export const useDriverTrackingStore = defineStore('driverTracking', {
                     console.warn('[driverTracking] stopSession:', err?.message);
                 }
             }
+            try {
+                await backgroundTracking.stop();
+            } catch { /* servicio ya detenido */ }
+            if (this._nativeTimer) {
+                try { clearInterval(this._nativeTimer); } catch { /* nada */ }
+                this._nativeTimer = null;
+            }
             await this.stopLocalWatch();
             this.session = null;
             this.isTracking = false;
+            this.useBackground = false;
+            this.nativeQueued = 0;
             this.errorMsg = '';
             this.bloqueoSesion = '';
         },
@@ -326,11 +359,84 @@ export const useDriverTrackingStore = defineStore('driverTracking', {
             await this.checkPermission();
             if (this.isTracking && !this.watchActive) {
                 await this.startWatch();
+                await this.startBackgroundService();
                 return;
             }
             if (!this.isTracking && this.vehicleUuid) {
                 await this.ensureTracking();
             }
+        },
+
+        /**
+         * Inicia el ForegroundService nativo (Android). No falla el tracking
+         * si el plugin no está: el watch JS sigue como respaldo en web.
+         */
+        async startBackgroundService() {
+            if (!backgroundTracking.available) return;
+            if (!this.session?.uuid || !this.vehicleUuid) return;
+            try {
+                const userStore = useUserStore();
+                await backgroundTracking.start({
+                    sessionUuid: this.session.uuid,
+                    vehicleUuid: this.vehicleUuid,
+                    projectUuid: this.projectUuid,
+                    thirdPartyUuid: userStore.uuid_driver || userStore.third_party_uuid || null,
+                });
+                this.useBackground = true;
+                this.checkBattery().catch(() => {});
+                this.pollNativeStatus();
+                // Refrescar token nativo por si cambió tras el login.
+                backgroundTracking.refreshToken().catch(() => {});
+            } catch (err) {
+                console.warn('[driverTracking] servicio background no disponible:', err?.message);
+                this.useBackground = false;
+            }
+        },
+
+        /** Sondea el servicio nativo para reflejarlo en la UI (coords, cola, errores). */
+        pollNativeStatus() {
+            if (!backgroundTracking.available) return;
+            if (this._nativeTimer) return;
+            try {
+                this._nativeTimer = setInterval(async () => {
+                    await this.syncNativeStatus();
+                }, 5000);
+                this.syncNativeStatus().catch(() => {});
+            } catch { /* temporizador opcional */ }
+        },
+
+        async syncNativeStatus() {
+            if (!backgroundTracking.available || !this.useBackground) return;
+            try {
+                const st = await backgroundTracking.getStatus();
+                if (st?.latitude != null && st?.longitude != null) {
+                    this.coords = { latitude: st.latitude, longitude: st.longitude };
+                    this.speed = st.speed || 0;
+                    this.isMoving = (st.speed || 0) > 1;
+                }
+                if (st?.lastSentAt) this.lastSentAt = new Date(st.lastSentAt);
+                this.nativeQueued = st?.queued || 0;
+                if (st?.lastError) this.sendError = st.lastError + (this.nativeQueued ? ` · ${this.nativeQueued} en cola` : '');
+                else if (this.nativeQueued) this.sendError = `${this.nativeQueued} puntos en cola sin señal`;
+                else this.sendError = '';
+            } catch { /* el servicio sigue aunque falle el sondeo */ }
+        },
+
+        /** Verifica exención de batería (Xiaomi/Samsung matan el servicio sin esto). */
+        async checkBattery() {
+            if (!backgroundTracking.available) return true;
+            try {
+                this.batteryExempt = await backgroundTracking.isBatteryExempt();
+                return this.batteryExempt;
+            } catch {
+                return true;
+            }
+        },
+
+        async requestBatteryExemption() {
+            try {
+                await backgroundTracking.requestBatteryExemption();
+            } catch { /* indicar ajuste manual */ }
         },
     },
 });
