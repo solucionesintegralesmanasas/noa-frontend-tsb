@@ -7,6 +7,7 @@
  */
 import vehicleDocumentsService from '@/features/vehicleDocuments/services/vehicleDocuments.service.js';
 import operationCardsService from '@/features/operationCards/services/operationCards.service.js';
+import businessCollaborationAgreementsService from '@/features/businessCollaborationAgreements/services/businessCollaborationAgreements.service.js';
 import vehiclesService from '@/features/vehicles/services/vehicles.service.js';
 
 export const WIZARD_STEPS = [
@@ -147,10 +148,10 @@ export function useDocumentWizard() {
      * @param {string} vehicleUuid
      * @param {{ strict?: boolean }} [options] Si `strict` es true, un fallo de la
      *   consulta principal se propaga en lugar de tratarse como "sin documentos".
-     * @returns {Promise<{soat:Object|null, rce:Object|null, rcc:Object|null, rtm:Object|null, tarjeta:Object|null}>}
+     * @returns {Promise<{soat:Object|null, rce:Object|null, rcc:Object|null, rtm:Object|null, tarjeta:Object|null, convenio:Object|null}>}
      */
     const fetchExistingDocs = async (vehicleUuid, { strict = false } = {}) => {
-        const found = { soat: null, rce: null, rcc: null, rtm: null, tarjeta: null };
+        const found = { soat: null, rce: null, rcc: null, rtm: null, tarjeta: null, convenio: null };
         if (!vehicleUuid) return found;
 
         try {
@@ -189,6 +190,18 @@ export function useDocumentWizard() {
             } catch {
                 // Sin tarjeta aún
             }
+        }
+
+        try {
+            // Convenio del vehículo (el más reciente por vencimiento).
+            const agreements = toList(await businessCollaborationAgreementsService.list({ vehicle_uuid: vehicleUuid }));
+            const mine = agreements.filter((a) => a.vehicle_uuid === vehicleUuid);
+            if (mine.length) {
+                mine.sort((a, b) => new Date(b.expiry_date ?? 0) - new Date(a.expiry_date ?? 0));
+                found.convenio = mine[0] ?? null;
+            }
+        } catch {
+            // Sin convenio registrado
         }
 
         return found;

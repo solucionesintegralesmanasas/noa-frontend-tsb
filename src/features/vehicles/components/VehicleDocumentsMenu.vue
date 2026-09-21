@@ -45,7 +45,7 @@
                                 <dd class="col-7 text-dark mb-0">{{ row.validity }}</dd>
                             </dl>
                             <p v-else class="text-muted small mt-2 mb-2" style="font-size: 0.8rem;">
-                                <i class="fad fa-exclamation-circle me-1"></i>Documento faltante para este vehículo.
+                                <i class="fad fa-exclamation-circle me-1"></i>{{ row.missingLabel }}
                             </p>
 
                             <div class="d-flex flex-wrap gap-2 mt-1">
@@ -88,7 +88,7 @@ const permissionsStore = usePermissionsStore();
 const { fetchExistingDocs } = useDocumentWizard();
 
 const loading = ref(false);
-const found = ref({ soat: null, rce: null, rcc: null, rtm: null, tarjeta: null });
+const found = ref({ soat: null, rce: null, rcc: null, rtm: null, tarjeta: null, convenio: null });
 const expandedKey = ref(null);
 
 const close = () => emit('update:modelValue', false);
@@ -138,13 +138,19 @@ const buildQuery = (extra = {}) => {
     return q.toString();
 };
 
-const createPath = (row) => (row.isCard
-    ? `/tarjetas-de-operacion/crear?${buildQuery()}`
-    : `/vehiculos-documentos/${row.docType}/crear?${buildQuery()}`);
+const createPath = (row) => {
+    if (row.isAgreement) return `/convenios-colaboracion/crear?${buildQuery()}`;
+    return row.isCard
+        ? `/tarjetas-de-operacion/crear?${buildQuery()}`
+        : `/vehiculos-documentos/${row.docType}/crear?${buildQuery()}`;
+};
 
-const editPath = (row) => (row.isCard
-    ? `/tarjetas-de-operacion/editar/${row.doc.uuid}?${buildQuery()}`
-    : `/vehiculos-documentos/${row.docType}/editar/${row.doc.uuid}?${buildQuery()}`);
+const editPath = (row) => {
+    if (row.isAgreement) return `/convenios-colaboracion/editar/${row.doc.uuid}?${buildQuery()}`;
+    return row.isCard
+        ? `/tarjetas-de-operacion/editar/${row.doc.uuid}?${buildQuery()}`
+        : `/vehiculos-documentos/${row.docType}/editar/${row.doc.uuid}?${buildQuery()}`;
+};
 
 const goCreate = (row) => { close(); router.push(createPath(row)); };
 const goEdit = (row) => { close(); router.push(editPath(row)); };
@@ -152,11 +158,12 @@ const goNew = (row) => { close(); router.push(`${createPath(row)}&nuevo=1`); };
 
 const rows = computed(() => {
     const defs = [
-        { key: 'soat', label: 'SOAT', icon: 'fad fa-shield-alt', docType: 'soat', doc: found.value.soat, isCard: false, module: 'vehicle_documents', numberLabel: 'N° de SOAT', entityLabel: 'Entidad emisora' },
-        { key: 'rce', label: 'Póliza RCE', icon: 'fad fa-file-contract', docType: 'poliza', doc: found.value.rce, isCard: false, module: 'vehicle_documents', numberLabel: 'N° de póliza', entityLabel: 'Entidad emisora' },
-        { key: 'rcc', label: 'Póliza RCC', icon: 'fad fa-file-invoice', docType: 'poliza', doc: found.value.rcc, isCard: false, module: 'vehicle_documents', numberLabel: 'N° de póliza', entityLabel: 'Entidad emisora' },
-        { key: 'rtm', label: 'Tecnomecánica', icon: 'fad fa-clipboard-check', docType: 'tecnomecanica', doc: found.value.rtm, isCard: false, module: 'vehicle_documents', numberLabel: 'N° de revisión', entityLabel: 'CDA' },
-        { key: 'tarjeta', label: 'Tarjeta de operación', icon: 'fad fa-car-bus', docType: 'tarjeta', doc: found.value.tarjeta, isCard: true, module: 'operation_cards', numberLabel: 'N° de tarjeta', entityLabel: 'Empresa afiliada' },
+        { key: 'soat', label: 'SOAT', icon: 'fad fa-shield-alt', docType: 'soat', doc: found.value.soat, isCard: false, module: 'vehicle_documents', numberLabel: 'N° de SOAT', entityLabel: 'Entidad emisora', missingLabel: 'Documento faltante para este vehículo.' },
+        { key: 'rce', label: 'Póliza RCE', icon: 'fad fa-file-contract', docType: 'poliza', doc: found.value.rce, isCard: false, module: 'vehicle_documents', numberLabel: 'N° de póliza', entityLabel: 'Entidad emisora', missingLabel: 'Documento faltante para este vehículo.' },
+        { key: 'rcc', label: 'Póliza RCC', icon: 'fad fa-file-invoice', docType: 'poliza', doc: found.value.rcc, isCard: false, module: 'vehicle_documents', numberLabel: 'N° de póliza', entityLabel: 'Entidad emisora', missingLabel: 'Documento faltante para este vehículo.' },
+        { key: 'rtm', label: 'Tecnomecánica', icon: 'fad fa-clipboard-check', docType: 'tecnomecanica', doc: found.value.rtm, isCard: false, module: 'vehicle_documents', numberLabel: 'N° de revisión', entityLabel: 'CDA', missingLabel: 'Documento faltante para este vehículo.' },
+        { key: 'tarjeta', label: 'Tarjeta de operación', icon: 'fad fa-car-bus', docType: 'tarjeta', doc: found.value.tarjeta, isCard: true, module: 'operation_cards', numberLabel: 'N° de tarjeta', entityLabel: 'Empresa afiliada', missingLabel: 'Documento faltante para este vehículo.' },
+        { key: 'convenio', label: 'Convenio de colaboración', icon: 'fad fa-handshake', docType: 'convenio', doc: found.value.convenio, isAgreement: true, module: 'business_collaboration_agreements', numberLabel: 'N° de convenio', entityLabel: 'Entidad contratante', missingLabel: 'Sin convenio de colaboración registrado.' },
     ];
     return defs.map((d) => {
         const status = statusOf(d.doc, d.isCard);
@@ -167,9 +174,17 @@ const rows = computed(() => {
             badgeClass: meta.badgeClass,
             canCreate: can(`${d.module}.create`),
             canUpdate: can(`${d.module}.update`),
-            number: d.isCard ? d.doc?.operating_card_number : d.doc?.policy_number,
-            entity: d.isCard ? d.doc?.affiliated_company : d.doc?.issuing_entity,
-            validity: d.doc ? `${formatShort(d.doc?.issue_date)} → ${formatShort(expiryOf(d.doc, d.isCard))}` : '',
+            number: d.isAgreement
+                ? d.doc?.agreement_internal_id
+                : (d.isCard ? d.doc?.operating_card_number : d.doc?.policy_number),
+            entity: d.isAgreement
+                ? d.doc?.contracting_entity_name
+                : (d.isCard ? d.doc?.affiliated_company : d.doc?.issuing_entity),
+            validity: d.doc
+                ? (d.isAgreement
+                    ? `${formatShort(d.doc?.effective_date)} → ${formatShort(d.doc?.expiry_date)}`
+                    : `${formatShort(d.doc?.issue_date)} → ${formatShort(expiryOf(d.doc, d.isCard))}`)
+                : '',
         };
     });
 });
