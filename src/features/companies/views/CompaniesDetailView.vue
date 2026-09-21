@@ -423,36 +423,6 @@
             </div>
         </div>
 
-        <!-- SECCIÓN 7: METADATOS -->
-        <div class="col-12 col-sm-12 col-md-12 col-lg-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center gap-2">
-                    <i class="fad fa-clock text-muted" style="font-size: 14px;"></i>
-                    <h6 class="mb-0 fw-medium text-muted" style="font-size: 0.9rem;">Metadatos del Sistema</h6>
-                </div>
-                <div class="card-body py-3">
-                    <dl class="row mb-0 small g-2 g-md-3" style="font-size: 0.8rem;">
-                        <dt class="col-12 col-sm-4 col-md-2 col-lg-2 text-muted">ID Interno:</dt>
-                        <dd class="col-12 col-sm-8 col-md-4 col-lg-4 font-monospace text-muted">{{ company.uuid || '—' }}</dd>
-
-                        <dt class="col-12 col-sm-4 col-md-2 col-lg-2 text-muted">ID Numérico:</dt>
-                        <dd class="col-12 col-sm-8 col-md-4 col-lg-4 font-monospace text-muted">{{ company.id || '—' }}</dd>
-
-                        <dt class="col-12 col-sm-4 col-md-2 col-lg-2 text-muted mt-1">Creada:</dt>
-                        <dd class="col-12 col-sm-8 col-md-4 col-lg-4 text-muted mt-1">{{ formatDate(company.created_at) }}</dd>
-
-                        <dt class="col-12 col-sm-4 col-md-2 col-lg-2 text-muted mt-1">Actualizada:</dt>
-                        <dd class="col-12 col-sm-8 col-md-4 col-lg-4 text-muted mt-1">{{ formatDate(company.updated_at) }}</dd>
-
-                        <dt class="col-12 col-sm-4 col-md-2 col-lg-2 text-muted mt-1">Request ID:</dt>
-                        <dd class="col-12 col-sm-8 col-md-10 col-lg-10 font-monospace text-muted mt-1" style="font-size: 0.75rem;">
-                            {{ company.request_id || 'No disponible' }}
-                        </dd>
-                    </dl>
-                </div>
-            </div>
-        </div>
-
     </div>
 </template>
 
