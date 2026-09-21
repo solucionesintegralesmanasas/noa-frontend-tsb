@@ -254,49 +254,49 @@
     <div class="row g-3 mb-3 fade-in-up" style="animation-delay: 0.1s;">
         <!-- ✅ SECCIÓN 3: ESPECIFICACIONES TÉCNICAS -->
         <div class="col-12 col-lg-6">
-            <div class="card border-0 shadow-sm">
+            <div class="card border-0 shadow-sm h-100 d-flex flex-column">
                 <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center gap-2">
                     <i class="fad fa-cogs text-primary" style="font-size: 14px;"></i>
                     <h6 class="mb-0 fw-medium" style="font-size: 0.9rem;">Especificaciones Técnicas</h6>
                 </div>
-                <div class="card-body py-3">
-                    <dl class="row mb-0 small g-2 g-md-3" style="font-size: 0.85rem;">
+                <div class="card-body py-3 flex-grow-1 d-flex flex-column">
+                    <dl class="spec-list row mb-0 small g-2 g-md-3 flex-grow-1">
                         <dt class="col-6 text-muted fw-medium">Número de serie:</dt>
                         <dd class="col-6 text-dark font-monospace">{{ vehicle.serial_number || '—' }}</dd>
 
-                        <dt class="col-6 text-muted fw-medium mt-1">Número de motor:</dt>
-                        <dd class="col-6 text-dark font-monospace mt-1">{{ vehicle.engine_number || '—' }}</dd>
+                        <dt class="col-6 text-muted fw-medium">Número de motor:</dt>
+                        <dd class="col-6 text-dark font-monospace">{{ vehicle.engine_number || '—' }}</dd>
 
-                        <dt class="col-6 text-muted fw-medium mt-1">Chassis / VIN:</dt>
-                        <dd class="col-6 text-dark font-monospace mt-1">{{ vehicle.vin_number || '—' }}</dd>
+                        <dt class="col-6 text-muted fw-medium">Chassis / VIN:</dt>
+                        <dd class="col-6 text-dark font-monospace">{{ vehicle.vin_number || '—' }}</dd>
 
-                        <dt class="col-6 text-muted fw-medium mt-1">Cilindraje:</dt>
-                        <dd class="col-6 text-dark mt-1">{{ vehicle.engine_displacement }} cm³</dd>
+                        <dt class="col-6 text-muted fw-medium">Cilindraje:</dt>
+                        <dd class="col-6 text-dark">{{ vehicle.engine_displacement }} cm³</dd>
 
-                        <dt class="col-6 text-muted fw-medium mt-1">Tipo de carrocería:</dt>
-                        <dd class="col-6 text-dark mt-1">{{ vehicle.body_type || '—' }}</dd>
+                        <dt class="col-6 text-muted fw-medium">Tipo de carrocería:</dt>
+                        <dd class="col-6 text-dark">{{ vehicle.body_type || '—' }}</dd>
 
-                        <dt class="col-6 text-muted fw-medium mt-1">Tipo de combustible:</dt>
-                        <dd class="col-6 text-dark mt-1">
+                        <dt class="col-6 text-muted fw-medium">Tipo de combustible:</dt>
+                        <dd class="col-6 text-dark">
                             <span class="badge bg-light text-dark border" style="font-size: 0.7rem;">
                                 <i class="fad fa-gas-pump me-1"></i>{{ vehicle.fuel_type }}
                             </span>
                         </dd>
 
-                        <dt class="col-6 text-muted fw-medium mt-1">Puertas:</dt>
-                        <dd class="col-6 text-dark mt-1">{{ vehicle.doors }}</dd>
+                        <dt class="col-6 text-muted fw-medium">Puertas:</dt>
+                        <dd class="col-6 text-dark">{{ vehicle.doors }}</dd>
 
-                        <dt class="col-6 text-muted fw-medium mt-1">Ejes:</dt>
-                        <dd class="col-6 text-dark mt-1">{{ vehicle.number_of_axles }}</dd>
+                        <dt class="col-6 text-muted fw-medium">Ejes:</dt>
+                        <dd class="col-6 text-dark">{{ vehicle.number_of_axles }}</dd>
 
-                        <dt class="col-6 text-muted fw-medium mt-1">Capacidad de carga:</dt>
-                        <dd class="col-6 text-dark mt-1">{{ vehicle.load_capacity }} kg</dd>
+                        <dt class="col-6 text-muted fw-medium">Capacidad de carga:</dt>
+                        <dd class="col-6 text-dark">{{ vehicle.load_capacity }} kg</dd>
 
-                        <dt class="col-6 text-muted fw-medium mt-1">Peso bruto vehicular:</dt>
-                        <dd class="col-6 text-dark mt-1">{{ vehicle.gross_vehicle_weight }} kg</dd>
+                        <dt class="col-6 text-muted fw-medium">Peso bruto vehicular:</dt>
+                        <dd class="col-6 text-dark">{{ vehicle.gross_vehicle_weight }} kg</dd>
 
-                        <dt class="col-6 text-muted fw-medium mt-1">Pasajeros sentados:</dt>
-                        <dd class="col-6 text-dark mt-1">{{ vehicle.seated_passenger_capacity || '—' }}</dd>
+                        <dt class="col-6 text-muted fw-medium">Pasajeros sentados:</dt>
+                        <dd class="col-6 text-dark">{{ vehicle.seated_passenger_capacity || '—' }}</dd>
                     </dl>
                 </div>
             </div>
@@ -319,21 +319,22 @@
                             <h6 class="mb-0 fw-semibold text-dark" style="font-size: 0.95rem;">
                                 {{ ownerDisplayName }}
                             </h6>
-                            <small class="text-muted d-block mt-1 font-monospace" style="font-size: 0.75rem;">
-                                <i class="fad fa-link me-1"></i>
-                                {{ vehicle.third_party_uuid || '—' }}
+                            <small v-if="vehicle.third_party?.document_number" class="text-muted d-block mt-1 font-monospace" style="font-size: 0.75rem;">
+                                <i class="fad fa-id-card me-1"></i>
+                                {{ vehicle.third_party.document_number }}
                             </small>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="card border-0 shadow-sm" v-if="vehicle.operation_cards?.length">
+            <div class="card border-0 shadow-sm">
                 <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center gap-2">
                     <i class="fad fa-id-badge text-primary" style="font-size: 14px;"></i>
                     <h6 class="mb-0 fw-medium" style="font-size: 0.9rem;">Tarjeta de Operación</h6>
                 </div>
                 <!-- ✅ SECCIÓN 6: TARJETA DE OPERACIÓN -->
                 <div class="card-body py-3">
+                    <template v-if="vehicle.operation_cards?.length">
                     <div v-for="card in vehicle.operation_cards" :key="card.uuid"
                         class="list-group list-group-flush small">
                         <div class="list-group-item py-2 px-0 border-0">
@@ -364,6 +365,44 @@
                             </div>
                         </div>
                     </div>
+                    </template>
+                    <p v-else class="text-muted small mb-0">Sin tarjeta de operación registrada</p>
+                </div>
+            </div>
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center gap-2">
+                    <i class="fad fa-handshake text-primary" style="font-size: 14px;"></i>
+                    <h6 class="mb-0 fw-medium" style="font-size: 0.9rem;">Acuerdos de Colaboración</h6>
+                </div>
+                <div class="card-body py-3">
+                    <div v-if="vehicle.business_collaboration_agreements?.length" class="list-group list-group-flush small">
+                        <div v-for="agreement in vehicle.business_collaboration_agreements" :key="agreement.uuid"
+                            class="list-group-item py-2 px-0 border-0">
+                            <div class="d-flex justify-content-between align-items-start gap-2">
+                                <div class="flex-grow-1">
+                                    <span class="fw-medium text-dark d-block" style="font-size: 0.85rem;">
+                                        <i class="fad fa-building me-1 text-primary"></i>
+                                        {{ agreement.contracting_entity_name || '—' }}
+                                    </span>
+                                    <small class="text-muted d-block mt-1">
+                                        <i class="fad fa-hashtag me-1"></i>
+                                        Convenio Nº {{ agreement.agreement_internal_id || '—' }}
+                                    </small>
+                                </div>
+                                <div class="text-end flex-shrink-0">
+                                    <span class="badge rounded-pill"
+                                        :class="isDocumentValid(agreement.expiry_date) ? 'badge-subtle-success' : 'badge-subtle-danger'"
+                                        style="font-size: 0.7rem;">
+                                        {{ isDocumentValid(agreement.expiry_date) ? 'Vigente' : 'Vencido' }}
+                                    </span>
+                                    <small class="text-muted d-block mt-1">
+                                        Vence: {{ formatDateShort(agreement.expiry_date) }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <p v-else class="text-muted small mb-0">Sin convenio de colaboración</p>
                 </div>
             </div>
         </div>
@@ -434,6 +473,11 @@
                                         </small>
                                     </td>
                                 </tr>
+                                <tr v-if="!vehicle.vehicle_documents?.length">
+                                    <td colspan="5" class="text-center text-muted py-3 small">
+                                        No hay documentos registrados
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -444,7 +488,7 @@
 
     <div class="row g-3 mb-3 fade-in-up" style="animation-delay: 0.1s;">
         <!-- ✅ SECCIÓN 7: CUOTAS DE ADMINISTRACIÓN -->
-        <div class="col-12 col-lg-12" v-if="vehicle.affiliate_admin_charges?.length">
+        <div class="col-12 col-lg-12">
             <div class="card border-0 shadow-sm">
                 <div
                     class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center justify-content-between">
@@ -457,6 +501,7 @@
                     </span>
                 </div>
                 <div class="card-body py-3">
+                    <template v-if="vehicle.affiliate_admin_charges?.length">
                     <div class="table-responsive">
                         <table class="table table-sm table-hover align-middle mb-0 small" style="font-size: 0.8rem;">
                             <thead class="bg-light">
@@ -488,6 +533,8 @@
                         <small class="text-muted">+ {{ vehicle.affiliate_admin_charges.length - 5 }} registros
                             más</small>
                     </div>
+                    </template>
+                    <p v-else class="text-muted small mb-0">Sin cuotas de administración registradas</p>
                 </div>
             </div>
         </div>
@@ -496,14 +543,14 @@
     <div class="row g-3 mb-3 fade-in-up" style="animation-delay: 0.1s;">
 
         <!-- ✅ SECCIÓN 8: MANTENIMIENTOS -->
-        <div class="col-12 col-lg-6" v-if="vehicle.maintenances?.length">
+        <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center gap-2">
                     <i class="fad fa-tools text-primary" style="font-size: 14px;"></i>
                     <h6 class="mb-0 fw-medium" style="font-size: 0.9rem;">Mantenimientos</h6>
                 </div>
                 <div class="card-body py-3">
-                    <div class="list-group list-group-flush small">
+                    <div v-if="vehicle.maintenances?.length" class="list-group list-group-flush small">
                         <div v-for="maint in vehicle.maintenances" :key="maint.uuid"
                             class="list-group-item py-2 px-0 border-0">
                             <div class="d-flex justify-content-between align-items-center">
@@ -522,83 +569,11 @@
                             </div>
                         </div>
                     </div>
+                    <p v-else class="text-muted small mb-0">No se han registrado mantenimientos</p>
                 </div>
             </div>
         </div>
 
-        <!-- ✅ SECCIÓN 9: ACUERDOS DE COLABORACIÓN -->
-        <div class="col-12 col-lg-6">
-            <div class="card border-0 shadow-sm" v-if="vehicle.business_collaboration_agreements?.length">
-                <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center gap-2">
-                    <i class="fad fa-handshake text-primary" style="font-size: 14px;"></i>
-                    <h6 class="mb-0 fw-medium" style="font-size: 0.9rem;">Acuerdos de Colaboración</h6>
-                </div>
-                <div class="card-body py-3">
-                    <div class="list-group list-group-flush small">
-                        <div v-for="agreement in vehicle.business_collaboration_agreements" :key="agreement.uuid"
-                            class="list-group-item py-2 px-0 border-0">
-                            <div class="d-flex justify-content-between align-items-start gap-2">
-                                <div class="flex-grow-1">
-                                    <span class="fw-medium text-dark d-block" style="font-size: 0.85rem;">
-                                        <i class="fad fa-building me-1 text-primary"></i>
-                                        {{ agreement.contracting_entity_name || '—' }}
-                                    </span>
-                                    <small class="text-muted d-block mt-1">
-                                        <i class="fad fa-hashtag me-1"></i>
-                                        Convenio Nº {{ agreement.agreement_internal_id || '—' }}
-                                    </small>
-                                </div>
-                                <div class="text-end flex-shrink-0">
-                                    <span class="badge rounded-pill"
-                                        :class="isDocumentValid(agreement.expiry_date) ? 'badge-subtle-success' : 'badge-subtle-danger'"
-                                        style="font-size: 0.7rem;">
-                                        {{ isDocumentValid(agreement.expiry_date) ? 'Vigente' : 'Vencido' }}
-                                    </span>
-                                    <small class="text-muted d-block mt-1">
-                                        Vence: {{ formatDateShort(agreement.expiry_date) }}
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row g-3 mb-3 fade-in-up" style="animation-delay: 0.1s;">
-        <!-- ✅ SECCIÓN 10: METADATOS DEL SISTEMA -->
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center gap-2">
-                    <i class="fad fa-code text-muted" style="font-size: 14px;"></i>
-                    <h6 class="mb-0 fw-medium text-muted" style="font-size: 0.9rem;">Metadatos del Sistema</h6>
-                </div>
-                <div class="card-body py-3">
-                    <dl class="row mb-0 small g-2 g-md-3" style="font-size: 0.8rem;">
-                        <dt class="col-3 col-md-2 text-muted">UUID Vehículo:</dt>
-                        <dd class="col-3 col-md-4 font-monospace text-muted">{{ vehicle.uuid || '—' }}</dd>
-
-                        <dt class="col-3 col-md-2 text-muted">UUID Tercero:</dt>
-                        <dd class="col-3 col-md-4 font-monospace text-muted">{{ vehicle.third_party_uuid || '—' }}
-                        </dd>
-
-                        <dt class="col-3 col-md-2 text-muted">UUID Marca:</dt>
-                        <dd class="col-3 col-md-4 font-monospace text-muted">{{ vehicle.brand_uuid || '—' }}</dd>
-
-                        <dt class="col-3 col-md-2 text-muted">UUID Clase:</dt>
-                        <dd class="col-3 col-md-4 font-monospace text-muted">{{ vehicle.vehicle_class_uuid || '—' }}
-                        </dd>
-
-                        <dt class="col-3 col-md-2 text-muted mt-1">Request ID:</dt>
-                        <dd class="col-3 col-md-4 font-monospace text-muted mt-1">{{ requestId || '—' }}</dd>
-
-                        <dt class="col-3 col-md-2 text-muted mt-1">Timestamp:</dt>
-                        <dd class="col-3 col-md-4 text-muted mt-1">{{ formatDateTime(timestamp) }}</dd>
-                    </dl>
-                </div>
-            </div>
-        </div>
     </div>
 
 </template>
@@ -628,8 +603,6 @@ const isDownloading = ref(false);
 const isDownloadingHistory = ref(false);
 const isDownloadingMaintenance = ref(false);
 const isDownloadingHandover = ref(false);
-const timestamp = ref(null);
-const requestId = ref(null);
 const toast = useToast();
 
 // ===== COMPUTED: BÁSICOS =====
@@ -666,8 +639,8 @@ const ownerDisplayName = computed(() => {
     // Personas jurídicas (trade_name o company_name)
     if (tp.company_name) return tp.company_name;
     if (tp.trade_name) return tp.trade_name;
-    // Fallback a UUID
-    if (tp.uuid) return `Tercero: ${tp.uuid.slice(0, 8)}...`;
+    // Fallback al documento antes que a identificadores internos
+    if (tp.document_number) return `Documento: ${tp.document_number}`;
     return 'Sin asignar';
 });
 
@@ -708,15 +681,7 @@ const formatDateShort = (date) => {
     } catch { return '—'; }
 };
 
-const formatDateTime = (date) => {
-    if (!date) return '—';
-    try {
-        return new Date(date).toLocaleString('es-CO', {
-            year: 'numeric', month: 'short', day: 'numeric',
-            hour: '2-digit', minute: '2-digit', second: '2-digit'
-        });
-    } catch { return '—'; }
-};
+
 
 const isDocumentValid = (expiryDate) => {
     if (!expiryDate) return false;
@@ -865,10 +830,7 @@ const loadVehicle = async () => {
             || response?.data
             || {};
 
-        // Metadatos opcionales de la respuesta
-        const meta = response?.data;
-        timestamp.value = meta?.timestamp ?? meta?.generated_at ?? new Date().toISOString();
-        requestId.value = meta?.request_id ?? meta?.requestId ?? null;
+
 
     } catch (error) {
         console.error('Error cargando vehículo:', error);
@@ -935,6 +897,11 @@ onUnmounted(() => {
 
 .fade-in-up {
     animation: fadeInUp 0.35s ease-out forwards;
+}
+
+/* Especificaciones técnicas: reparte las filas en la altura disponible de la card */
+.spec-list {
+    align-content: space-between;
 }
 
 /* ===== CARDS ===== */
