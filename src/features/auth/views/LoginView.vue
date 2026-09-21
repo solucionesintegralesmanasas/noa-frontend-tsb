@@ -26,16 +26,16 @@
         <form class="row g-3" @submit.prevent="handleLogin" novalidate>
           <div class="col-12">
             <div class="fgroup">
-              <label class="flabel" for="login-email">Correo Electrónico</label>
+              <label class="flabel" for="login-email">Correo Electrónico o Número de Documento</label>
               <div class="iw">
                 <i class="fas fa-envelope iico" aria-hidden="true"></i>
                 <input
                   id="login-email"
                   class="finput"
                   :class="{ 'finput-error': errors.email }"
-                  type="email"
-                  autocomplete="email"
-                  placeholder="nombre@empresa.com"
+                  type="text"
+                  autocomplete="username"
+                  placeholder="nombre@empresa.com o documento"
                   v-model="formData.email"
                   :aria-invalid="!!errors.email"
                   :aria-describedby="errors.email ? 'login-email-error' : undefined"
@@ -117,7 +117,7 @@ onMounted(() => {
 const { formData, errors, isSubmitting, validateAndFocus } = useFormManager(
   { email: '', password: '' },
   {
-    email: { required: true, email: true, label: 'El correo electrónico' },
+    email: { required: true, label: 'El correo o número de documento' },
     password: { required: true, label: 'La contraseña' }
   }
 );
