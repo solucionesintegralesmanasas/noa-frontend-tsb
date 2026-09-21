@@ -7,8 +7,6 @@
             <WizardProgress
                 v-if="!isEditMode"
                 current="vehiculo"
-                :show-skip="false"
-                :show-finish="false"
             />
 
             <div class="card border-0 shadow-sm fade-in-up" style="animation-delay: 0.1s;">

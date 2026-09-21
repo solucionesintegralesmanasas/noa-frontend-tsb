@@ -145,8 +145,11 @@ export function useDocumentWizard() {
     /**
      * Consulta qué documentos ya existen para el vehículo.
      * @param {string} vehicleUuid
+     * @param {{ strict?: boolean }} [options] Si `strict` es true, un fallo de la
+     *   consulta principal se propaga en lugar de tratarse como "sin documentos".
      * @returns {Promise<{soat:Object|null, rce:Object|null, rcc:Object|null, rtm:Object|null, tarjeta:Object|null}>}
-     */    const fetchExistingDocs = async (vehicleUuid) => {
+     */
+    const fetchExistingDocs = async (vehicleUuid, { strict = false } = {}) => {
         const found = { soat: null, rce: null, rcc: null, rtm: null, tarjeta: null };
         if (!vehicleUuid) return found;
 
@@ -156,8 +159,9 @@ export function useDocumentWizard() {
             found.rce = docs.find((d) => d.document_type === 'RCE') ?? null;
             found.rcc = docs.find((d) => d.document_type === 'RCC') ?? null;
             found.rtm = docs.find((d) => d.document_type === 'RTM') ?? null;
-        } catch {
-            // Sin documentos aún: todo queda pendiente
+        } catch (error) {
+            // Un fallo real no debe interpretarse como "documento inexistente".
+            if (strict) throw error;
         }
 
         try {

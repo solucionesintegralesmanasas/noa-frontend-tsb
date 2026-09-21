@@ -1,47 +1,42 @@
 <template>
   <div class="wizard-strip mb-3">
-    <div class="d-flex flex-wrap align-items-center gap-2 gap-md-3">
-      <div class="wizard-steps d-flex align-items-start flex-grow-1" role="list" aria-label="Progreso del registro">
-        <template v-for="(step, i) in steps" :key="step.key">
-          <div class="wizard-node" :title="stepTitle(step)" role="listitem" :aria-current="step.key === current ? 'step' : undefined">
-            <span class="wizard-dot" :class="stepStateClass(step)">
-              <svg
-                v-if="isDone(step)"
-                class="wizard-check"
-                viewBox="0 0 24 24"
-                fill="none"
-                aria-hidden="true"
-              >
-                <path
-                  d="M4 12.5l5 5L20 6.5"
-                  stroke="currentColor"
-                  stroke-width="3"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  pathLength="1"
-                />
-              </svg>
-              <i v-else :class="step.icon"></i>
-            </span>
-            <span class="wizard-caption" :class="{ 'wizard-caption-active': step.key === current }">
-              {{ step.label }}
-            </span>
-          </div>
-          <span v-if="i < steps.length - 1" class="wizard-link" :class="{ 'wizard-link-done': isLinkDone(i) }"></span>
-        </template>
-      </div>
-
-      <div class="d-flex flex-wrap gap-2 ms-md-auto">
-        <button v-if="showPrev" type="button" class="btn btn-falcon-default btn-sm" @click="$emit('prev')">
-          <i class="fas fa-arrow-left me-1"></i>Anterior
+    <div class="wizard-steps d-flex align-items-start" role="group" aria-label="Progreso del registro">
+      <template v-for="(step, i) in steps" :key="step.key">
+        <button
+          type="button"
+          class="wizard-node"
+          :class="{ 'wizard-node-nav': isNavigable(step) }"
+          :disabled="!isNavigable(step)"
+          :aria-current="step.key === current ? 'step' : undefined"
+          :aria-label="isNavigable(step) ? nodeAria(step) : undefined"
+          :title="stepTitle(step)"
+          @click="onNavigate(step)"
+        >
+          <span class="wizard-dot" :class="stepStateClass(step)">
+            <svg
+              v-if="showCheck(step)"
+              class="wizard-check"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path
+                d="M4 12.5l5 5L20 6.5"
+                stroke="currentColor"
+                stroke-width="3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                pathLength="1"
+              />
+            </svg>
+            <i v-else :class="currentIcon(step)" aria-hidden="true"></i>
+          </span>
+          <span class="wizard-caption" :class="{ 'wizard-caption-active': step.key === current }">
+            {{ step.label }}
+          </span>
         </button>
-        <button v-if="showSkip" type="button" class="btn btn-falcon-default btn-sm" @click="$emit('skip')" title="Avanza al siguiente paso sin guardar">
-          Siguiente<i class="fas fa-arrow-right ms-1"></i>
-        </button>
-        <button v-if="showFinish" type="button" class="btn btn-primary btn-sm" @click="$emit('finish')">
-          <i class="fas fa-check me-1"></i>Terminar
-        </button>
-      </div>
+        <span v-if="i < steps.length - 1" class="wizard-link" :class="{ 'wizard-link-done': isLinkDone(i) }"></span>
+      </template>
     </div>
   </div>
 </template>
@@ -49,7 +44,8 @@
 <script setup>
 /**
  * Stepper del asistente de documentos: nodos con icono y conector.
- * Props puras / eventos hacia arriba: no navega por sí misma.
+ * Los nodos son navegables si `clickable` está activo: emiten `navigate`
+ * con la clave del paso para que el formulario decida cómo ir a él.
  */
 import { computed } from 'vue';
 import { WIZARD_STEPS } from '@/hooks/useDocumentWizard.js';
@@ -57,22 +53,45 @@ import { WIZARD_STEPS } from '@/hooks/useDocumentWizard.js';
 const props = defineProps({
   current: { type: String, required: true },
   doneKeys: { type: Array, default: () => [] },
-  showPrev: { type: Boolean, default: true },
-  showSkip: { type: Boolean, default: true },
-  showFinish: { type: Boolean, default: true },
+  incompleteKeys: { type: Array, default: () => [] },
+  disabledKeys: { type: Array, default: () => [] },
+  clickable: { type: Boolean, default: false },
 });
 
-defineEmits(['prev', 'skip', 'finish']);
+const emit = defineEmits(['navigate']);
 
 const steps = computed(() => WIZARD_STEPS);
 
 const orderOf = (key) => steps.value.map((s) => s.key).indexOf(key);
 
 const isDone = (step) => props.doneKeys.includes(step.key);
+const isIncomplete = (step) => props.incompleteKeys.includes(step.key);
+
+/** El chulo solo aparece en pasos completados que no son el actual. */
+const showCheck = (step) => isDone(step) && step.key !== props.current;
+
+/** El paso actual ya tiene datos (completos o parciales) y se está editando. */
+const isCurrentEditing = (step) =>
+  step.key === props.current && (isDone(step) || isIncomplete(step));
+
+/**
+ * Icono del nodo: lápiz mientras se edita un paso con datos,
+ * icono del documento si está vacío o es otro paso.
+ */
+const currentIcon = (step) => {
+  if (isCurrentEditing(step)) return 'fas fa-pen';
+  return step.icon;
+};
+
+const isNavigable = (step) =>
+  props.clickable &&
+  step.key !== props.current &&
+  !props.disabledKeys.includes(step.key);
 
 const stepStateClass = (step) => {
-  if (isDone(step)) return 'wizard-dot-done';
   if (step.key === props.current) return 'wizard-dot-current';
+  if (isIncomplete(step)) return 'wizard-dot-incomplete';
+  if (isDone(step)) return 'wizard-dot-done';
   return orderOf(step.key) < orderOf(props.current)
     ? 'wizard-dot-past'
     : 'wizard-dot-next';
@@ -83,10 +102,27 @@ const isLinkDone = (i) => {
   return order.indexOf(props.current) > i || props.doneKeys.includes(steps.value[i].key);
 };
 
+const stateLabel = (step) => {
+  if (step.key === props.current) {
+    return isCurrentEditing(step) ? 'en edición' : 'en registro';
+  }
+  if (isIncomplete(step)) return 'incompleto, falta información';
+  if (isDone(step)) return 'cargado';
+  return 'pendiente';
+};
+
 const stepTitle = (step) => {
-  if (isDone(step)) return `${step.label}: cargado`;
-  if (step.key === props.current) return `${step.label}: paso actual`;
-  return step.hint ? `${step.label}: ${step.hint}` : step.label;
+  const base = `${step.label}: ${stateLabel(step)}`;
+  if (isNavigable(step)) return `${base}. Pulsa para abrir este paso`;
+  if (step.hint && !isDone(step) && step.key !== props.current) return `${base}. ${step.hint}`;
+  return base;
+};
+
+const nodeAria = (step) => `${step.label}, ${stateLabel(step)}. Ir a este paso`;
+
+const onNavigate = (step) => {
+  if (!isNavigable(step)) return;
+  emit('navigate', step.key);
 };
 </script>
 
@@ -109,6 +145,24 @@ const stepTitle = (step) => {
   align-items: center;
   gap: 0.25rem;
   flex-shrink: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: default;
+  border-radius: 0.5rem;
+}
+
+.wizard-node-nav {
+  cursor: pointer;
+}
+
+.wizard-node-nav:focus-visible {
+  outline: 2px solid #2c7be5;
+  outline-offset: 3px;
+}
+
+.wizard-node-nav:hover .wizard-caption {
+  color: #0f172a;
 }
 
 .wizard-dot {
@@ -120,7 +174,11 @@ const stepTitle = (step) => {
   justify-content: center;
   font-size: 1rem;
   border: 2px solid transparent;
-  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s, transform 0.18s;
+}
+
+.wizard-node-nav:hover .wizard-dot {
+  transform: translateY(-1px);
 }
 
 .wizard-dot-current {
@@ -190,6 +248,13 @@ const stepTitle = (step) => {
   color: #1a68d1;
 }
 
+/* Documento existente pero incompleto (por ejemplo, solo una póliza de dos) */
+.wizard-dot-incomplete {
+  background: rgba(245, 128, 62, 0.14);
+  color: #d96716;
+  border-color: rgba(245, 128, 62, 0.45);
+}
+
 .wizard-dot-next {
   background: #eef2f7;
   color: #64748b;
@@ -200,6 +265,7 @@ const stepTitle = (step) => {
   font-weight: 500;
   color: #64748b;
   white-space: nowrap;
+  transition: color 0.18s;
 }
 
 .wizard-caption-active {
@@ -227,6 +293,9 @@ const stepTitle = (step) => {
   }
   .wizard-check path {
     stroke-dashoffset: 0;
+  }
+  .wizard-node-nav:hover .wizard-dot {
+    transform: none;
   }
 }
 </style>
