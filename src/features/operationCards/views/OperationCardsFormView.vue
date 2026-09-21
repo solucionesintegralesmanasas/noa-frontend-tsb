@@ -8,9 +8,10 @@
                 v-if="wizardUuid"
                 current="tarjeta"
                 :done-keys="wizardDoneKeys"
-                @prev="goBack"
-                @skip="goNextStep"
-                @finish="goExit"
+                :incomplete-keys="wizardIncompleteKeys"
+                :disabled-keys="wizardDisabledKeys"
+                clickable
+                @navigate="onWizardNavigate"
             />
 
             <div class="card border-0 shadow-sm fade-in-up" style="animation-delay: 0.1s;">
@@ -150,7 +151,9 @@
                         </div>
 
                         <div class="col-12 mt-4 pt-3 border-top">
-                            <BaseFormActions :submitting="submitting" :is-edit-mode="isEditMode || esActualizacion" :wizard-mode="!!wizardUuid" @cancel="goBack" />
+                            <BaseFormActions :submitting="submitting" :is-edit-mode="isUpdateMode" :wizard-mode="!!wizardUuid"
+                                :disabled="isUpdateMode && !hasChanges" :submit-label="submitLabel"
+                                :cancel-label="cancelLabel" cancel-icon="fas fa-arrow-left" @cancel="handleCancel" />
                         </div>
                     </form>
                 </div>
@@ -198,6 +201,7 @@ import BasePageHeader from '@/components/BasePageHeader.vue';
 import BaseFormActions from '@/components/BaseFormActions.vue';
 import WizardProgress from '@/components/WizardProgress.vue';
 import { useDocumentWizard } from '@/hooks/useDocumentWizard.js';
+import { confirmUnsavedChanges } from '@/utils/confirm.js';
 
 const route = useRoute();
 const router = useRouter();
@@ -216,18 +220,116 @@ const wizardUuid = computed(() => (route.query.wizard ? String(route.query.wizar
 const returnTo = computed(() => (route.query.retorno ? String(route.query.retorno) : null));
 /** Registrar versión nueva aunque ya exista una tarjeta (?nuevo=1) */
 const isNuevo = computed(() => route.query.nuevo === '1');
-const { nextStepRoute, prevStepRoute, exitRoute, fetchExistingDocs, getSessionDone, markStepDone, clearSessionDone, toDateInput } = useDocumentWizard();
+const { WIZARD_STEPS, availableSteps, stepRoute, nextStepRoute, prevStepRoute, exitRoute, fetchExistingDocs, getSessionDone, markStepDone, clearSessionDone, toDateInput } = useDocumentWizard();
 const wizardDoneKeys = ref([]);
+const wizardIncompleteKeys = ref([]);
 // UUID de la tarjeta precargada en el asistente para actualizar en vez de duplicar
 const editingCardUuid = ref(null);
 // El asistente actualiza la tarjeta existente (precargada y sin flag de nuevo)
 const esActualizacion = computed(() => !isEditMode.value && !!wizardUuid.value && !isNuevo.value && !!editingCardUuid.value);
 
+/** Hay un documento existente que se está actualizando (desde listado o desde el perfil). */
+const isUpdateMode = computed(() => isEditMode.value || esActualizacion.value);
+
+/** Normaliza valores para comparar sin falsos positivos (espacios, formatos). */
+const normalizeForCompare = (data) => {
+    const out = {};
+    Object.keys(data).forEach((key) => {
+        const value = data[key];
+        out[key] = typeof value === 'string' ? value.trim() : value;
+    });
+    return out;
+};
+
+const originalSnapshot = ref('');
+
+/** Solo se permite guardar si hay cambios reales respecto al documento original. */
+const hasChanges = computed(() => {
+    if (!isUpdateMode.value) return true;
+    return JSON.stringify(normalizeForCompare(formData)) !== originalSnapshot.value;
+});
+
+/**
+ * Campos que no cuentan como contenido del usuario: auto-rellenados,
+ * valores por defecto o de solo lectura.
+ */
+const AUTO_FILLED_CARD_FIELDS = new Set([
+    'vehicle_uuid',
+    'company_uuid',
+    'status',
+    'area_of_coverage',
+    'service_type',
+    'transport_mode',
+    'internal_number',
+]);
+
+/** Indica si el usuario escribió contenido (modo creación, para no perderlo en silencio). */
+const hasUserInput = computed(() => {
+    const normalized = normalizeForCompare(formData);
+    return Object.entries(normalized).some(([key, value]) => {
+        if (AUTO_FILLED_CARD_FIELDS.has(key)) return false;
+        return value !== null && value !== undefined && value !== '';
+    });
+});
+
+/** Indica si salir requiere confirmación: cambios reales o contenido nuevo sin guardar. */
+const needsLeaveConfirm = () => (isUpdateMode.value && hasChanges.value)
+    || (!isUpdateMode.value && hasUserInput.value);
+
+const submitLabel = computed(() => {
+    if (isUpdateMode.value) return hasChanges.value ? 'Actualizar' : 'Sin cambios';
+    return wizardUuid.value ? 'Guardar y finalizar' : 'Guardar';
+});
+
+const cancelLabel = computed(() => {
+    if (returnTo.value) return 'Volver al vehículo';
+    if (wizardUuid.value) return 'Volver al perfil';
+    return 'Volver al listado';
+});
+
+/** Pasos que no se pueden abrir: vehículo (ya registrado) o sin permiso. */
+const wizardDisabledKeys = computed(() => {
+    const allowed = new Set(availableSteps(permissionsStore).map((s) => s.key));
+    return WIZARD_STEPS
+        .filter((s) => s.key === 'vehiculo' || !allowed.has(s.key))
+        .map((s) => s.key);
+});
+
 const goExit = () => {
     clearSessionDone(wizardUuid.value);
     router.push(returnTo.value || exitRoute(wizardUuid.value));
 };
-const goNextStep = () => router.push(nextStepRoute('tarjeta', wizardUuid.value, permissionsStore));
+
+/** Navega a un paso concreto del asistente (nodos del stepper). */
+const navigateToStep = (stepKey) => {
+    if (stepKey === 'vehiculo') {
+        router.push(exitRoute(wizardUuid.value));
+        return;
+    }
+    const target = stepRoute(stepKey, wizardUuid.value);
+    const query = { ...(target.query || {}) };
+    // Conserva el origen para que guardar/cancelar siga volviendo al perfil.
+    if (returnTo.value) query.retorno = returnTo.value;
+    router.push({ path: target.path, query });
+};
+
+/** Sale del formulario tras guardar: perfil, siguiente paso o listado. */
+const navigateAfterSave = () => {
+    if (returnTo.value) {
+        router.push(returnTo.value);
+        return;
+    }
+    if (wizardUuid.value) {
+        const next = nextStepRoute('tarjeta', wizardUuid.value, permissionsStore);
+        if (next?.path?.includes('/vehiculos/perfil/')) {
+            goExit();
+            return;
+        }
+        router.push(next);
+        return;
+    }
+    goBack();
+};
 
 /** Computed para BasePageHeader (evita expresiones complejas en el template) */
 const pageTitle = computed(() => (isEditMode.value || esActualizacion.value) ? 'Actualizar Tarjeta de Operación' : 'Registrar Tarjeta de Operación');
@@ -253,6 +355,8 @@ const formData = reactive({
 });
 
 const hasAgreements = ref(false);
+// Mientras carga el formulario no se debe marcar como "con cambios".
+const isLoadingData = ref(true);
 
 // Deduplica los vehículos del catálogo por uuid (evita registros repetidos en el select)
 const uniqueVehicles = computed(() => {
@@ -265,27 +369,30 @@ const uniqueVehicles = computed(() => {
     });
 });
 
-watch(() => formData.vehicle_uuid, async (newVal) => {
-    if (!newVal) {
+/** Carga metadatos del vehículo: convenios y N° interno (autocompletado). */
+const applyVehicleMeta = async (vehicleUuid) => {
+    if (!vehicleUuid) {
         hasAgreements.value = false;
         return;
     }
     try {
-        const vehicle = await vehiclesStore.fetchProfileById(newVal);
+        const vehicle = await vehiclesStore.fetchProfileById(vehicleUuid);
         if (vehicle) {
             const agreements = vehicle.business_collaboration_agreements || vehicle.businessCollaborationAgreements;
             hasAgreements.value = Array.isArray(agreements) && agreements.length > 0;
-
-            if (vehicle.internal_number) {
-                formData.internal_number = vehicle.internal_number;
-            } else {
-                formData.internal_number = '';
-            }
+            formData.internal_number = vehicle.internal_number || '';
         }
     } catch (error) {
         console.error('Error al obtener detalles del vehículo:', error);
         hasAgreements.value = false;
     }
+};
+
+watch(() => formData.vehicle_uuid, async (newVal) => {
+    // Durante la carga inicial los datos se completan de forma controlada
+    // para no marcar el formulario como "modificado".
+    if (isLoadingData.value) return;
+    await applyVehicleMeta(newVal);
 });
 
 // Sin sugerencias del navegador en el asistente (salvo N° interno)
@@ -323,7 +430,8 @@ const goBack = () => {
     }
 };
 
-const handleSubmit = async () => {
+/** Valida y persiste la tarjeta actual. Devuelve `true` si se guardó. */
+const persistForm = async () => {
     // En modo asistente el vehículo queda fijado al que originó el flujo
     if (wizardUuid.value) formData.vehicle_uuid = wizardUuid.value;
 
@@ -335,49 +443,64 @@ const handleSubmit = async () => {
             firstError.focus({ preventScroll: true });
             firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
-        return toast('Atención', 'Revisa los campos obligatorios', 'warning');
+        toast('Atención', 'Revisa los campos obligatorios', 'warning');
+        return false;
     }
 
     try {
         submitting.value = true;
-        let uuid = isEditMode.value ? route.params.id : null;
 
         if (isEditMode.value) {
-            await store.updateItem(uuid, formData);
+            await store.updateItem(route.params.id, formData);
         } else if (editingCardUuid.value) {
             await store.updateItem(editingCardUuid.value, formData);
         } else {
-            const newItem = await store.createItem(formData);
-            uuid = newItem?.uuid || newItem?.id;
+            await store.createItem(formData);
         }
 
-        if (wizardUuid.value) {
-            markStepDone(wizardUuid.value, 'tarjeta');
-            // Desde el menú de documentos: salir del asistente y volver al origen con datos frescos
-            if (returnTo.value) router.push(returnTo.value);
-            else goNextStep();
-        } else {
-            goBack();
-        }
+        originalSnapshot.value = JSON.stringify(normalizeForCompare(formData));
+        return true;
     } catch (error) {
         toast('Error', 'No se pudo procesar la solicitud', 'error');
-        // En edición con asistente (desde el menú) también se pinta el progreso
-        if (isEditMode.value && wizardUuid.value) {
-            try {
-                const found = await fetchExistingDocs(wizardUuid.value);
-                const done = new Set(['vehiculo', ...getSessionDone(wizardUuid.value)]);
-                if (found.soat) done.add('soat');
-                if (found.rce && found.rcc) done.add('poliza');
-                if (found.rtm) done.add('tecnomecanica');
-                if (found.tarjeta) done.add('tarjeta');
-                wizardDoneKeys.value = [...done];
-            } catch {
-                wizardDoneKeys.value = getSessionDone(wizardUuid.value);
-            }
-        }
+        return false;
     } finally {
         submitting.value = false;
     }
+};
+
+const handleSubmit = async () => {
+    const saved = await persistForm();
+    if (!saved) return;
+    if (wizardUuid.value) markStepDone(wizardUuid.value, 'tarjeta');
+    navigateAfterSave();
+};
+
+/** Abre un nodo del stepper, confirmando si hay cambios sin guardar. */
+const onWizardNavigate = async (stepKey) => {
+    if (!wizardUuid.value || stepKey === 'tarjeta') return;
+
+    if (needsLeaveConfirm()) {
+        const decision = await confirmUnsavedChanges();
+        if (decision === 'cancel') return;
+        if (decision === 'save') {
+            const saved = await persistForm();
+            if (!saved) return;
+        }
+    }
+    navigateToStep(stepKey);
+};
+
+/** Botón secundario: vuelve atrás confirmando cambios sin guardar. */
+const handleCancel = async () => {
+    if (needsLeaveConfirm()) {
+        const decision = await confirmUnsavedChanges();
+        if (decision === 'cancel') return;
+        if (decision === 'save') {
+            const saved = await persistForm();
+            if (!saved) return;
+        }
+    }
+    goBack();
 };
 
 onMounted(async () => {
@@ -399,21 +522,27 @@ onMounted(async () => {
                 formData.status = (item.status == 1 || item.status === true || item.status === '1') ? '1' : '0';
             }
         } else if (wizardUuid.value) {
-            // Modo asistente: vehículo prefijado y pasos ya cargados para el progreso
+            // Modo asistente: vehículo prefijado y documentos ya registrados
             formData.vehicle_uuid = wizardUuid.value;
-            // Progreso inmediato de sesión (checks secuenciales sin esperar al backend)
+        }
+
+        // Progreso del stepper + precarga de la tarjeta existente (una sola consulta)
+        if (wizardUuid.value) {
             wizardDoneKeys.value = getSessionDone(wizardUuid.value);
             try {
                 const found = await fetchExistingDocs(wizardUuid.value);
-                // El vehículo quedó guardado al entrar al asistente
                 const done = new Set(['vehiculo', ...getSessionDone(wizardUuid.value)]);
+                const incomplete = new Set();
                 if (found.soat) done.add('soat');
                 if (found.rce && found.rcc) done.add('poliza');
+                else if (found.rce || found.rcc) incomplete.add('poliza');
                 if (found.rtm) done.add('tecnomecanica');
                 if (found.tarjeta) done.add('tarjeta');
                 wizardDoneKeys.value = [...done];
+                wizardIncompleteKeys.value = [...incomplete];
+
                 // Precarga la tarjeta ya registrada (salvo registro de versión nueva)
-                if (found.tarjeta && !isNuevo.value) {
+                if (found.tarjeta && !isNuevo.value && !isEditMode.value) {
                     const t = found.tarjeta;
                     editingCardUuid.value = t.uuid ?? null;
                     Object.assign(formData, {
@@ -431,9 +560,15 @@ onMounted(async () => {
                     }
                 }
             } catch {
-                wizardDoneKeys.value = getSessionDone(wizardUuid.value);
+                wizardIncompleteKeys.value = [];
             }
         }
+
+        // Completa metadatos del vehículo y habilita la detección de cambios
+        await applyVehicleMeta(formData.vehicle_uuid);
+        isLoadingData.value = false;
+        // Foto del estado cargado para detectar cambios reales antes de actualizar
+        originalSnapshot.value = JSON.stringify(normalizeForCompare(formData));
     } finally {
         isViewLoading.value = false;
     }
