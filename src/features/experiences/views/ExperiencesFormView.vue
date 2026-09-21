@@ -80,11 +80,10 @@
                             </div>
                         </div>
                         <div class="col-12 col-sm-6 col-md-6 col-lg-4 col-xl-4 col-xxl-4">
-                            <label class="form-label" for="is_ongoing">
-                                Vigente Hasta <span class="d-none d-sm-inline">(Dejar vacío si finalizado)</span>
-                            </label>
+                            <label class="form-label" for="is_ongoing">Vigente Hasta</label>
                             <input id="is_ongoing" v-model="formData.is_ongoing" class="form-control"
                                 :class="{ 'is-invalid': validationErrors.is_ongoing }" type="date" />
+                            <small class="form-text text-muted d-block mt-1">Dejar vacío si la experiencia finalizó.</small>
                             <div v-if="validationErrors.is_ongoing" class="invalid-feedback d-block" id="f-is_ongoing-error" role="alert">
                                 {{ validationErrors.is_ongoing }}
                             </div>

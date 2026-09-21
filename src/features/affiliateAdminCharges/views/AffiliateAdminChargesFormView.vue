@@ -129,9 +129,9 @@
                     placeholder="0.00" :class="{ 'is-invalid': validationErrors.amount }"
                     :aria-invalid="!!validationErrors.amount"
                     :aria-describedby="validationErrors.amount ? 'f-amount-error' : undefined" />
-                  <div v-if="validationErrors.amount" class="invalid-feedback d-block mt-1 w-100" id="f-amount-error" role="alert">{{
-                    validationErrors.amount }}</div>
                 </div>
+                <div v-if="validationErrors.amount" class="invalid-feedback d-block mt-1" id="f-amount-error" role="alert">{{
+                  validationErrors.amount }}</div>
                 <div v-if="tariffCalculated" class="text-success small mt-1">
                   <i class="fad fa-calculator me-1"></i>Calculado según tarifa de plataforma
                 </div>
@@ -189,9 +189,9 @@
                     v-model.number="formData.late_fee_percentage" placeholder="Ej: 1.5"
                     :class="{ 'is-invalid': validationErrors.late_fee_percentage }" />
                   <span class="input-group-text bg-light"><i class="fad fa-percent"></i></span>
-                  <div v-if="validationErrors.late_fee_percentage" class="invalid-feedback w-100 mt-1 d-block">{{
-                    validationErrors.late_fee_percentage }}</div>
-                </div>
+                 </div>
+                 <div v-if="validationErrors.late_fee_percentage" class="invalid-feedback w-100 mt-1 d-block" id="f-late_fee_percentage-error" role="alert">{{
+                   validationErrors.late_fee_percentage }}</div>
               </div>
             </div>
 
