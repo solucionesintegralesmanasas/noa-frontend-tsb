@@ -1,4 +1,5 @@
 import { BaseService } from '@services/api/base.service.js';
+import { logger } from '@/utils/logger.js';
 
 /**
  * Servicio para la gestión de vehículos.
@@ -86,9 +87,41 @@ class VehiclesService extends BaseService {
 
     /**
      * Obtiene las opciones para los selects del formulario (catálogos).
+     * Normaliza a arreglos y garantiza etiquetas no nulas: PrimeVue Select
+     * revienta con "Cannot read properties of null (reading 'length')" cuando
+     * la opción seleccionada tiene su campo de etiqueta en null.
      * @returns {Promise<Object>} Objeto con los catálogos cargados.
      */
     async getFormOptions() {
+        const toArray = (value) => {
+            if (Array.isArray(value)) return value;
+            if (value && Array.isArray(value.data)) return value.data;
+            if (value && typeof value === 'object') {
+                // Respuesta de objeto único (ej. companies/list filtrado): envolver
+                if (value.uuid || value.id) return [value];
+                return [];
+            }
+            return [];
+        };
+
+        // Garantiza que el campo de etiqueta nunca sea null/undefined.
+        const withLabel = (items, labelField, fallbacks = []) =>
+            toArray(items).map((item) => {
+                if (!item || typeof item !== 'object') return item;
+                let label = item[labelField];
+                for (const fb of fallbacks) {
+                    if (label !== null && label !== undefined && String(label).trim() !== '') break;
+                    label = typeof fb === 'function' ? fb(item) : item[fb];
+                }
+                if (label === null || label === undefined || String(label).trim() === '') {
+                    label = 'Sin nombre';
+                }
+                if (item[labelField] !== label) {
+                    return { ...item, [labelField]: String(label) };
+                }
+                return item;
+            });
+
         const fetchSafe = async (url) => {
             try {
                 const { isAfiliado, thirdPartyUuid } = this._getUserContext();
@@ -99,9 +132,9 @@ class VehiclesService extends BaseService {
                 const instance = this._getInstance();
                 const res = await instance.get(url, { params });
                 const data = res.data;
-                return data?.data ?? data ?? [];
+                return toArray(data?.data ?? data ?? []);
             } catch (err) {
-                console.warn(`Error cargando catálogo: ${url}`, err.message);
+                logger.warn(`Error cargando catálogo: ${url}`, err.message);
                 return [];
             }
         };
@@ -118,12 +151,17 @@ class VehiclesService extends BaseService {
         ]);
 
         return {
-            companies,
-            vehicleClasses,
-            brands,
-            branches,
-            thirdParties,
-            typeOfDocuments,
+            companies: withLabel(companies, 'business_name', ['company_name', 'name']),
+            vehicleClasses: withLabel(vehicleClasses, 'description', ['name']),
+            brands: withLabel(brands, 'description', ['name']),
+            branches: withLabel(branches, 'name', ['business_name']),
+            thirdParties: withLabel(thirdParties, 'company_name', [
+                (item) => [item.first_name, item.last_name].filter(Boolean).join(' ').trim(),
+                'full_name',
+                'display_name',
+                'document_number',
+            ]),
+            typeOfDocuments: withLabel(typeOfDocuments, 'name', ['description']),
         };
     }
 }

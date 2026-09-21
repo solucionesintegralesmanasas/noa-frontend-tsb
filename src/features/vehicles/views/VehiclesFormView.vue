@@ -64,7 +64,7 @@
                             <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="vehicle_class_uuid">Clase de
                                 Vehículo</label>
                             <PrimeSelect :input-id="'vehicle_class_uuid'" v-model="formData.vehicle_class_uuid"
-                                :options="store.catalogs.vehicleClasses" option-value="uuid" option-label="description"
+                                :options="store.catalogs.vehicleClasses ?? []" option-value="uuid" option-label="description"
                                 placeholder="Seleccionar clase" showClear filter class="w-100"
                                 :invalid="!!validationErrors['vehicle_class_uuid']" />
                             <div v-if="validationErrors.vehicle_class_uuid" class="invalid-feedback d-block" id="f-vehicle_class_uuid-error" role="alert">
@@ -95,7 +95,7 @@
                         <div class="col-12 col-md-6 col-lg-3">
                             <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="brand_uuid">Marca</label>
                             <PrimeSelect :input-id="'brand_uuid'" v-model="formData.brand_uuid"
-                                :options="store.catalogs.brands" option-value="uuid" option-label="description"
+                                :options="store.catalogs.brands ?? []" option-value="uuid" option-label="description"
                                 placeholder="Seleccionar marca" showClear filter class="w-100"
                                 :invalid="!!validationErrors['brand_uuid']" />
                             <div v-if="validationErrors.brand_uuid" class="invalid-feedback d-block" id="f-brand_uuid-error" role="alert">
@@ -280,7 +280,7 @@
                         <div class="col-12 col-md-4 col-lg-4">
                             <label class="form-label" for="branch_uuid">Sucursal de Operación</label>
                             <PrimeSelect :input-id="'branch_uuid'" v-model="formData.branch_uuid"
-                                :options="store.catalogs.branches" option-value="uuid" option-label="name"
+                                :options="store.catalogs.branches ?? []" option-value="uuid" option-label="name"
                                 placeholder="Seleccione..." showClear filter class="w-100"
                                 :invalid="!!validationErrors['branch_uuid']" />
                             <div v-if="validationErrors.branch_uuid" class="invalid-feedback d-block" id="f-branch_uuid-error" role="alert">
@@ -358,7 +358,7 @@
                         <div class="col-12 col-md-12 col-lg-6" v-if="isSuperAdmin">
                             <label class="form-label required" for="company_uuid">Empresa Transporte</label>
                             <PrimeSelect :input-id="'company_uuid'" v-model="formData.company_uuid"
-                                :options="store.catalogs.companies" option-value="uuid" option-label="business_name"
+                                :options="store.catalogs.companies ?? []" option-value="uuid" option-label="business_name"
                                 placeholder="Seleccione..." showClear filter class="w-100"
                                 :invalid="!!validationErrors['company_uuid']" />
                             <div v-if="validationErrors.company_uuid" class="invalid-feedback d-block" id="f-company_uuid-error" role="alert">
@@ -370,7 +370,7 @@
                         <div :class="isSuperAdmin ? 'col-12 col-md-12 col-lg-6' : 'col-12 col-md-12 col-lg-4'">
                             <label class="form-label required" for="owner_third_party_uuid">Afiliado</label>
                             <PrimeSelect :input-id="'owner_third_party_uuid'" v-model="formData.third_party_uuid"
-                                :options="store.catalogs.thirdParties" option-value="uuid" option-label="company_name"
+                                :options="store.catalogs.thirdParties ?? []" option-value="uuid" option-label="company_name"
                                 placeholder="Seleccione..." showClear filter class="w-100"
                                 :invalid="!!validationErrors['third_party_uuid']" />
                             <div v-if="validationErrors.third_party_uuid" class="invalid-feedback d-block" id="f-third_party_uuid-error" role="alert">
@@ -431,7 +431,7 @@
                                     :class="{ 'required': formData.owner.document_type_uuid || formData.owner.document_number || formData.owner.owner_name }"
                                     for="owner_document_type_uuid">Tipo de Documento</label>
                                 <PrimeSelect :input-id="'owner_document_type_uuid'" v-model="formData.owner.document_type_uuid"
-                                    :options="store.catalogs.typeOfDocuments" option-value="uuid" option-label="name"
+                                    :options="store.catalogs.typeOfDocuments ?? []" option-value="uuid" option-label="name"
                                     placeholder="Seleccione..." showClear filter class="w-100"
                                     :invalid="!!validationErrors['owner.document_type_uuid']" />
                                 <div v-if="validationErrors['owner.document_type_uuid']"
@@ -677,6 +677,10 @@ const handleSubmit = async () => {
 
         const payload = { ...formData };
         payload.exact_payment = (formData.exact_payment == 1 || formData.exact_payment === true || formData.exact_payment === '1') ? 1 : 0;
+        // Número de serie y VIN son opcionales: enviar null en lugar de cadena vacía
+        const optionalText = (v) => (v === null || v === undefined || String(v).trim() === '' ? null : v);
+        payload.serial_number = optionalText(payload.serial_number);
+        payload.vin_number = optionalText(payload.vin_number);
         if (!payload.has_owner) {
             delete payload.owner;
         }
@@ -719,9 +723,41 @@ onMounted(async () => {
         if (isEditMode.value) {
             const item = await store.fetchProfileById(route.params.id);
             if (item) {
-                Object.assign(formData, item);
-                formData.branch_uuid = item.branch?.uuid || item.branch_uuid || '';
-                formData.third_party_uuid = item.third_party_uuid || '';
+                const text = (v) => (v === null || v === undefined ? '' : v);
+                const num = (v) => (v === null || v === undefined || v === '' ? 0 : v);
+                formData.company_uuid = text(item.company_uuid);
+                formData.branch_uuid = text(item.branch?.uuid || item.branch_uuid);
+                formData.third_party_uuid = text(item.third_party_uuid);
+                formData.vehicle_license_plate = text(item.vehicle_license_plate);
+                formData.transit_license_number = text(item.transit_license_number);
+                formData.vehicle_class_uuid = text(item.vehicle_class_uuid);
+                formData.type_of_service = text(item.type_of_service);
+                formData.brand_uuid = text(item.brand_uuid);
+                formData.line = text(item.line);
+                formData.model = text(item.model);
+                formData.color = text(item.color);
+                formData.serial_number = text(item.serial_number);
+                formData.engine_number = text(item.engine_number);
+                formData.chassis_number = text(item.chassis_number);
+                formData.vin_number = text(item.vin_number);
+                formData.engine_displacement = text(item.engine_displacement);
+                formData.body_type = text(item.body_type);
+                formData.fuel_type = text(item.fuel_type);
+                formData.registration_date = text(item.registration_date)?.slice?.(0, 10) ?? text(item.registration_date);
+                formData.transit_authority = text(item.transit_authority);
+                formData.internal_number = text(item.internal_number);
+                formData.doors = num(item.doors);
+                formData.load_capacity = num(item.load_capacity);
+                formData.gross_vehicle_weight = num(item.gross_vehicle_weight);
+                formData.passenger_capacity = num(item.passenger_capacity);
+                formData.seated_passenger_capacity = num(item.seated_passenger_capacity);
+                formData.number_of_axles = num(item.number_of_axles);
+                formData.business_collaboration_agreements = Array.isArray(item.business_collaboration_agreements)
+                    ? item.business_collaboration_agreements
+                    : (Array.isArray(item.businessCollaborationAgreements) ? item.businessCollaborationAgreements : []);
+                if (!isSuperAdmin.value && !formData.company_uuid) {
+                    formData.company_uuid = userStore.company_uuid;
+                }
                 formData.is_active = (item.is_active == 1 || item.is_active === true || item.is_active === '1') ? '1' : '0';
                 formData.exact_payment = (item.exact_payment == 1 || item.exact_payment === true || item.exact_payment === '1') ? 1 : 0;
 
