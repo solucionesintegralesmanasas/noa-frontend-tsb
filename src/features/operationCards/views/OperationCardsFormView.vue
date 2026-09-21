@@ -150,9 +150,29 @@
                                 validationErrors.status }}</div>
                         </div>
 
+                        <!-- Decisión de convenio: solo en flujo de alta del vehículo -->
+                        <div v-if="wizardUuid && canCreateAgreement" class="col-12 mt-3">
+                            <div class="alert alert-info d-flex gap-2 align-items-start mb-0" role="note">
+                                <i class="fad fa-handshake mt-1" aria-hidden="true"></i>
+                                <div class="flex-grow-1">
+                                    <div class="form-check">
+                                        <input id="f-requires_agreement" v-model="requiresAgreement"
+                                            class="form-check-input" type="checkbox" />
+                                        <label class="form-check-label fw-medium" for="f-requires_agreement">
+                                            La tarjeta pertenece a otra empresa y requiere convenio de colaboración
+                                        </label>
+                                    </div>
+                                    <small class="text-muted d-block mt-1">
+                                        Puedes marcarlo aunque no cambies ningún campo: al continuar se abrirá el
+                                        convenio. Si la tarjeta es de Transportes Sin Barreras, déjalo sin marcar.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="col-12 mt-4 pt-3 border-top">
                             <BaseFormActions :submitting="submitting" :is-edit-mode="isUpdateMode" :wizard-mode="!!wizardUuid"
-                                :disabled="isUpdateMode && !hasChanges" :submit-label="submitLabel"
+                                :disabled="!canSubmitForm" :submit-label="submitLabel"
                                 :cancel-label="cancelLabel" cancel-icon="fas fa-arrow-left" @cancel="handleCancel" />
                         </div>
                     </form>
@@ -228,6 +248,26 @@ const editingCardUuid = ref(null);
 // El asistente actualiza la tarjeta existente (precargada y sin flag de nuevo)
 const esActualizacion = computed(() => !isEditMode.value && !!wizardUuid.value && !isNuevo.value && !!editingCardUuid.value);
 
+/**
+ * Decisión explícita del usuario: la tarjeta es de otra empresa y el flujo
+ * debe continuar hacia el convenio. Solo controla la navegación, no persiste.
+ */
+const requiresAgreement = ref(false);
+
+/** Permiso para abrir el formulario de convenios tras guardar la tarjeta. */
+const canCreateAgreement = computed(() => {
+    try {
+        return permissionsStore.can('business_collaboration_agreements.create');
+    } catch {
+        return false;
+    }
+});
+
+/** El usuario pidió continuar al convenio (con permiso y en flujo de alta). */
+const agreementRequested = computed(() =>
+    requiresAgreement.value && canCreateAgreement.value && !!wizardUuid.value
+);
+
 /** Hay un documento existente que se está actualizando (desde listado o desde el perfil). */
 const isUpdateMode = computed(() => isEditMode.value || esActualizacion.value);
 
@@ -277,8 +317,20 @@ const needsLeaveConfirm = () => (isUpdateMode.value && hasChanges.value)
     || (!isUpdateMode.value && hasUserInput.value);
 
 const submitLabel = computed(() => {
+    if (agreementRequested.value) {
+        // Sin cambios no hace falta volver a guardar: solo continuar.
+        return (isUpdateMode.value && !hasChanges.value)
+            ? 'Continuar al convenio'
+            : 'Guardar y continuar al convenio';
+    }
     if (isUpdateMode.value) return hasChanges.value ? 'Actualizar' : 'Sin cambios';
     return wizardUuid.value ? 'Guardar y finalizar' : 'Guardar';
+});
+
+/** El botón principal está activo si hay cambios, o si se pidió el convenio. */
+const canSubmitForm = computed(() => {
+    if (agreementRequested.value) return true;
+    return !(isUpdateMode.value && !hasChanges.value);
 });
 
 const cancelLabel = computed(() => {
@@ -468,10 +520,44 @@ const persistForm = async () => {
     }
 };
 
+/** Continúa hacia el convenio precargado con los datos de la tarjeta recién guardada. */
+const goToAgreementForm = () => {
+    const plate = uniqueVehicles.value.find((v) => v?.uuid === wizardUuid.value)?.vehicle_license_plate || '';
+    // Conserva el origen real (perfil con panel) si ya venía definido.
+    const retorno = returnTo.value || `/vehiculos/perfil/${wizardUuid.value}`;
+    router.push({
+        path: '/convenios-colaboracion/crear',
+        query: {
+            wizard: wizardUuid.value,
+            retorno,
+            origen: 'tarjeta',
+            vehicle_uuid: formData.vehicle_uuid,
+            company_uuid: formData.company_uuid,
+            contracting_entity_name: formData.affiliated_company,
+            effective_date: formData.issue_date,
+            expiry_date: formData.expiration_date,
+            operating_card_number: formData.operating_card_number,
+            vehicle_plate: plate,
+        },
+    });
+};
+
 const handleSubmit = async () => {
+    // Sin cambios pendientes: solo continuar al convenio, sin repetir el guardado.
+    if (agreementRequested.value && isUpdateMode.value && !hasChanges.value) {
+        if (wizardUuid.value) markStepDone(wizardUuid.value, 'tarjeta');
+        goToAgreementForm();
+        return;
+    }
+
     const saved = await persistForm();
     if (!saved) return;
     if (wizardUuid.value) markStepDone(wizardUuid.value, 'tarjeta');
+    // Tarjeta externa: el flujo continúa en el convenio sin salir del alta.
+    if (agreementRequested.value) {
+        goToAgreementForm();
+        return;
+    }
     navigateAfterSave();
 };
 

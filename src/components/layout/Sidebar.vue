@@ -249,7 +249,7 @@
                     <!-- (era "Flota" — sin Planillas de Control)           -->
                     <!-- ═══════════════════════════════════════════════════ -->
                     <li class="nav-item"
-                        v-if="can('vehicles.index') || can('business_collaboration_agreements.index') || can('vehicle_inspections.index') || can('maintenance.index') || can('maintenance.forecast')">
+                        v-if="can('vehicles.index') || can('vehicle_inspections.index') || can('maintenance.index') || can('maintenance.forecast')">
                         <div class="row navbar-vertical-label-wrapper mt-3 mb-2">
                             <div class="col-auto navbar-vertical-label">Flota y Mantenimiento</div>
                             <div class="col ps-0">
@@ -262,14 +262,6 @@
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon"><span class="fas fa-truck-moving"></span></span>
                                 <span class="nav-link-text ps-1">Vehículos</span>
-                            </div>
-                        </router-link>
-
-                        <router-link class="nav-link" :class="{ 'active': isActiveLink('/convenios-colaboracion') }"
-                            to="/convenios-colaboracion" v-if="can('business_collaboration_agreements.index')">
-                            <div class="d-flex align-items-center">
-                                <span class="nav-link-icon"><span class="fas fa-file-signature"></span></span>
-                                <span class="nav-link-text ps-1">Convenios de Colaboración</span>
                             </div>
                         </router-link>
 

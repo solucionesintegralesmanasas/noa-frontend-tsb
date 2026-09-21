@@ -101,12 +101,6 @@
                                 </template>
                             </Column>
 
-                            <Column field="resolution_number" header="Resolución" sortable>
-                                <template #body="{ data }">
-                                    <span class="text-dark">{{ data.resolution_number || '-' }}</span>
-                                </template>
-                            </Column>
-
                             <Column field="expiry_date" header="Expiración" sortable>
                                 <template #body="{ data }">
                                     <span class="text-dark">{{ dateUtils.format(data.expiry_date) }}</span>
