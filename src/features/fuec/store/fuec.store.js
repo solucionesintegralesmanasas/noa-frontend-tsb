@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { toast } from '@/utils/toast.js';
+import { logger } from '@utils/logger.js';
 import fuecService from '../services/fuec.service.js';
 import { dateUtils } from '@utils/date.js';
 
@@ -259,7 +260,7 @@ export const useFuecStore = defineStore('fuec', {
                 
                 return { is_expired: false, expiration_date: license.expiration_date };
             } catch (error) {
-                console.error('Error al validar la licencia de conducción:', error);
+                logger.error('Error al validar la licencia de conducción:', error?.message);
                 return { is_expired: false, expiration_date: null };
             }
         },

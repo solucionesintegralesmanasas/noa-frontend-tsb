@@ -1,4 +1,5 @@
 import { BaseService } from '@services/api/base.service.js';
+import { logger } from '@utils/logger.js';
 import { useAuthStore } from '@store/modules/auth.js';
 
 /**
@@ -98,23 +99,55 @@ class FuecService extends BaseService {
 
     /**
      * Obtiene las opciones de los catálogos necesarios para los selects del formulario.
+     * Normaliza a arreglos y garantiza etiquetas no nulas: PrimeVue Select
+     * revienta con "Cannot read properties of null (reading 'length')" cuando
+     * la opción seleccionada tiene su campo de etiqueta en null.
      * @returns {Promise<Object>} Objeto con arrays de opciones por catálogo.
      */
     async getFormOptions() {
         const authStore = useAuthStore();
         const { companyUuid: ctxCompanyUuid, thirdPartyUuid, isAfiliado } = this._getUserContext();
 
+        const toArray = (value) => {
+            if (Array.isArray(value)) return value;
+            if (value && Array.isArray(value.data)) return value.data;
+            if (value && typeof value === 'object') {
+                if (value.uuid || value.id) return [value];
+                return [];
+            }
+            return [];
+        };
+
+        // Garantiza que el campo de etiqueta nunca sea null/undefined.
+        const withLabel = (items, labelField, fallbacks = []) =>
+            toArray(items).map((item) => {
+                if (!item || typeof item !== 'object') return item;
+                let label = item[labelField];
+                for (const fb of fallbacks) {
+                    if (label !== null && label !== undefined && String(label).trim() !== '') break;
+                    label = typeof fb === 'function' ? fb(item) : item[fb];
+                }
+                if (label === null || label === undefined || String(label).trim() === '') {
+                    label = 'Sin nombre';
+                }
+                if (item[labelField] !== label) {
+                    return { ...item, [labelField]: String(label) };
+                }
+                return item;
+            });
+
         const fetchSafe = async (url, params = {}) => {
             try {
                 const res = await this._getInstance().get(url, { params });
-                return res.data?.data ?? res.data ?? [];
+                return toArray(res.data?.data ?? res.data ?? []);
             } catch (err) {
-                console.warn(`Error cargando catálogo: ${url}`, err.message);
+                logger.warn(`Error cargando catálogo: ${url}`, err.message);
                 return [];
             }
         };
 
-        const companies = await fetchSafe('administration/companies/list');
+        const companiesRaw = await fetchSafe('administration/companies/list');
+        const companies = withLabel(companiesRaw, 'business_name', ['company_name', 'name']);
 
         let companyUuid = ctxCompanyUuid || authStore.currentTenant?.id;
 
@@ -140,10 +173,10 @@ class FuecService extends BaseService {
 
         return {
             companies,
-            vehicles,
-            drivers,
-            objectsContracts,
-            documentTypes,
+            vehicles: withLabel(vehicles, 'vehicle_license_plate', ['license_plate', 'plate']),
+            drivers: withLabel(drivers, 'first_name', ['company_name', 'document_number']),
+            objectsContracts: withLabel(objectsContracts, 'name', ['description']),
+            documentTypes: withLabel(documentTypes, 'name', ['description', 'prefix']),
             nextContractNumber
         };
     }
@@ -239,7 +272,7 @@ class FuecService extends BaseService {
             });
             return res;
         } catch (error) {
-            console.warn('Endpoint público no encontrado o fallido. Intentando endpoint privado...');
+            logger.warn('Endpoint público no encontrado o fallido. Intentando endpoint privado...', error?.message);
             return this._getInstance()({
                 method: 'GET',
                 url: `/contract-extract/fuecs/${id}`

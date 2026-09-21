@@ -41,15 +41,15 @@
                             </div>
 
                             <div
-                                class="mb-3 position-relative col-12 col-sm-6 col-md-4 col-lg-3">
+                                class="mb-3 position-relative col-12 col-md-8 col-lg-6">
                                 <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-vehicle_uuid">Vehículo
                                     Asignado</label>
                                 <div class="d-flex gap-2">
-                                    <div class="flex-grow-1">
-                                        <PrimeSelect :input-id="'f-vehicle_uuid'" :invalid="!!validationErrors['vehicle_uuid']" v-model="formData.vehicle_uuid" :options="store.catalogs.vehicles"
-                                            option-value="uuid" option-label="vehicle_license_plate"
+                                    <div class="flex-grow-1" style="min-width: 0;">
+                                        <PrimeSelect :input-id="'f-vehicle_uuid'" :invalid="!!validationErrors['vehicle_uuid']" v-model="formData.vehicle_uuid" :options="store.catalogs.vehicles ?? []"
+                                            option-value="uuid" :option-label="(v) => v.vehicle_license_plate || 'Sin placa'"
                                             placeholder="Seleccionar vehículo" filter filterPlaceholder="Buscar por placa..."
-                                            showClear class="w-full"
+                                            showClear class="w-100"
                                             :class="{ 'p-invalid': validationErrors.vehicle_uuid }" />
                                         <div v-if="validationErrors.vehicle_uuid" class="text-danger small mt-1" id="f-vehicle_uuid-error" role="alert">
                                             {{ validationErrors.vehicle_uuid }}
@@ -95,8 +95,8 @@
                                         @blur="validateField('contractor.document_number', formData.contractor.document_number, 'Obligatorio')"
                                         @change="consultarContratista" />
                                     <button class="btn btn-outline-primary" type="button" @click="consultarContratista"
-                                        title="Buscar Contratante" aria-label="Buscar Contratante">
-                                        <i class="fad fa-search" aria-hidden="true"></i>
+                                        title="Buscar Contratante" aria-label="Buscar Contratante" :disabled="isSearchingContractor">
+                                        <i class="fad fa-search" aria-hidden="true" :class="{ 'fa-spin': isSearchingContractor }"></i>
                                     </button>
                                 </div>
                                 <div v-if="validationErrors['contractor.document_number']"
@@ -109,9 +109,9 @@
                                 <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-contractor-document_type_uuid">Tipo de
                                     Documento</label>
                                 <PrimeSelect :input-id="'f-contractor-document_type_uuid'" :invalid="!!validationErrors['contractor.document_type_uuid']" v-model="formData.contractor.document_type_uuid"
-                                    :options="store.catalogs.documentTypes" option-value="uuid"
-                                    :option-label="(opt) => opt.name + ' - ' + opt.prefix"
-                                    placeholder="Seleccionar tipo" class="w-full"
+                                    :options="store.catalogs.documentTypes ?? []" option-value="uuid"
+                                    :option-label="(opt) => opt.prefix ? `${opt.name || 'Sin nombre'} - ${opt.prefix}` : (opt.name || 'Sin nombre')"
+                                    placeholder="Seleccionar tipo" class="w-100"
                                     :class="{ 'p-invalid': validationErrors['contractor.document_type_uuid'] }" />
                                 <div v-if="validationErrors['contractor.document_type_uuid']"
                                     class="text-danger small mt-1" id="f-contractor-document_type_uuid-error" role="alert">
@@ -162,8 +162,8 @@
                                 <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-object_contract_uuid">Objeto del
                                     Contrato</label>
                                 <PrimeSelect :input-id="'f-object_contract_uuid'" :invalid="!!validationErrors['object_contract_uuid']" v-model="formData.object_contract_uuid"
-                                    :options="store.catalogs.objectsContracts" option-value="uuid" option-label="name"
-                                    placeholder="Seleccionar objeto" class="w-full"
+                                    :options="store.catalogs.objectsContracts ?? []" option-value="uuid" option-label="name"
+                                    placeholder="Seleccionar objeto" class="w-100"
                                     :class="{ 'p-invalid': validationErrors['object_contract_uuid'] }" />
                                 <div v-if="validationErrors['object_contract_uuid']" class="text-danger small mt-1" id="f-object_contract_uuid-error" role="alert">
                                     Obligatorio</div>
@@ -276,10 +276,10 @@
                             </div>
 
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                                <label class="form-label fw-medium" style="font-size: 0.9rem;">Consecutivo
-                                    FUEC</label>
-                                <span class="form-control bg-light d-flex align-items-center" style="height: 38px;">{{
-                                    formData.number_fuec }}</span>
+                                <span class="form-label fw-medium" style="font-size: 0.9rem;" id="f-number_fuec-label">Consecutivo
+                                    FUEC</span>
+                                <span class="form-control bg-light d-flex align-items-center" style="height: 38px;" role="text" aria-labelledby="f-number_fuec-label">{{
+                                    formData.number_fuec || '—' }}</span>
                             </div>
 
 
@@ -323,9 +323,13 @@
                             <div class="position-relative col-12 col-sm-6 col-md-4 col-lg-4">
                                 <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-main_conductor_uuid">Conductor
                                     Principal</label>
-                                <PrimeSelect :input-id="'f-main_conductor_uuid'" :invalid="!!validationErrors['main_conductor_uuid']" v-model="formData.main_conductor_uuid" :options="store.catalogs.drivers"
-                                    option-value="uuid" :option-label="(d) => d.first_name + ' ' + d.last_name"
-                                    placeholder="Seleccionar conductor" class="w-full"
+                                <PrimeSelect :input-id="'f-main_conductor_uuid'" :invalid="!!validationErrors['main_conductor_uuid']" v-model="formData.main_conductor_uuid" :options="store.catalogs.drivers ?? []"
+                                    option-value="uuid" :option-label="driverLabel"
+                                    placeholder="Seleccionar conductor" class="w-100"
+                                    filter :auto-filter-focus="true" :reset-filter-on-hide="true"
+                                    :filter-fields="['first_name', 'last_name', 'company_name', 'document_number']"
+                                    filter-placeholder="Buscar conductor (nombre, documento o empresa)"
+                                    :empty-filter-message="'Sin conductores para ese criterio'"
                                     :class="{ 'p-invalid': validationErrors['main_conductor_uuid'] }" />
                                 <div v-if="validationErrors['main_conductor_uuid']" class="text-danger small mt-1" id="f-main_conductor_uuid-error" role="alert">
                                     {{ validationErrors['main_conductor_uuid'] }}
@@ -336,18 +340,26 @@
                                 <label class="form-label fw-medium" style="font-size: 0.9rem;" for="f-secondary_conductor_uuid">Conductor
                                     Secundario</label>
                                 <PrimeSelect :input-id="'f-secondary_conductor_uuid'" :invalid="!!validationErrors['secondary_conductor_uuid']" v-model="formData.secondary_conductor_uuid"
-                                    :options="store.catalogs.drivers" option-value="uuid"
-                                    :option-label="(d) => d.first_name + ' ' + d.last_name"
-                                    placeholder="Seleccionar conductor (Opcional)" class="w-full" />
+                                    :options="store.catalogs.drivers ?? []" option-value="uuid"
+                                    :option-label="driverLabel"
+                                    placeholder="Seleccionar conductor (Opcional)" class="w-100"
+                                    filter :auto-filter-focus="true" :reset-filter-on-hide="true"
+                                    :filter-fields="['first_name', 'last_name', 'company_name', 'document_number']"
+                                    filter-placeholder="Buscar conductor (nombre, documento o empresa)"
+                                    :empty-filter-message="'Sin conductores para ese criterio'" />
                             </div>
 
                             <div class="position-relative col-12 col-sm-6 col-md-4 col-lg-4">
                                 <label class="form-label fw-medium" style="font-size: 0.9rem;" for="f-tertiary_conductor_uuid">Conductor
                                     Terciario</label>
                                 <PrimeSelect :input-id="'f-tertiary_conductor_uuid'" :invalid="!!validationErrors['tertiary_conductor_uuid']" v-model="formData.tertiary_conductor_uuid"
-                                    :options="store.catalogs.drivers" option-value="uuid"
-                                    :option-label="(d) => d.first_name + ' ' + d.last_name"
-                                    placeholder="Seleccionar conductor (Opcional)" class="w-full" />
+                                    :options="store.catalogs.drivers ?? []" option-value="uuid"
+                                    :option-label="driverLabel"
+                                    placeholder="Seleccionar conductor (Opcional)" class="w-100"
+                                    filter :auto-filter-focus="true" :reset-filter-on-hide="true"
+                                    :filter-fields="['first_name', 'last_name', 'company_name', 'document_number']"
+                                    filter-placeholder="Buscar conductor (nombre, documento o empresa)"
+                                    :empty-filter-message="'Sin conductores para ese criterio'" />
                             </div>
 
                             <!-- ─── Sección: Lista de Pasajeros ─── -->
@@ -382,8 +394,8 @@
                                                 <td class="fw-medium">{{ passenger.first_and_last_name }}</td>
                                                 <td class="text-center">
                                                     <button type="button" class="btn btn-link text-danger p-0"
-                                                        title="Eliminar" @click="removePassenger(index)">
-                                                        <i class="fas fa-trash-alt"></i>
+                                                        title="Eliminar" aria-label="Eliminar pasajero" @click="removePassenger(index)">
+                                                        <i class="fas fa-trash-alt" aria-hidden="true"></i>
                                                     </button>
                                                 </td>
                                             </tr>
@@ -391,9 +403,12 @@
                                     </table>
                                 </div>
                                 <div v-else class="text-center p-4 bg-light rounded border border-dashed">
-                                    <i class="fad fa-user-slash fs-3 text-muted mb-2"></i>
+                                    <i class="fad fa-user-slash fs-3 text-muted mb-2" aria-hidden="true"></i>
                                     <p class="text-muted mb-0 small">No hay pasajeros registrados. Use el botón
                                         superior para agregar.</p>
+                                </div>
+                                <div v-if="passengerErrors.length > 0" class="text-danger small mt-2" id="f-passengers-error" role="alert">
+                                    <div v-for="(err, i) in passengerErrors" :key="i">{{ err }}</div>
                                 </div>
                             </div>
 
@@ -441,11 +456,13 @@ import BasePageHeader from '@/components/BasePageHeader.vue';
 import BaseFormActions from '@/components/BaseFormActions.vue';
 import Swal from 'sweetalert2';
 import { dateUtils } from '@utils/date.js';
+import { logger } from '@utils/logger.js';
 
 const route = useRoute();
 const router = useRouter();
 const store = useFuecStore();
 const permissionsStore = usePermissionsStore();
+const authStore = useAuthStore();
 const systemConfigStore = useSystemConfigurationStore();
 const thirdPartiesStore = useThirdPartiesStore();
 
@@ -473,6 +490,7 @@ const validationErrors = reactive({});
 
 const formFuec = ref(true);
 const isFetchingVehicle = ref(false);
+const isSearchingContractor = ref(false);
 const vehiclePaymentLimit = ref('');
 
 // Estado inicial del formulario
@@ -514,6 +532,19 @@ const formData = reactive({
 
 const passengers = computed(() => formData.passengers);
 
+const passengerErrors = computed(() =>
+    Object.entries(validationErrors)
+        .filter(([key]) => key.startsWith('passenger_'))
+        .map(([, msg]) => msg)
+);
+
+// Etiqueta nula-segura para conductores (evita "null null" y el fallo de PrimeVue con etiqueta null)
+const driverLabel = (d) => {
+    if (!d || typeof d !== 'object') return 'Sin nombre';
+    const full = [d.first_name, d.last_name].filter(Boolean).join(' ').trim();
+    return full || d.company_name || d.document_number || 'Sin nombre';
+};
+
 const _escapeHtml = (str) => {
     const div = document.createElement('div');
     div.appendChild(document.createTextNode(str));
@@ -521,6 +552,18 @@ const _escapeHtml = (str) => {
 };
 
 const openPassengerModal = () => {
+    if (!store.catalogs.documentTypes || store.catalogs.documentTypes.length === 0) {
+        Swal.fire({
+            title: 'Sin tipos de documento',
+            text: 'No se pudieron cargar los tipos de documento. Intente de nuevo.',
+            icon: 'warning',
+            confirmButtonText: 'Aceptar',
+            customClass: {
+                confirmButton: 'btn btn-warning px-4 rounded-pill'
+            }
+        });
+        return;
+    }
     const documentTypesOptions = store.catalogs.documentTypes?.map(opt =>
         `<option value="${_escapeHtml(opt.uuid)}">${_escapeHtml(opt.name)}</option>`
     ).join('') || '';
@@ -650,7 +693,7 @@ const validateDriverLicenseExpired = async (conductorUuid, fieldName) => {
         }
         return true;
     } catch (e) {
-        console.warn('Error validando licencia', e);
+        logger.warn('Error validando licencia', e?.message);
         return false;
     }
 };
@@ -700,7 +743,7 @@ const validateDriverSocialSecurity = async (conductorUuid, fieldName) => {
 
         return true;
     } catch (e) {
-        console.warn('Error validando seguridad social del conductor', e);
+        logger.warn('Error validando seguridad social del conductor', e?.message);
         return false;
     }
 };
@@ -1091,7 +1134,7 @@ const consultarVehiculo = async () => {
         // Pasamos al paso 2
         formFuec.value = false;
     } catch (error) {
-        console.error('Error al consultar vehículo:', error);
+        logger.error('Error al consultar vehículo:', error?.message);
         await Swal.fire({
             title: 'Error',
             text: 'Ocurrió un error al validar la información del vehículo.',
@@ -1109,9 +1152,9 @@ const consultarVehiculo = async () => {
 
 const consultarContratista = async () => {
     const docNumber = formData.contractor.document_number;
-    if (!docNumber) return;
+    if (!docNumber || isSearchingContractor.value) return;
 
-    isViewLoading.value = true;
+    isSearchingContractor.value = true;
     try {
         const contractors = await store.searchContractors(docNumber);
         const found = contractors.find(c => c.document_number === docNumber);
@@ -1149,9 +1192,9 @@ const consultarContratista = async () => {
             });
         }
     } catch (error) {
-        console.error('Error al consultar contratista:', error);
+        logger.error('Error al consultar contratista:', error?.message);
     } finally {
-        isViewLoading.value = false;
+        isSearchingContractor.value = false;
     }
 };
 
@@ -1234,6 +1277,23 @@ const validateForm = () => {
     if (isEmpty(formData.object_contract_uuid)) validationErrors.object_contract_uuid = 'Obligatorio';
     if (isEmpty(formData.main_conductor_uuid)) validationErrors.main_conductor_uuid = 'Obligatorio';
 
+    // Los conductores secundario/terciario deben ser distintos entre sí y del principal
+    const conductorUuids = [formData.main_conductor_uuid, formData.secondary_conductor_uuid, formData.tertiary_conductor_uuid].filter(Boolean);
+    if (new Set(conductorUuids).size !== conductorUuids.length) {
+        validationErrors.main_conductor_uuid = validationErrors.main_conductor_uuid || 'Los conductores deben ser diferentes entre sí';
+    }
+
+    // contract_number_display es requerido (máx. 4) en el backend: derivar de los últimos 4 del contrato
+    if (isEmpty(formData.contract_number_display)) {
+        const derived = (formData.contractor.contract_number || '').slice(-4);
+        if (derived) formData.contract_number_display = derived;
+    }
+    if (isEmpty(formData.contract_number_display)) {
+        validationErrors.contract_number_display = 'Obligatorio';
+    } else if (formData.contract_number_display.length > 4) {
+        formData.contract_number_display = formData.contract_number_display.slice(-4);
+    }
+
     // Contratista Validations
     if (isEmpty(formData.contractor.document_type_uuid)) validationErrors['contractor.document_type_uuid'] = 'Obligatorio';
     if (isEmpty(formData.contractor.document_number)) validationErrors['contractor.document_number'] = 'Obligatorio';
@@ -1252,6 +1312,13 @@ const validateForm = () => {
         if (isEmpty(p.first_and_last_name)) validationErrors['passenger_' + i + '_name'] = 'Requerido';
     });
 
+    // Validar que la fecha de vencimiento no sea anterior a la de inicio (regla del backend: after_or_equal)
+    if (!validationErrors.effective_date && !validationErrors.expiration_date && formData.effective_date && formData.expiration_date) {
+        if (dateUtils.dayjs(formData.expiration_date).isBefore(dateUtils.dayjs(formData.effective_date), 'day')) {
+            validationErrors.expiration_date = 'Debe ser posterior o igual a la fecha de inicio';
+        }
+    }
+
     // Validar que la fecha de vencimiento del FUEC no supere la de las licencias
     validateLicensesExpiryDate();
 
@@ -1264,7 +1331,7 @@ const generateVerificationCode = async (fuecData) => {
         // Base única con UUID, número FUEC, timestamp y random
         const timestamp = Date.now();
         const random = crypto.getRandomValues(new Uint32Array(1))[0].toString(36).toUpperCase();
-        const base = `${entityId}|${fuecData?.number_fuec || ''}|${timestamp}|${random}|${import.meta.env.VUE_APP_VERIFICATION_SALT || 'default-salt'}`;
+        const base = `${entityId}|${fuecData?.number_fuec || ''}|${timestamp}|${random}|${import.meta.env.VITE_VERIFICATION_SALT || 'default-salt'}`;
 
         // Generar hash SHA-256
         const encoder = new TextEncoder();
@@ -1291,7 +1358,7 @@ const goToList = goBack;
 const handleSubmit = async () => {
     if (!validateForm()) {
         await nextTick();
-        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid, .is-invalid-select2');
+        const firstError = document.querySelector('[aria-invalid="true"], .is-invalid');
         if (firstError) {
             if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(firstError.tagName)) firstError.setAttribute('tabindex', '-1');
             firstError.focus({ preventScroll: true });
@@ -1332,7 +1399,7 @@ const handleSubmit = async () => {
         const payload = {
             number_fuec: formData.number_fuec,
             request_number: formData.request_number,
-            contract_number_display: formData.contract_number_display,
+            contract_number_display: (formData.contract_number_display || (formData.contractor.contract_number || '').slice(-4)),
             verification_code: formData.verification_code,
             issue_date: formData.issue_date,
             effective_date: formData.effective_date,
@@ -1394,7 +1461,7 @@ const handleSubmit = async () => {
                     showConfirmButton: false
                 });
             } catch (pdfError) {
-                console.error(pdfError);
+                logger.error('Error al abrir el PDF del FUEC', pdfError?.message);
                 Swal.close();
                 await Swal.fire({
                     icon: 'warning',
@@ -1410,7 +1477,7 @@ const handleSubmit = async () => {
 
         goBack();
     } catch (error) {
-        console.error(error);
+        logger.error('Error al guardar el FUEC', error?.message);
         const errMsg = error.response?.data?.message || 'No se pudo procesar la solicitud';
         Swal.fire({
             title: 'Error',
@@ -1451,7 +1518,7 @@ watch(
                 formData.verification_code = '';
             }
         } catch (error) {
-            console.error('Error fetching preview FUEC number:', error);
+            logger.error('Error fetching preview FUEC number:', error?.message);
             formData.number_fuec = '';
             formData.request_number = '';
             formData.verification_code = '';
@@ -1467,14 +1534,51 @@ onMounted(async () => {
         if (isEditMode.value) {
             const item = await store.fetchProfileById(route.params.id);
             if (item) {
-                Object.assign(formData, item);
-                if (item.origin_route) formData.origin = item.origin_route;
-                if (item.destination_route) formData.destination = item.destination_route;
-                if (item.contractor) {
-                    Object.assign(formData.contractor, item.contractor);
+                const text = (v) => (v === null || v === undefined ? '' : v);
+                formData.number_fuec = text(item.number_fuec);
+                formData.request_number = text(item.request_number);
+                formData.contract_number_display = text(item.contract_number_display);
+                formData.verification_code = text(item.verification_code);
+                formData.issue_date = text(item.issue_date)?.slice?.(0, 10) ?? text(item.issue_date);
+                formData.effective_date = text(item.effective_date)?.slice?.(0, 10) ?? text(item.effective_date);
+                formData.expiration_date = text(item.expiration_date)?.slice?.(0, 10) ?? text(item.expiration_date);
+                formData.origin = text(item.origin_route ?? item.origin);
+                formData.destination = text(item.destination_route ?? item.destination);
+                formData.company_uuid = text(item.company_uuid);
+                formData.vehicle_uuid = text(item.vehicle_uuid);
+                formData.object_contract_uuid = text(item.object_contract_uuid);
+                formData.main_conductor_uuid = text(item.main_conductor_uuid);
+                formData.secondary_conductor_uuid = text(item.secondary_conductor_uuid);
+                formData.tertiary_conductor_uuid = text(item.tertiary_conductor_uuid);
+                formData.status = text(item.status) || 'ACTIVO';
+                if (item.contractor && typeof item.contractor === 'object') {
+                    const c = item.contractor;
+                    Object.assign(formData.contractor, {
+                        uuid: text(c.uuid),
+                        company_uuid: text(c.company_uuid || formData.company_uuid),
+                        document_type_uuid: text(c.document_type_uuid),
+                        document_number: text(c.document_number),
+                        company_name: text(c.company_name),
+                        address: text(c.address),
+                        telephone: text(c.telephone),
+                        contract_number: text(c.contract_number),
+                        contracting_party_city: text(c.contracting_party_city),
+                        vehicle_uuid: text(c.vehicle_uuid || formData.vehicle_uuid),
+                        responsible_name: text(c.responsible_name),
+                        responsible_document: text(c.responsible_document),
+                        responsible_phone: text(c.responsible_phone),
+                        responsible_address: text(c.responsible_address),
+                        status: c.status ?? 1
+                    });
+                    formData.contract_number_display = text(item.contract_number_display) || text(c.contract_number).slice(-4);
                 }
                 if (item.passengers && Array.isArray(item.passengers)) {
-                    formData.passengers = item.passengers.map(p => ({ ...p }));
+                    formData.passengers = item.passengers.map(p => ({
+                        uuid: p.uuid || null,
+                        type_of_document_uuid: p.type_of_document_uuid || '',
+                        document_number: p.document_number || '',
+                        first_and_last_name: p.first_and_last_name || ''
+                    }));
                 }
                 if (!formData.verification_code && item.uuid) {
                     formData.verification_code = await generateVerificationCode(item);
@@ -1482,7 +1586,6 @@ onMounted(async () => {
                 formFuec.value = false; // Ya no mostramos paso 1
             }
         } else {
-            const authStore = useAuthStore();
             let companyUuid = authStore.currentTenant?.id;
             if (!companyUuid && store.catalogs.companies && store.catalogs.companies.length > 0) {
                 companyUuid = store.catalogs.companies[0].uuid;
@@ -1507,7 +1610,7 @@ onMounted(async () => {
             try {
                 await systemConfigStore.fetchByCompany(formData.company_uuid);
             } catch (err) {
-                console.warn('No se pudo cargar la configuración de sistema para la validación local.', err);
+                logger.warn('No se pudo cargar la configuración de sistema para la validación local.', err?.message);
             }
         }
 
