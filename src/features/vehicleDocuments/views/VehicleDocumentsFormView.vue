@@ -8,9 +8,10 @@
                 v-if="wizardUuid"
                 :current="route.params.documentType"
                 :done-keys="wizardDoneKeys"
-                @prev="goBack"
-                @skip="goNextStep"
-                @finish="goExit"
+                :incomplete-keys="wizardIncompleteKeys"
+                :disabled-keys="wizardDisabledKeys"
+                clickable
+                @navigate="onWizardNavigate"
             />
 
             <div class="card border-0 shadow-sm fade-in-up" style="animation-delay: 0.1s;">
@@ -471,7 +472,9 @@
 
                         <!-- BOTONES DE ACCIÓN -->
                         <div class="col-12 mt-4 pt-3 border-top">
-                            <BaseFormActions :submitting="submitting" :is-edit-mode="isEditMode || esActualizacion" :wizard-mode="!!wizardUuid" @cancel="goBack" />
+                            <BaseFormActions :submitting="submitting" :is-edit-mode="isUpdateMode" :wizard-mode="!!wizardUuid"
+                                :disabled="isUpdateMode && !hasChanges" :submit-label="submitLabel"
+                                :cancel-label="cancelLabel" cancel-icon="fas fa-arrow-left" @cancel="handleCancel" />
                         </div>
                     </form>
                 </div>
@@ -520,6 +523,7 @@ import BasePageHeader from '@/components/BasePageHeader.vue';
 import BaseFormActions from '@/components/BaseFormActions.vue';
 import WizardProgress from '@/components/WizardProgress.vue';
 import { useDocumentWizard } from '@/hooks/useDocumentWizard.js';
+import { confirmUnsavedChanges } from '@/utils/confirm.js';
 import vehicleDocumentsService from '../services/vehicleDocuments.service.js';
 
 const route = useRoute();
@@ -537,19 +541,113 @@ const wizardUuid = computed(() => (route.query.wizard ? String(route.query.wizar
 const returnTo = computed(() => (route.query.retorno ? String(route.query.retorno) : null));
 /** Registrar versión nueva aunque ya exista un documento (?nuevo=1) */
 const isNuevo = computed(() => route.query.nuevo === '1');
-const { nextStepRoute, prevStepRoute, exitRoute, fetchExistingDocs, getSessionDone, markStepDone, clearSessionDone, toDateInput } = useDocumentWizard();
+const { WIZARD_STEPS, availableSteps, stepRoute, nextStepRoute, prevStepRoute, exitRoute, fetchExistingDocs, getSessionDone, markStepDone, clearSessionDone, toDateInput } = useDocumentWizard();
 const wizardDoneKeys = ref([]);
+const wizardIncompleteKeys = ref([]);
+// Token de carga por paso: evita que respuestas atrasadas sobrescriban el formulario.
+let stepLoadToken = 0;
 // UUID del documento precargado en el asistente (SOAT/RTM) para actualizar en vez de duplicar
 const editingDocUuid = ref(null);
 // El asistente actualiza un registro existente (precargado y sin flag de nuevo)
 const esActualizacion = computed(() => !isEditMode.value && !!wizardUuid.value && !isNuevo.value &&
     (!!editingDocUuid.value || !!editingPolicyUuids.rce || !!editingPolicyUuids.rcc));
 
+/** Hay un documento existente que se está actualizando (desde listado o desde el perfil). */
+const isUpdateMode = computed(() => isEditMode.value || esActualizacion.value);
+
+/** Normaliza valores para comparar sin falsos positivos (espacios, formatos). */
+const normalizeForCompare = (data) => {
+    const out = {};
+    Object.keys(data).forEach((key) => {
+        const value = data[key];
+        out[key] = typeof value === 'string' ? value.trim() : value;
+    });
+    return out;
+};
+
+const originalSnapshot = ref('');
+
+/** Guarda la foto actual del formulario para comparar cambios. */
+const seedSnapshot = () => {
+    originalSnapshot.value = JSON.stringify(normalizeForCompare(formData));
+};
+
+/** Solo se permite guardar si hay cambios reales respecto al documento original. */
+const hasChanges = computed(() => {
+    if (!isUpdateMode.value) return true;
+    return JSON.stringify(normalizeForCompare(formData)) !== originalSnapshot.value;
+});
+
+/** Campos auto-rellenados que no cuentan como contenido del usuario. */
+const AUTO_FILLED_DOC_FIELDS = new Set(['vehicle_uuid', 'company_uuid', 'document_type', 'file']);
+
+/** Indica si el usuario escribió contenido (modo creación, para no perderlo en silencio). */
+const hasUserInput = computed(() => {
+    const normalized = normalizeForCompare(formData);
+    return Object.entries(normalized).some(([key, value]) => {
+        if (AUTO_FILLED_DOC_FIELDS.has(key)) return false;
+        return value !== null && value !== undefined && value !== '';
+    });
+});
+
+/** Indica si salir requiere confirmación: cambios reales o contenido nuevo sin guardar. */
+const needsLeaveConfirm = () => (isUpdateMode.value && hasChanges.value)
+    || (!isUpdateMode.value && hasUserInput.value);
+
+const submitLabel = computed(() => {
+    if (isUpdateMode.value) return hasChanges.value ? 'Actualizar' : 'Sin cambios';
+    return wizardUuid.value ? 'Guardar y continuar' : 'Guardar';
+});
+
+const cancelLabel = computed(() => {
+    if (returnTo.value) return 'Volver al vehículo';
+    if (wizardUuid.value) return 'Volver al perfil';
+    return 'Volver al listado';
+});
+
+/** Pasos que no se pueden abrir: vehículo (ya registrado) o sin permiso. */
+const wizardDisabledKeys = computed(() => {
+    const allowed = new Set(availableSteps(permissionsStore).map((s) => s.key));
+    return WIZARD_STEPS
+        .filter((s) => s.key === 'vehiculo' || !allowed.has(s.key))
+        .map((s) => s.key);
+});
+
 const goExit = () => {
     clearSessionDone(wizardUuid.value);
     router.push(returnTo.value || exitRoute(wizardUuid.value));
 };
-const goNextStep = () => router.push(nextStepRoute(route.params.documentType, wizardUuid.value, permissionsStore));
+
+/** Navega a un paso concreto del asistente (nodos del stepper). */
+const navigateToStep = (stepKey) => {
+    if (stepKey === 'vehiculo') {
+        router.push(exitRoute(wizardUuid.value));
+        return;
+    }
+    const target = stepRoute(stepKey, wizardUuid.value);
+    const query = { ...(target.query || {}) };
+    // Conserva el origen para que guardar/cancelar siga volviendo al perfil.
+    if (returnTo.value) query.retorno = returnTo.value;
+    router.push({ path: target.path, query });
+};
+
+/** Sale del formulario tras guardar: perfil, siguiente paso o listado. */
+const navigateAfterSave = () => {
+    if (returnTo.value) {
+        router.push(returnTo.value);
+        return;
+    }
+    if (wizardUuid.value) {
+        const next = nextStepRoute(route.params.documentType, wizardUuid.value, permissionsStore);
+        if (next?.path?.includes('/vehiculos/perfil/')) {
+            goExit();
+            return;
+        }
+        router.push(next);
+        return;
+    }
+    goBack();
+};
 
 /** Computed para BasePageHeader (evita expresiones complejas en el template) */
 const pageSubtitle = computed(() => isEditMode.value ? 'Modifica los datos del registro en el sistema' : 'Completa los datos para crear un nuevo registro');
@@ -616,6 +714,9 @@ const resetCreateState = () => {
     editingPolicyUuids.rce = null;
     editingPolicyUuids.rcc = null;
     wizardDoneKeys.value = [];
+    wizardIncompleteKeys.value = [];
+    // Se vuelve a sembrar en initCreateStep() tras precargar el paso.
+    originalSnapshot.value = JSON.stringify(normalizeForCompare(pristineCreateState));
 };
 
 const documentTypeFor = (type) => {
@@ -625,46 +726,63 @@ const documentTypeFor = (type) => {
     return type;
 };
 
-/** Recalcula los checks del stepper combinando sesión y backend; devuelve lo encontrado */
+/**
+ * Recalcula los checks del stepper combinando sesión y backend.
+ * Si la consulta falla, propaga el error para no confundir "sin datos" con "error".
+ */
 const refreshWizardDone = async () => {
     if (!wizardUuid.value) return null;
     wizardDoneKeys.value = getSessionDone(wizardUuid.value);
-    try {
-        const found = await fetchExistingDocs(wizardUuid.value);
-        const done = new Set(['vehiculo', ...getSessionDone(wizardUuid.value)]);
-        if (found.soat) done.add('soat');
-        if (found.rce && found.rcc) done.add('poliza');
-        if (found.rtm) done.add('tecnomecanica');
-        if (found.tarjeta) done.add('tarjeta');
-        wizardDoneKeys.value = [...done];
-        return found;
-    } catch {
-        wizardDoneKeys.value = getSessionDone(wizardUuid.value);
-        return null;
-    }
+
+    const found = await fetchExistingDocs(wizardUuid.value, { strict: true });
+    const done = new Set(['vehiculo', ...getSessionDone(wizardUuid.value)]);
+    const incomplete = new Set();
+    if (found.soat) done.add('soat');
+    if (found.rce && found.rcc) done.add('poliza');
+    else if (found.rce || found.rcc) incomplete.add('poliza');
+    if (found.rtm) done.add('tecnomecanica');
+    if (found.tarjeta) done.add('tarjeta');
+    wizardDoneKeys.value = [...done];
+    wizardIncompleteKeys.value = [...incomplete];
+    return found;
 };
 
 /** Inicializa un paso de creación (montaje o cambio de tipo en el asistente) */
-const initCreateStep = async () => {
-    formData.document_type = documentTypeFor(route.params.documentType);
+const initCreateStep = async (stepType) => {
+    const type = stepType || route.params.documentType;
+    const token = ++stepLoadToken;
+
+    formData.document_type = documentTypeFor(type);
     if (!isSuperAdmin.value) formData.company_uuid = userStore.company_uuid;
+
     if (wizardUuid.value) {
         formData.vehicle_uuid = wizardUuid.value;
-        const found = await refreshWizardDone();
-        // Precarga el documento ya registrado (salvo registro de versión nueva)
-        if (found && !isNuevo.value) preloadStepDoc(found);
+        try {
+            const found = await refreshWizardDone();
+            // Ignora respuestas que ya no corresponden al paso visible.
+            if (token !== stepLoadToken) return;
+            // Precarga el documento ya registrado (salvo registro de versión nueva)
+            if (found && !isNuevo.value) preloadStepDoc(found, type);
+        } catch (error) {
+            if (token !== stepLoadToken) return;
+            toast('Error', 'No se pudieron cargar los documentos del vehículo', 'error');
+        }
     }
+
+    if (token !== stepLoadToken) return;
     await nextTick();
     scrubAutocomplete();
+    // Foto del paso actual: evita avisos espurios al navegar entre nodos.
+    seedSnapshot();
 };
 
 /**
  * Rellena el formulario con el documento existente del paso actual.
  * Al guardar se actualizará en vez de crear un duplicado.
  * @param {Object} found resultado de fetchExistingDocs
+ * @param {string} step tipo de documento explícito (no depende de la ruta tras await)
  */
-const preloadStepDoc = (found) => {
-    const step = route.params.documentType;
+const preloadStepDoc = (found, step) => {
     if (step === 'soat' && found.soat) {
         const d = found.soat;
         editingDocUuid.value = d.uuid ?? null;
@@ -690,19 +808,19 @@ const preloadStepDoc = (found) => {
             company_uuid: d.company_uuid || formData.company_uuid,
         });
     } else if (step === 'poliza' && (found.rce || found.rcc)) {
-        const rce = found.rce, rcc = found.rcc, ref = rce ?? rcc;
+        const rce = found.rce, rcc = found.rcc, source = rce ?? rcc;
         editingPolicyUuids.rce = rce?.uuid ?? null;
         editingPolicyUuids.rcc = rcc?.uuid ?? null;
         Object.assign(formData, {
             policy_number_rce: rce?.policy_number ?? '',
             policy_number_rcc: rcc?.policy_number ?? '',
-            taker: ref?.taker ?? '',
-            issuing_entity: ref?.issuing_entity ?? '',
-            issue_date: toDateInput(ref?.issue_date),
-            effective_date: toDateInput(ref?.effective_date),
-            expiry_date: toDateInput(ref?.expiry_date),
-            status: ref?.status ?? 'VIGENTE',
-            company_uuid: ref?.company_uuid || formData.company_uuid,
+            taker: source?.taker ?? '',
+            issuing_entity: source?.issuing_entity ?? '',
+            issue_date: toDateInput(source?.issue_date),
+            effective_date: toDateInput(source?.effective_date),
+            expiry_date: toDateInput(source?.expiry_date),
+            status: source?.status ?? 'VIGENTE',
+            company_uuid: source?.company_uuid || formData.company_uuid,
         });
     }
 };
@@ -711,8 +829,10 @@ const preloadStepDoc = (found) => {
 // reiniciar estado en vez de conservar el paso anterior
 watch(() => route.params.documentType, async (to, from) => {
     if (isEditMode.value || !wizardUuid.value || to === from) return;
+    // Invalida cualquier carga en curso del paso anterior.
+    stepLoadToken++;
     resetCreateState();
-    await initCreateStep();
+    await initCreateStep(to);
 });
 
 const isEmpty = (v) => v === null || v === undefined || (typeof v === 'string' ? v.trim() === '' : !v);
@@ -773,7 +893,8 @@ const getBackRoute = () => {
 
 const goBack = () => router.push(getBackRoute());
 
-const handleSubmit = async () => {
+/** Valida y persiste el documento actual. Devuelve `true` si se guardó. */
+const persistForm = async () => {
     // En modo asistente el vehículo queda fijado al que originó el flujo
     if (wizardUuid.value) formData.vehicle_uuid = wizardUuid.value;
 
@@ -785,143 +906,151 @@ const handleSubmit = async () => {
             firstError.focus({ preventScroll: true });
             firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
-        return toast('Atención', 'Revisa los campos obligatorios', 'warning');
+        toast('Atención', 'Revisa los campos obligatorios', 'warning');
+        return false;
     }
 
     try {
         submitting.value = true;
-        let uuid = isEditMode.value ? route.params.id : null;
+        const uuid = isEditMode.value ? route.params.id : null;
 
-        if (isEditMode.value) {
-            if (route.params.documentType === 'poliza') {
-                // Actualizar ambas pólizas: RCE y RCC
-                const updates = [];
-                if (editingPolicyUuids.rce) {
-                    updates.push(store.updateItem(editingPolicyUuids.rce, {
-                        ...formData,
-                        document_type: 'RCE',
-                        policy_number: formData.policy_number_rce,
-                    }));
-                }
-                if (editingPolicyUuids.rcc) {
-                    updates.push(store.updateItem(editingPolicyUuids.rcc, {
-                        ...formData,
-                        document_type: 'RCC',
-                        policy_number: formData.policy_number_rcc,
-                    }));
-                }
-                await Promise.all(updates);
-            } else {
-                await store.updateItem(uuid, formData);
-            }
+        if (route.params.documentType === 'poliza') {
+            // Actualiza las pólizas existentes y crea la faltante (RCE/RCC parcial).
+            const ops = [];
+            const rcePayload = { ...formData, document_type: 'RCE', policy_number: formData.policy_number_rce };
+            const rccPayload = { ...formData, document_type: 'RCC', policy_number: formData.policy_number_rcc };
+            if (editingPolicyUuids.rce) ops.push(store.updateItem(editingPolicyUuids.rce, rcePayload));
+            else if (formData.policy_number_rce) ops.push(store.createItem({ ...rcePayload, status: formData.status || 'VIGENTE' }));
+            if (editingPolicyUuids.rcc) ops.push(store.updateItem(editingPolicyUuids.rcc, rccPayload));
+            else if (formData.policy_number_rcc) ops.push(store.createItem({ ...rccPayload, status: formData.status || 'VIGENTE' }));
+            await Promise.all(ops);
+        } else if (isEditMode.value || editingDocUuid.value) {
+            await store.updateItem(isEditMode.value ? uuid : editingDocUuid.value, formData);
+        } else if (route.params.documentType === 'soat') {
+            formData.document_type = 'SOAT';
+            await store.createItem(formData);
+        } else if (route.params.documentType === 'tecnomecanica') {
+            formData.document_type = 'RTM';
+            await store.createItem(formData);
         } else {
-            if (route.params.documentType === 'poliza') {
-                // Actualiza las existentes y crea solo la faltante (póliza parcial)
-                const ops = [];
-                const rcePayload = { ...formData, document_type: 'RCE', policy_number: formData.policy_number_rce };
-                const rccPayload = { ...formData, document_type: 'RCC', policy_number: formData.policy_number_rcc };
-                if (editingPolicyUuids.rce) ops.push(store.updateItem(editingPolicyUuids.rce, rcePayload));
-                else if (formData.policy_number_rce) ops.push(store.createItem({ ...rcePayload, status: formData.status || 'VIGENTE' }));
-                if (editingPolicyUuids.rcc) ops.push(store.updateItem(editingPolicyUuids.rcc, rccPayload));
-                else if (formData.policy_number_rcc) ops.push(store.createItem({ ...rccPayload, status: formData.status || 'VIGENTE' }));
-                await Promise.all(ops);
-            } else if (editingDocUuid.value) {
-                await store.updateItem(editingDocUuid.value, formData);
-            } else if (route.params.documentType === 'soat') {
-                formData.document_type = 'SOAT';
-                await store.createItem(formData);
-            } else if (route.params.documentType === 'tecnomecanica') {
-                formData.document_type = 'RTM';
-                await store.createItem(formData);
-            } else {
-                await store.createItem(formData);
-            }
+            await store.createItem(formData);
         }
 
-        if (wizardUuid.value) {
-            markStepDone(wizardUuid.value, route.params.documentType);
-            // Desde el menú de documentos: salir del asistente y volver al origen con datos frescos
-            if (returnTo.value) router.push(returnTo.value);
-            else goNextStep();
-        } else {
-            goBack();
-        }
+        originalSnapshot.value = JSON.stringify(normalizeForCompare(formData));
+        return true;
     } catch (error) {
         toast('Error', 'No se pudo procesar la solicitud', 'error');
+        return false;
     } finally {
         submitting.value = false;
     }
 };
 
+const handleSubmit = async () => {
+    const saved = await persistForm();
+    if (!saved) return;
+    if (wizardUuid.value) markStepDone(wizardUuid.value, route.params.documentType);
+    navigateAfterSave();
+};
+
+/** Abre un nodo del stepper, confirmando si hay cambios sin guardar. */
+const onWizardNavigate = async (stepKey) => {
+    if (!wizardUuid.value || stepKey === route.params.documentType) return;
+
+    if (needsLeaveConfirm()) {
+        const decision = await confirmUnsavedChanges();
+        if (decision === 'cancel') return;
+        if (decision === 'save') {
+            const saved = await persistForm();
+            if (!saved) return;
+        }
+    }
+    navigateToStep(stepKey);
+};
+
+/** Botón secundario: vuelve atrás confirmando cambios sin guardar. */
+const handleCancel = async () => {
+    if (needsLeaveConfirm()) {
+        const decision = await confirmUnsavedChanges();
+        if (decision === 'cancel') return;
+        if (decision === 'save') {
+            const saved = await persistForm();
+            if (!saved) return;
+        }
+    }
+    goBack();
+};
+
+/** Carga el documento existente en modo edición directa (por UUID de la ruta). */
+const loadEditDocument = async (type) => {
+    const id = route.params.id;
+
+    if (type === 'poliza') {
+        // Cargar la póliza actual (RCC o RCE) y las demás del mismo vehículo
+        const item = await store.fetchProfileById(id);
+        if (!item) return;
+
+        const vehicleUuid = item.vehicle_uuid;
+        const resp = await vehicleDocumentsService.getByVehicle(vehicleUuid);
+        const docs = resp?.data ?? resp ?? [];
+        const list = Array.isArray(docs) ? docs : (docs.data ?? []);
+
+        const rce = list.find(d => d.document_type === 'RCE');
+        const rcc = list.find(d => d.document_type === 'RCC');
+
+        editingPolicyUuids.rce = rce?.uuid ?? null;
+        editingPolicyUuids.rcc = rcc?.uuid ?? null;
+
+        Object.assign(formData, {
+            company_uuid: item.company_uuid || formData.company_uuid,
+            vehicle_uuid: vehicleUuid,
+            policy_number_rce: rce?.policy_number ?? '',
+            policy_number_rcc: rcc?.policy_number ?? '',
+            taker: rce?.taker ?? rcc?.taker ?? item.taker ?? '',
+            issuing_entity: rce?.issuing_entity ?? rcc?.issuing_entity ?? item.issuing_entity ?? '',
+            issue_date: toDateInput(rce?.issue_date || item.issue_date),
+            effective_date: toDateInput(rce?.effective_date || item.effective_date),
+            expiry_date: toDateInput(rce?.expiry_date || item.expiry_date),
+            status: rce?.status || item.status || 'VIGENTE',
+        });
+        return;
+    }
+
+    const item = await store.fetchProfileById(id);
+    if (!item) return;
+    Object.assign(formData, item);
+    formData.issue_date = toDateInput(formData.issue_date);
+    formData.effective_date = toDateInput(formData.effective_date);
+    formData.expiry_date = toDateInput(formData.expiry_date);
+};
+
 onMounted(async () => {
+    const initToken = ++stepLoadToken;
     isViewLoading.value = true;
     try {
         await store.loadFormOptions();
+        if (initToken !== stepLoadToken) return;
 
         if (!isSuperAdmin.value) {
             formData.company_uuid = userStore.company_uuid;
         }
 
         if (isEditMode.value) {
-            if (route.params.documentType === 'poliza') {
-                // Cargar la póliza actual (RCC o RCE) y las demás del mismo vehículo
-                const item = await store.fetchProfileById(route.params.id);
-                if (item) {
-                    const vehicleUuid = item.vehicle_uuid;
-
-                    const resp = await vehicleDocumentsService.getByVehicle(vehicleUuid);
-                    const docs = resp?.data ?? resp ?? [];
-                    const list = Array.isArray(docs) ? docs : (docs.data ?? []);
-
-                    const rce = list.find(d => d.document_type === 'RCE');
-                    const rcc = list.find(d => d.document_type === 'RCC');
-
-                    editingPolicyUuids.rce = rce?.uuid ?? null;
-                    editingPolicyUuids.rcc = rcc?.uuid ?? null;
-
-                    Object.assign(formData, {
-                        company_uuid: item.company_uuid || formData.company_uuid,
-                        vehicle_uuid: vehicleUuid,
-                        policy_number_rce: rce?.policy_number ?? '',
-                        policy_number_rcc: rcc?.policy_number ?? '',
-                        taker: rce?.taker ?? rcc?.taker ?? item.taker ?? '',
-                        issuing_entity: rce?.issuing_entity ?? rcc?.issuing_entity ?? item.issuing_entity ?? '',
-                        issue_date: (rce?.issue_date || item.issue_date) ? String(rce?.issue_date || item.issue_date).slice(0, 10) : '',
-                        effective_date: (rce?.effective_date || item.effective_date) ? String(rce?.effective_date || item.effective_date).slice(0, 10) : '',
-                        expiry_date: (rce?.expiry_date || item.expiry_date) ? String(rce?.expiry_date || item.expiry_date).slice(0, 10) : '',
-                        status: rce?.status || item.status || 'VIGENTE',
-                    });
-                }
-            } else if (route.params.documentType === 'soat') {
-                const item = await store.fetchProfileById(route.params.id);
-                if (item) {
-                    Object.assign(formData, item);
-                    if (formData.issue_date) formData.issue_date = String(formData.issue_date).slice(0, 10);
-                    if (formData.effective_date) formData.effective_date = String(formData.effective_date).slice(0, 10);
-                    if (formData.expiry_date) formData.expiry_date = String(formData.expiry_date).slice(0, 10);
-                }
-            } else if (route.params.documentType === 'tecnomecanica') {
-                const item = await store.fetchProfileById(route.params.id);
-                if (item) {
-                    Object.assign(formData, item);
-                    if (formData.issue_date) formData.issue_date = String(formData.issue_date).slice(0, 10);
-                    if (formData.effective_date) formData.effective_date = String(formData.effective_date).slice(0, 10);
-                    if (formData.expiry_date) formData.expiry_date = String(formData.expiry_date).slice(0, 10);
-                }
-            } else {
-                const item = await store.fetchProfileById(route.params.id);
-                if (item) {
-                    Object.assign(formData, item);
-                    if (formData.issue_date) formData.issue_date = String(formData.issue_date).slice(0, 10);
-                    if (formData.effective_date) formData.effective_date = String(formData.effective_date).slice(0, 10);
-                    if (formData.expiry_date) formData.expiry_date = String(formData.expiry_date).slice(0, 10);
-                }
+            await loadEditDocument(route.params.documentType);
+            if (initToken !== stepLoadToken) return;
+            // En edición con asistente (desde el menú) también se pinta el progreso
+            try {
+                await refreshWizardDone();
+            } catch {
+                // No se pudo leer el progreso: se conserva lo ya cargado del documento
             }
         } else {
-            await initCreateStep();
+            await initCreateStep(route.params.documentType);
         }
-        // En edición con asistente (desde el menú) también se pinta el progreso
-        if (isEditMode.value) await refreshWizardDone();
+
+        if (initToken !== stepLoadToken) return;
+        // Foto del estado cargado para detectar cambios reales antes de actualizar
+        seedSnapshot();
     } finally {
         isViewLoading.value = false;
         await nextTick();
