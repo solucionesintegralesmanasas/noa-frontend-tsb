@@ -256,6 +256,11 @@ defineEmits([
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
 }
 
+.btn:not(:disabled),
+.btn-link:not(:disabled) {
+    cursor: pointer;
+}
+
 .btn:focus-visible,
 .btn-link:focus-visible {
     outline: 2px solid #2c7be5;

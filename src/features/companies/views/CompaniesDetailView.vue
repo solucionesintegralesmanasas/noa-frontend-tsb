@@ -855,9 +855,18 @@ dd {
     outline-offset: 2px !important;
 }
 
-[title],
-[data-bs-toggle="tooltip"] {
+/* El cursor de ayuda (?) solo aplica a elementos informativos no clicables.
+   Los controles interactivos mantienen la mano (pointer). */
+[title]:not(button, a, input, select, textarea, [role="button"]),
+[data-bs-toggle="tooltip"]:not(button, a, input, select, textarea, [role="button"]) {
     cursor: help;
+}
+
+button[title],
+a[title],
+button[data-bs-toggle="tooltip"],
+a[data-bs-toggle="tooltip"] {
+    cursor: pointer;
 }
 
 a:focus {
