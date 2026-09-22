@@ -3,7 +3,7 @@
         <div class="d-flex align-items-center">
             <router-link class="navbar-brand" to="/dashboard">
                 <div class="d-flex align-items-center py-2 gap-4">
-                    <img src="/noa.svg" alt="NOA Transportes" class="sidebar-brand-icon" />
+                    <img loading="lazy" src="/noa.svg" alt="NOA Transportes" class="sidebar-brand-icon" />
                     <NoaBadge size="40px" class="sidebar-brand-badge" />
                 </div>
             </router-link>

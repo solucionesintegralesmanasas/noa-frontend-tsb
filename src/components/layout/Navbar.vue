@@ -53,7 +53,7 @@
                         <div class="card-header bg-light py-2">
                             <div class="row justify-content-between align-items-center">
                                 <div class="col-auto">
-                                    <h6 class="card-header-title mb-0 fw-bold">Notificaciones</h6>
+                                    <p class="card-header-title mb-0 fw-bold">Notificaciones</p>
                                 </div>
                                 <div class="col-auto ps-0 ps-sm-3">
                                     <button class="card-link fw-normal fs-11 bg-transparent border-0 p-0 text-primary" type="button" @click="store.markAllAsRead"
@@ -84,12 +84,12 @@
                                             </div>
                                             <div class="flex-grow-1 min-w-0">
                                                 <div class="d-flex justify-content-between align-items-baseline mb-1">
-                                                    <h6 class="mb-0 text-900 fs-11 fw-bold text-truncate pe-2"
+                                                    <p class="mb-0 text-900 fs-11 fw-bold text-truncate pe-2"
                                                         style="max-width: 140px;">
                                                         {{ notification.title }}
-                                                    </h6>
+                                                    </p>
                                                     <span
-                                                        class="fs-10 text-500 fw-normal flex-shrink-0 font-sans-serif">
+                                                        class="fs-10 text-700 fw-normal flex-shrink-0 font-sans-serif">
                                                         {{ timeAgo(notification.created_at) }}
                                                     </span>
                                                 </div>
@@ -106,8 +106,8 @@
                                     </div>
                                 </template>
                                 <template v-else>
-                                    <div class="p-4 text-center text-500">
-                                        <i class="fad fa-bell-slash d-block fs-3 mb-2 text-300"></i>
+                                    <div class="p-4 text-center text-700">
+                                        <i class="fad fa-bell-slash d-block fs-3 mb-2 text-500"></i>
                                         <p class="mb-0 fs-10 fw-medium">Sin alertas pendientes</p>
                                     </div>
                                 </template>

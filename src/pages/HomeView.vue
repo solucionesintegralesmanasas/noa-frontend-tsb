@@ -613,17 +613,17 @@
           <h3 style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--navy);margin-bottom:24px">Enviar
             Mensaje</h3>
           <div class="form-row">
-            <div class="field"><label>Nombre</label><input type="text" v-model="contactForm.nombre" placeholder="Tu nombre completo" required></div>
-            <div class="field"><label>Empresa</label><input type="text" v-model="contactForm.empresa" placeholder="Nombre de la empresa"></div>
+            <div class="field"><label for="contact-nombre">Nombre</label><input id="contact-nombre" type="text" v-model="contactForm.nombre" placeholder="Tu nombre completo" required></div>
+            <div class="field"><label for="contact-empresa">Empresa</label><input id="contact-empresa" type="text" v-model="contactForm.empresa" placeholder="Nombre de la empresa"></div>
           </div>
           <div class="form-row">
             <div class="field"><label>Teléfono</label><input type="tel" v-model="contactForm.telefono" placeholder="+57 300 000 0000" required></div>
-            <div class="field"><label>Correo electrónico</label><input type="email" v-model="contactForm.email" placeholder="correo@empresa.com" required>
+            <div class="field"><label>Correo electrónico</label><input id="contact-email" type="email" v-model="contactForm.email" placeholder="correo@empresa.com" required>
             </div>
           </div>
           <div class="field">
-            <label>Tipo de servicio</label>
-            <select v-model="contactForm.servicio" required>
+            <label for="contact-servicio">Tipo de servicio</label>
+            <select id="contact-servicio" v-model="contactForm.servicio" required>
               <option value="">Seleccione un servicio</option>
               <option value="Transporte Ejecutivo">Transporte Ejecutivo</option>
               <option value="Transporte Empresarial">Transporte Empresarial</option>
@@ -633,7 +633,7 @@
               <option value="Transporte de Grupos">Transporte de Grupos</option>
             </select>
           </div>
-          <div class="field"><label>Mensaje</label><textarea
+          <div class="field"><label for="contact-mensaje">Mensaje</label><textarea id="contact-mensaje"
               v-model="contactForm.mensaje" placeholder="Cuéntenos sobre su necesidad de transporte..." required></textarea></div>
           <button type="submit" class="btn-submit" :disabled="isSubmittingContact">
             {{ isSubmittingContact ? 'Enviando...' : 'Enviar Mensaje →' }}

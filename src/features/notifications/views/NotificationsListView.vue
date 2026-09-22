@@ -34,12 +34,12 @@
                 <!-- Filtros -->
                 <div class="col-12 col-lg-auto">
                     <div class="d-flex align-items-center gap-2 flex-wrap flex-sm-nowrap">
-                        <select v-model="filterStatus" @change="applyFilters" class="form-select form-select-sm border-200 w-100">
+                        <select aria-label="Filtrar por estado" v-model="filterStatus" @change="applyFilters" class="form-select form-select-sm border-200 w-100">
                             <option value="">Todos los estados</option>
                             <option value="PENDIENTE">Pendientes</option>
                             <option value="LEIDA">Leídas</option>
                         </select>
-                        <select v-model="filterType" @change="applyFilters" class="form-select form-select-sm border-200 w-100">
+                        <select aria-label="Filtrar por tipo" v-model="filterType" @change="applyFilters" class="form-select form-select-sm border-200 w-100">
                             <option value="">Todos los tipos</option>
                             <option value="VEHICLE_DOCUMENT">Documentos de Vehículo</option>
                             <option value="OPERATION_CARD">Tarjetas de Operación</option>
