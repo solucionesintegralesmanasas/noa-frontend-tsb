@@ -74,7 +74,7 @@
     </div>
 
     <!-- ROW 2: FUEC Table & Alerts -->
-    <div class="row g-3 mb-3">
+    <div class="row g-3 mb-3" v-if="canViewRestrictedSections">
         <!-- RECENT FUEC (Deal table equivalent) -->
         <div class="col-xxl-8 col-lg-7">
             <div class="card h-100 border-0 shadow-sm">
@@ -183,7 +183,7 @@
     <!-- ROW 3: Map & Activity -->
     <div class="row g-3">
         <!-- LIVE GPS (Mapa de conductores en tiempo real) -->
-        <div class="col-xxl-8 col-lg-7">
+        <div :class="canViewRestrictedSections ? 'col-xxl-8 col-lg-7' : 'col-12'">
             <div class="card h-100 border-0 shadow-sm overflow-hidden">
                 <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
                     <div class="d-flex align-items-center gap-2">
@@ -219,7 +219,7 @@
         </div>
 
         <!-- PREVENTIVE MAINTENANCE -->
-        <div class="col-xxl-4 col-lg-5">
+        <div class="col-xxl-4 col-lg-5" v-if="canViewRestrictedSections">
             <div class="card h-100 border-0 shadow-sm overflow-hidden">
                 <div class="card-header bg-light d-flex justify-content-between align-items-center py-2.5 px-3 border-bottom border-200">
                     <div class="d-flex align-items-center">
@@ -322,6 +322,13 @@ const trackingStore = useTrackingStore();
 // ── CONTROL DE ROL Y MODO CONDUCTOR ─────────────────────────
 const isConductorRole = computed(() => {
     return permissionsStore.hasRole('CONDUCTOR');
+});
+
+const canViewRestrictedSections = computed(() => {
+    return permissionsStore.hasRole('ADMINISTRADOR') || 
+           permissionsStore.hasRole('ADMIN_EMPRESA') || 
+           permissionsStore.hasRole('ADMINISTRADOR_EMPRESA') ||
+           permissionsStore.hasRole('SUPERADMIN');
 });
 
 const isConductorMode = computed(() => {
