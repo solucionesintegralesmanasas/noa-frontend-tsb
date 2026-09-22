@@ -351,7 +351,7 @@ const MODULE_LABELS = {
     tax_periods: 'Periodos tributarios', territorial_directors: 'Directores territoriales',
     third_parties: 'Terceros', vehicle_documents: 'Doc. vehículos', vehicle_inspections: 'Inspecciones vehículos',
     vehicles: 'Vehículos', voucher_types: 'Tipos comprobantes', warehouses: 'Almacenes',
-    users: 'Usuarios', roles: 'Roles del sistema', permissions: 'Permisos del sistema',
+    users: 'Usuarios', roles: 'Roles del sistema', permissions: 'Permisos del sistema', locations: 'Geolocalización',
 }
 
 const MODULE_ICONS = {
@@ -372,7 +372,7 @@ const MODULE_ICONS = {
     security_contributions: '🛡️', territorial_directors: '🧭', procedures: '📝',
     fleet_service_contracts: '📄', capacity_inventory: '📦', objects_contracts: '📦',
     contractors: '👷', fuec: '📊', system_configurations: '⚙️', control_sheets: '📋',
-    service_delivery_control_sheets: '📋', assistant_configuration: '🤖', assistant: '💬', projects: '📈',
+    service_delivery_control_sheets: '📋', assistant_configuration: '🤖', assistant: '💬', projects: '📈', locations: '📍',
 }
 
 const ACTION_LABELS = {
@@ -381,6 +381,7 @@ const ACTION_LABELS = {
     'toggle-status': 'Estado', 'toggle_status': 'Estado',
     change_branch: 'Cambiar sede', history_pdf: 'Historial PDF',
     technical_sheet_pdf: 'Ficha técnica', cold_chain_pdf: 'Cadena frío', forecast: 'Pronóstico',
+    track: 'Rastrear', history: 'Historial', geofences: 'Geocercas', alerts: 'Alertas',
 }
 
 const ACTION_ICONS = {
@@ -389,6 +390,7 @@ const ACTION_ICONS = {
     view: 'fa-eye', 'toggle-status': 'fa-toggle-on', toggle_status: 'fa-toggle-on',
     change_branch: 'fa-exchange-alt', history_pdf: 'fa-file-pdf',
     technical_sheet_pdf: 'fa-file-alt', cold_chain_pdf: 'fa-snowflake', forecast: 'fa-chart-line',
+    track: 'fa-location-arrow', history: 'fa-history', geofences: 'fa-draw-polygon', alerts: 'fa-bell',
 }
 
 const ROLE_LABELS = {
@@ -426,7 +428,7 @@ function getRoleDesc(desc, name) {
 }
 
 // ── Procesado de permisos de la API ───────────────────────────────────────────
-const ACTION_ORDER = ['index', 'create', 'update', 'delete', 'destroy', 'profile', 'show', 'view', 'edit', 'change_branch', 'history_pdf', 'technical_sheet_pdf', 'cold_chain_pdf', 'forecast', 'toggle-status']
+const ACTION_ORDER = ['index', 'create', 'update', 'delete', 'destroy', 'profile', 'show', 'view', 'edit', 'change_branch', 'history_pdf', 'technical_sheet_pdf', 'cold_chain_pdf', 'forecast', 'toggle-status', 'track', 'history', 'geofences', 'alerts']
 
 function processPermissions(apiPerms) {
     if (!Array.isArray(apiPerms) || apiPerms.length === 0) {
