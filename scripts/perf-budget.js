@@ -8,17 +8,38 @@ const OUT_DIR = join(ROOT, 'docs', 'metrics');
 const DIST = join(ROOT, 'dist', 'assets');
 
 // Umbrales de aviso (kB). Solo informan, no fallan.
-const BUDGETS = { totalJS: 1800, totalCSS: 1200, vendorPrimevue: 900, vendorUI: 200, indexJS: 150 };
+const BUDGETS = { totalJS: 1800, inicialJS: 1150, totalCSS: 1200, vendorPrimevue: 900, vendorUI: 200, indexJS: 150 };
+// Presupuesto por chunk de ruta (vista): solo informa.
+const BUDGET_RUTA_KB = 150;
+
+// Carga inicial = entry + modulepreload declarados en dist/index.html.
+// Todo lo demás en dist/assets es diferido (lazy routes, chunks bajo demanda).
+let inicialSet = new Set();
+const distHtml = join(ROOT, 'dist', 'index.html');
+if (existsSync(distHtml)) {
+  const built = readFileSync(distHtml, 'utf8');
+  for (const m of built.matchAll(/(?:modulepreload[^>]*href|script[^>]*src)="([^"]+)"/g)) {
+    const f = m[1].split('/').pop();
+    if (f) inicialSet.add(f);
+  }
+}
 
 const chunks = [];
 let totalJS = 0;
+let inicialJS = 0;
+let diferidoJS = 0;
 let totalCSS = 0;
 let distOk = true;
 if (existsSync(DIST)) {
   for (const f of readdirSync(DIST)) {
     const st = statSync(join(DIST, f));
     const kb = Math.round((st.size / 1024) * 10) / 10;
-    if (f.endsWith('.js')) { totalJS += kb; chunks.push({ archivo: f, kb, tipo: 'js' }); }
+    if (f.endsWith('.js')) {
+      totalJS += kb;
+      const esInicial = inicialSet.has(f);
+      if (esInicial) inicialJS += kb; else diferidoJS += kb;
+      chunks.push({ archivo: f, kb, tipo: esInicial ? 'js-inicial' : 'js-diferido' });
+    }
     else if (f.endsWith('.css')) { totalCSS += kb; chunks.push({ archivo: f, kb, tipo: 'css' }); }
   }
   chunks.sort((a, b) => b.kb - a.kb);
@@ -29,16 +50,28 @@ if (existsSync(DIST)) {
 const pick = (frag) => chunks.find((c) => c.archivo.includes(frag))?.kb ?? null;
 const metrics = {
   totalJS: Math.round(totalJS * 10) / 10,
+  inicialJS: Math.round(inicialJS * 10) / 10,
+  diferidoJS: Math.round(diferidoJS * 10) / 10,
   totalCSS: Math.round(totalCSS * 10) / 10,
   vendorPrimevue: pick('vendor-primevue'),
   vendorUI: pick('vendor-ui'),
   vendorFeedback: pick('vendor-feedback'),
   vendorHttp: pick('vendor-http'),
   vendorVue: pick('vendor-vue'),
-  indexJS: pick('/index-') ?? chunks.find((c) => c.tipo === 'js' && c.archivo.startsWith('index-'))?.kb ?? null,
-  numChunksJS: chunks.filter((c) => c.tipo === 'js').length,
+  indexJS: pick('/index-') ?? chunks.find((c) => c.tipo.startsWith('js') && c.archivo.startsWith('index-'))?.kb ?? null,
+  numChunksJS: chunks.filter((c) => c.tipo.startsWith('js')).length,
+  numChunksInicial: chunks.filter((c) => c.tipo === 'js-inicial').length,
+  numChunksDiferidos: chunks.filter((c) => c.tipo === 'js-diferido').length,
   numChunksCSS: chunks.filter((c) => c.tipo === 'css').length,
 };
+
+// Presupuesto por ruta: chunks de vistas (carga diferida típica) con su peso.
+// Sirve para detectar qué ruta pesa más antes de optimizarla.
+const rutas = chunks
+  .filter((c) => c.tipo.startsWith('js') && /view|page/i.test(c.archivo))
+  .sort((a, b) => b.kb - a.kb)
+  .slice(0, 15)
+  .map((c) => ({ archivo: c.archivo, kb: c.kb, inicial: c.tipo === 'js-inicial' }));
 
 // index.html: scripts sin defer, hojas de fonts, CSS muerto
 const html = readFileSync(join(ROOT, 'index.html'), 'utf8');
@@ -50,7 +83,7 @@ const deadCss = (html.match(/jquery\.toast/i) || []).length;
 const checks = { scriptsSinDefer: sinDefer, hojasGoogleFonts: fontSheets, cssMuertoJqueryToast: deadCss };
 
 const stamp = new Date().toISOString().slice(0, 10);
-const report = { fecha: stamp, dist: distOk, metricas: metrics, html: checks, topChunks: chunks.slice(0, 10) };
+const report = { fecha: stamp, dist: distOk, metricas: metrics, rutas, html: checks, topChunks: chunks.slice(0, 10) };
 mkdirSync(OUT_DIR, { recursive: true });
 writeFileSync(join(OUT_DIR, `perf-${stamp}.json`), JSON.stringify(report, null, 2));
 
@@ -69,5 +102,11 @@ for (const [k, v] of Object.entries(metrics)) {
 console.log(` hojasGoogleFonts: ${fontSheets} (objetivo ≤1)  ${fontSheets <= 1 ? '✅' : '⚠️'}`);
 console.log(` scriptsSinDefer: ${sinDefer.length}  ${sinDefer.length === 0 ? '✅' : '⚠️ ' + sinDefer.join(', ')}`);
 console.log(` cssMuertoJqueryToast: ${deadCss}  ${deadCss === 0 ? '✅' : '⚠️'}`);
+console.log(`\n Rutas más pesadas (presupuesto ${BUDGET_RUTA_KB} kB por vista):`);
+for (const r of rutas) {
+  const flag = r.kb > BUDGET_RUTA_KB ? '⚠️ sobre presupuesto' : '✅';
+  const tag = r.inicial ? '(inicial)' : '(diferido)';
+  console.log(` ${r.archivo.padEnd(48)} ${String(r.kb).padStart(8)} kB  ${tag} ${flag}`);
+}
 console.log(`\n Reporte: docs/metrics/perf-${stamp}.json`);
 process.exit(0);
