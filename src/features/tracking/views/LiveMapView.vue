@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import DriverMap from '../components/DriverMap.vue';
 import { useTrackingStore } from '../store/tracking.store';
+import { useRealtimeChannel } from '@/hooks/useRealtimeChannel.js';
 import { useToast } from 'vue-toastification';
 import BasePageHeader from '@/components/BasePageHeader.vue';
 
@@ -19,13 +20,10 @@ const movingCount = computed(() =>
     store.activeDrivers.filter((d) => d.is_moving || d.last_location?.is_moving).length
 );
 
-let refreshInterval = null;
+let channel = null;
 
 function refreshDrivers() {
-    loadingDrivers.value = true;
-    store.fetchActiveDrivers().finally(() => {
-        loadingDrivers.value = false;
-    });
+    channel?.refreshNow();
 }
 
 function refreshGeofences() {
@@ -58,13 +56,20 @@ const toggleFullscreen = async () => {
 };
 
 onMounted(() => {
-    refreshDrivers();
-    refreshGeofences();
-
-    refreshInterval = setInterval(() => {
-        refreshDrivers();
-        refreshGeofences();
-    }, 10000);
+    // Canal único de refresco (ARQ-009/ARQ-010): ciclo encadenado sin
+    // solapamiento, pausa con pestaña oculta y cancelación al desmontar.
+    channel = useRealtimeChannel(async (signal) => {
+        loadingDrivers.value = true;
+        try {
+            await store.fetchActiveDrivers(signal);
+            if (showGeofences.value) {
+                await store.fetchGeofences(signal);
+            }
+        } finally {
+            loadingDrivers.value = false;
+        }
+    }, { intervalMs: 10000 });
+    channel.start();
 
     document.addEventListener('fullscreenchange', () => {
         isFullscreen.value = !!document.fullscreenElement;
@@ -72,9 +77,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-    if (refreshInterval) {
-        clearInterval(refreshInterval);
-    }
+    channel?.stop();
     document.removeEventListener('fullscreenchange', () => {});
 });
 </script>

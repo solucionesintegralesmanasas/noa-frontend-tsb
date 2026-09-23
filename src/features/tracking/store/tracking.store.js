@@ -21,13 +21,15 @@ export const useTrackingStore = defineStore('tracking', {
     },
 
     actions: {
-        async fetchActiveDrivers() {
+        async fetchActiveDrivers(signal) {
             this.loading = true;
             this.error = null;
             try {
-                const response = await trackingService.getActiveDrivers();
+                const response = await trackingService.getActiveDrivers({ signal });
                 this.activeDrivers = response.data?.data || response.data || [];
             } catch (err) {
+                // Cancelación por AbortController (pestaña oculta o desmontaje): silencio.
+                if (err?.code === 'ERR_CANCELED') return;
                 this.error = err.message;
             } finally {
                 this.loading = false;
@@ -68,12 +70,14 @@ export const useTrackingStore = defineStore('tracking', {
             return response.data?.data || response.data;
         },
 
-        async fetchGeofences() {
+        async fetchGeofences(signal) {
             this.loading = true;
             try {
-                const response = await trackingService.getGeofences({ per_page: 100 });
+                const response = await trackingService.getGeofences({ per_page: 100 }, { signal });
                 this.geofences = response.data?.data || response.data || [];
             } catch (err) {
+                // Cancelación por AbortController (pestaña oculta o desmontaje): silencio.
+                if (err?.code === 'ERR_CANCELED') return;
                 this.error = err.message;
             } finally {
                 this.loading = false;

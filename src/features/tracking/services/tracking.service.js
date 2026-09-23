@@ -17,8 +17,8 @@ export default {
     },
 
     // Admin
-    getActiveDrivers() {
-        return this.client.get('/tracking/active-drivers');
+    getActiveDrivers({ signal } = {}) {
+        return this.client.get('/tracking/active-drivers', { signal });
     },
     getLastLocation(uuid) {
         return this.client.get(`/tracking/last-location/${uuid}`);
@@ -34,8 +34,8 @@ export default {
     },
 
     // Geocercas
-    getGeofences(params) {
-        return this.client.get('/tracking/geofences', { params });
+    getGeofences(params = {}, { signal } = {}) {
+        return this.client.get('/tracking/geofences', { params, signal });
     },
     getGeofence(uuid) {
         return this.client.get(`/tracking/geofences/${uuid}`);
