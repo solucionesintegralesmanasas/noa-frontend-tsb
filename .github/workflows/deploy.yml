@@ -4,12 +4,16 @@ on:
   push:
     branches: ['**']
   create:
-    tags:
-      - 'v*'
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
+    env:
+      VITE_ENV_PRODUCTION: ${{ secrets.VITE_ENV_PRODUCTION }}
+      FTP_SERVER: ${{ secrets.FTP_SERVER }}
+      FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+      FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
 
     steps:
       - name: Checkout
@@ -25,21 +29,18 @@ jobs:
         run: npm ci
 
       - name: Crear env de producción
-        run: |
-          cat > .env.production <<'EOF'
-          ${{ secrets.VITE_ENV_PRODUCTION }}
-          EOF
+        run: printf '%s' "$VITE_ENV_PRODUCTION" > .env.production
 
       - name: Build
         run: npm run build
 
       - name: Deploy FTP
-        if: ${{ secrets.FTP_SERVER != '' && secrets.FTP_USERNAME != '' && secrets.FTP_PASSWORD != '' }}
+        if: env.FTP_SERVER != '' && env.FTP_USERNAME != '' && env.FTP_PASSWORD != ''
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
+          server: ${{ env.FTP_SERVER }}
+          username: ${{ env.FTP_USERNAME }}
+          password: ${{ env.FTP_PASSWORD }}
           local-dir: ./dist/
           server-dir: /home/transpo3/
           protocol: ftp
