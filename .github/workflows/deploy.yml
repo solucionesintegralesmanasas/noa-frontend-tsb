@@ -50,5 +50,5 @@ jobs:
           username: ${{ env.FTP_USERNAME }}
           password: ${{ env.FTP_PASSWORD }}
           local-dir: ./dist/
-          server-dir: /home/transpo3/
+          server-dir: ./
           protocol: ftp
