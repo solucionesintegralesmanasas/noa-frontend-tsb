@@ -66,6 +66,36 @@ Reportes fuente: carpeta `Lighthouse_23_09_2026` (15 JSON).
 | 2026-09-23 10:00 | Historial conductor | 62 | 91 | 3,9 s | 0 ms | 0,002 | mañana local | URL: `/#/rastreo/historial/29548f69-5078-440a-a7e3-b9072be80f98` |
 | 2026-09-23 10:04 | Geocercas | 69 | 96 | 2,8 s | 0 ms | 0,018 | mañana local | Autenticado |
 
+### Segunda jornada (2026-09-23, 16:15–16:31 hora local UTC-5)
+
+Mismo protocolo, 3 corridas por página. Reportes fuente:
+`Lighthouse_23_09_2026/Segunda Jornada` (15 JSON, Lighthouse 13.4.1, desktop).
+
+Evidencia de build: la mañana sirvió `vendor-primevue-BE7D1_9o.js` (build previo);
+la tarde sirve `vendor-primevue-A2awspw1.js` (build con los frentes 1–4 ya desplegado).
+La comparación es un antes/después real del trabajo.
+
+| Página | Perf mañana → tarde | A11y mañana → tarde | LCP mañana → tarde | TBT | CLS |
+|---|---|---|---|---|---|
+| Login | 81 → **85** (+4) | 96 → 96 | 2,2 s → **1,9 s** (−15 %) | 0 ms | 0,000 |
+| Dashboard | 67 → **72** (+5) | 100 → 100 | 3,7 s → **3,0 s** (−20 %) | 0 ms | 0,016 |
+| Mapa en vivo | 65 → **75** (+10) | 100 → 100 | 3,8 s → **3,1 s** (−20 %) | 0 ms | 0,001 |
+| Historial conductor | 62 → **69** (+7) | 91 → 91 | 3,9 s → **3,1 s** (−21 %) | 0 ms | 0,003 |
+| Geocercas | 69 → **74** (+5) | 96 → 96 | 2,8 s → **2,4 s** (−17 %) | 0 ms | 0,018 |
+
+Peso total transferido (mediana por página): login 792 → 695 kB (−12 %);
+dashboard ~1520 → ~1420 kB (−7 %); historial ~1682 → ~1575 kB (−6 %);
+mapa ~1839 → 1742 kB (−5 %); geocercas ~978 → 958 kB (−2 %).
+
+Umbrales tras la segunda jornada: Perf ≥ 85 solo en login (85); LCP ≤ 2,5 s en
+login (1,85 s) y geocercas (2,35 s); TBT y CLS cumplen en todas.
+
+Lectura honesta: la mejora mezcla el bundle nuevo (vendor-primevue −600 kB sin
+comprimir) con una tarde de servidor más tranquila (el pico de 2,3 s en geocercas
+de la mañana no se repitió; server-ms típico ~200 ms en ambas jornadas). El mapa
+sigue con alta varianza entre corridas (una corrida de tarde dio Perf 63 / LCP 4,0 s):
+tiles y red, no JS.
+
 Ninguna página cumple aún el objetivo (Perf ≥ 85); accesibilidad al 100 solo en
 dashboard y mapa en vivo.
 
