@@ -28,7 +28,9 @@ function refreshDrivers() {
 
 function refreshGeofences() {
     if (showGeofences.value) {
-        store.fetchGeofences();
+        // Vía el canal: el fetcher ya trae las geocercas cuando están visibles,
+        // así no se dispara una petición suelta que pueda solaparse (ARQ-010).
+        channel?.refreshNow();
     }
 }
 

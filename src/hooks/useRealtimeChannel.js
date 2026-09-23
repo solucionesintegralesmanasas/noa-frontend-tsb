@@ -19,6 +19,7 @@ export function useRealtimeChannel(fetcher, options = {}) {
     let controller = null;
     let running = false;
     let inFlight = false;
+    let refreshPending = false;
 
     const isHidden = () =>
         typeof document !== 'undefined' && document.visibilityState === 'hidden';
@@ -65,6 +66,14 @@ export function useRealtimeChannel(fetcher, options = {}) {
             inFlight = false;
             controller = null;
         }
+        if (refreshPending) {
+            // Se pidió refrescar mientras el ciclo estaba en vuelo (la pestaña
+            // volvió a visible durante el abort): se ejecuta ya, sin esperar el
+            // intervalo completo.
+            refreshPending = false;
+            tick();
+            return;
+        }
         schedule();
     }
 
@@ -79,6 +88,10 @@ export function useRealtimeChannel(fetcher, options = {}) {
         if (isHidden()) {
             clearTimer();
             abortInFlight();
+        } else if (inFlight) {
+            // El abort del ciclo anterior aún se está resolviendo: refrescar en
+            // cuanto termine, sin esperar el intervalo completo.
+            refreshPending = true;
         } else {
             tick();
         }
@@ -96,6 +109,7 @@ export function useRealtimeChannel(fetcher, options = {}) {
 
     function stop() {
         running = false;
+        refreshPending = false;
         clearTimer();
         abortInFlight();
         if (typeof document !== 'undefined') {

@@ -98,7 +98,7 @@
                                             <i class="fad fa-bus-alt text-primary me-1"></i> Planilla / Servicio Asignado
                                         </label>
                                         <PrimeSelect
-                                            input-id="servicioId"
+                                            :input-id="'servicioId'"
                                             v-model="formData.servicioId"
                                             :options="serviciosFiltrados" option-value="uuid"
                                             :option-label="(s) => `${s.daily_route || recorridosTextoDe(s)} · ${tipoCorto(s.type_of_control_sheet)}${s.project?.project_name ? ' · ' + s.project.project_name : ''}`"
@@ -314,7 +314,7 @@
                                             <i class="fad fa-file-certificate text-primary me-1"></i> N.° Planilla / FUEC
                                         </label>
                                         <PrimeSelect
-                                            input-id="fuec_uuid"
+                                            :input-id="'fuec_uuid'"
                                             v-model="formData.fuec_uuid"
                                             :options="fuecsCatalogo" option-value="uuid"
                                             :option-label="(item) => item.sheet_number || item.fuec_number"
@@ -1417,6 +1417,7 @@ import { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } from
 import { useRoute, useRouter } from 'vue-router';
 import { toast } from '@/utils/toast.js';
 import BasePageHeader from '@/components/BasePageHeader.vue';
+import PrimeSelect from 'primevue/select';
 import { useServiceDeliveryControlSheetStore } from '../store/serviceDeliveryControlSheet.store.js';
 import serviceDeliveryControlSheetService from '../services/serviceDeliveryControlSheet.service.js';
 import vehicleInspectionsService from '../../vehicleInspections/services/vehicleInspections.service.js';
