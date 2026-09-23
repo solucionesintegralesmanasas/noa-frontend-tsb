@@ -447,6 +447,8 @@ import { usePermissionsStore, useUserStore } from '@store';
 import apiClient from '@/services/api/client.js';
 import Swal from 'sweetalert2';
 import BasePageHeader from '@/components/BasePageHeader.vue';
+import PrimeSelect from 'primevue/select';
+import PrimeMultiSelect from 'primevue/multiselect';
 import BaseFormActions from '@/components/BaseFormActions.vue';
 import ProfilePhotoUploader from '@/components/ProfilePhotoUploader.vue';
 import RuesLookupPanel from '@/components/RuesLookupPanel.vue';

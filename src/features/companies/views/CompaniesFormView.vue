@@ -357,6 +357,7 @@ import { useCompaniesStore } from '../store/companies.store.js';
 import { usePermissionsStore } from '@store';
 import { useUserStore } from '@store';
 import BasePageHeader from '@/components/BasePageHeader.vue';
+import PrimeSelect from 'primevue/select';
 import BaseFormActions from '@/components/BaseFormActions.vue';
 import RuesLookupPanel from '@/components/RuesLookupPanel.vue';
 

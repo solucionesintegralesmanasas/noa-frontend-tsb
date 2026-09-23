@@ -2,95 +2,95 @@
   "fecha": "2026-09-23",
   "dist": true,
   "metricas": {
-    "totalJS": 2821.7,
-    "inicialJS": 1023.4,
-    "diferidoJS": 1798.3,
+    "totalJS": 2805.4,
+    "inicialJS": 739.3,
+    "diferidoJS": 2066.1,
     "totalCSS": 247.4,
-    "vendorPrimevue": 626.5,
+    "vendorPrimevue": 223.3,
     "vendorUI": null,
     "vendorFeedback": 76.3,
     "vendorHttp": 40.1,
-    "vendorVue": 102.5,
-    "indexJS": 122.7,
-    "numChunksJS": 158,
+    "vendorVue": 209.5,
+    "indexJS": 134.8,
+    "numChunksJS": 162,
     "numChunksInicial": 19,
-    "numChunksDiferidos": 139,
+    "numChunksDiferidos": 143,
     "numChunksCSS": 87
   },
   "rutas": [
     {
-      "archivo": "ServiceTemplateView-CRAwMawx.js",
-      "kb": 93.4,
+      "archivo": "ThirdPartiesFormView-CYuO0_Q2.js",
+      "kb": 99.1,
       "inicial": false
     },
     {
-      "archivo": "SystemConfigurationView-COQXF1W7.js",
+      "archivo": "ServiceTemplateView-DQ1UUWnK.js",
+      "kb": 93.3,
+      "inicial": false
+    },
+    {
+      "archivo": "SystemConfigurationView-DDEr5wfL.js",
       "kb": 52.9,
       "inicial": false
     },
     {
-      "archivo": "FuecFormView-xCAFtpcE.js",
+      "archivo": "FuecFormView-B30ANjuH.js",
       "kb": 52.1,
       "inicial": false
     },
     {
-      "archivo": "VehicleDocumentsFormView-CtvhC4vR.js",
+      "archivo": "VehicleDocumentsFormView-BO6hoPjy.js",
       "kb": 40,
       "inicial": false
     },
     {
-      "archivo": "ThirdPartiesListView-Bk5FFEv8.js",
-      "kb": 36.1,
+      "archivo": "ThirdPartiesListView-D0_s0LSE.js",
+      "kb": 36,
       "inicial": false
     },
     {
-      "archivo": "ConductorDashboardView-Ce61LpeE.js",
-      "kb": 35.8,
+      "archivo": "ConductorDashboardView-Vh09nqN2.js",
+      "kb": 35.7,
       "inicial": false
     },
     {
-      "archivo": "VehiclesFormView-DxRdc0nO.js",
+      "archivo": "VehiclesFormView-DYRyf-3U.js",
       "kb": 35.5,
       "inicial": false
     },
     {
-      "archivo": "VehiclesDetailView-C7HRLoVL.js",
+      "archivo": "VehiclesDetailView-CC8o-uoc.js",
       "kb": 33.9,
       "inicial": false
     },
     {
-      "archivo": "ThirdPartiesFormView-CJc6YRAM.js",
-      "kb": 32.7,
-      "inicial": false
-    },
-    {
-      "archivo": "FuecValidationView-B1NSODKW.js",
+      "archivo": "FuecValidationView-CoLDjzY8.js",
       "kb": 30.5,
       "inicial": false
     },
     {
-      "archivo": "VehicleInspectionListView-Dcm8kVCY.js",
+      "archivo": "VehicleInspectionListView-BXg--Mv7.js",
       "kb": 30,
       "inicial": false
     },
     {
-      "archivo": "ServiceDeliveryControlSheetFormView-DGiOwrMF.js",
-      "kb": 25.2,
+      "archivo": "ServiceDeliveryControlSheetFormView-X-pxlVAJ.js",
+      "kb": 25.1,
       "inicial": false
     },
     {
-      "archivo": "CompaniesFormView-iEb7Cqld.js",
+      "archivo": "CompaniesFormView-CtSSw3Zs.js",
       "kb": 24.7,
       "inicial": false
     },
     {
-      "archivo": "ServiceDeliveryControlSheetListView-VwTD8sh4.js",
+      "archivo": "ServiceDeliveryControlSheetListView-mnamNNdE.js",
       "kb": 22.9,
       "inicial": false
     },
     {
-      "archivo": "AffiliateAdminChargesListView-DVSQS7yU.js",
-      "kb": 22.5,
+      "archivo": "AffiliateAdminChargesListView-EvcO_T4o.js",
+      "kb": 22.4,
       "inicial": false
     }
   ],
@@ -101,14 +101,19 @@
   },
   "topChunks": [
     {
-      "archivo": "vendor-primevue-CK5_RyHc.js",
-      "kb": 626.5,
+      "archivo": "column-BPTBfOLi.js",
+      "kb": 253.8,
+      "tipo": "js-diferido"
+    },
+    {
+      "archivo": "vendor-primevue-A2awspw1.js",
+      "kb": 223.3,
       "tipo": "js-inicial"
     },
     {
-      "archivo": "column-CPgyI1G3.js",
-      "kb": 195.3,
-      "tipo": "js-diferido"
+      "archivo": "vendor-vue-YDiet9Ok.js",
+      "kb": 209.5,
+      "tipo": "js-inicial"
     },
     {
       "archivo": "html2canvas-B9Ed0YNC.js",
@@ -116,18 +121,23 @@
       "tipo": "js-diferido"
     },
     {
-      "archivo": "index-CDL1Hxdu.js",
-      "kb": 122.7,
+      "archivo": "index-C5_BCUbE.js",
+      "kb": 134.8,
       "tipo": "js-inicial"
     },
     {
-      "archivo": "vendor-vue-BADUdI5a.js",
-      "kb": 102.5,
-      "tipo": "js-inicial"
+      "archivo": "select-DRWnZTCW.js",
+      "kb": 106.3,
+      "tipo": "js-diferido"
     },
     {
-      "archivo": "ServiceTemplateView-CRAwMawx.js",
-      "kb": 93.4,
+      "archivo": "ThirdPartiesFormView-CYuO0_Q2.js",
+      "kb": 99.1,
+      "tipo": "js-diferido"
+    },
+    {
+      "archivo": "ServiceTemplateView-DQ1UUWnK.js",
+      "kb": 93.3,
       "tipo": "js-diferido"
     },
     {
@@ -136,19 +146,9 @@
       "tipo": "js-inicial"
     },
     {
-      "archivo": "SystemConfigurationView-COQXF1W7.js",
+      "archivo": "SystemConfigurationView-DDEr5wfL.js",
       "kb": 52.9,
       "tipo": "js-diferido"
-    },
-    {
-      "archivo": "FuecFormView-xCAFtpcE.js",
-      "kb": 52.1,
-      "tipo": "js-diferido"
-    },
-    {
-      "archivo": "vendor-http-Cum7x4mu.js",
-      "kb": 40.1,
-      "tipo": "js-inicial"
     }
   ]
 }

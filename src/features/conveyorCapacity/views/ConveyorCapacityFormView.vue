@@ -155,6 +155,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useConveyorCapacityStore } from '../store/conveyorCapacity.store.js';
 import { usePermissionsStore } from '@store';
 import BasePageHeader from '@/components/BasePageHeader.vue';
+import PrimeSelect from 'primevue/select';
 import BaseFormActions from '@/components/BaseFormActions.vue';
 
 /** @type {import('vue-router').Route} Ruta activa */

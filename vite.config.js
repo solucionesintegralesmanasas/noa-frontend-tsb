@@ -52,14 +52,15 @@ export default defineConfig(({ mode }) => {
             if (id.includes('node_modules/vue') || id.includes('node_modules/@vue') || id.includes('node_modules/vue-router') || id.includes('node_modules/pinia')) {
               return 'vendor-vue';
             }
-            // PrimeVue en arranque: solo config + preset Aura + componentes globales
-            // ligeros. DataTable/Column (pesados, solo en listados con import local)
-            // quedan fuera a propósito para que viajen en chunk diferido compartido.
-            if (id.includes('node_modules/primevue/datatable') || id.includes('node_modules/primevue/column')) {
-              return undefined;
-            }
-            if (id.includes('node_modules/primevue') || id.includes('node_modules/@primeuix') || id.includes('node_modules/primeicons')) {
+            // PrimeVue en arranque: SOLO config + preset Aura + utilidades.
+            // Todos los componentes (datatable, column, select, multiselect,
+            // button, menu, dialog, image, ...) se importan localmente en las
+            // vistas y viajan en chunks diferidos compartidos (ARQ-013).
+            if (id.includes('node_modules/primevue/config') || id.includes('node_modules/@primeuix')) {
               return 'vendor-primevue';
+            }
+            if (id.includes('node_modules/primevue') || id.includes('node_modules/primeicons')) {
+              return undefined;
             }
             // HTTP (axios; crypto-js sin uso en src, fuera del bundle inicial)
             if (id.includes('node_modules/axios')) {

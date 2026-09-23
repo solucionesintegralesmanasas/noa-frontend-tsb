@@ -453,6 +453,7 @@ import { usePermissionsStore, useAuthStore } from '@store';
 import { useSystemConfigurationStore } from '@/features/systemConfiguration/store/systemConfiguration.store.js';
 import { useThirdPartiesStore } from '@/features/thirdParties/store/thirdParties.store.js';
 import BasePageHeader from '@/components/BasePageHeader.vue';
+import PrimeSelect from 'primevue/select';
 import BaseFormActions from '@/components/BaseFormActions.vue';
 import Swal from 'sweetalert2';
 import { dateUtils } from '@utils/date.js';

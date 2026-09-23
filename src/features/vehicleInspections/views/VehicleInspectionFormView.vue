@@ -240,6 +240,7 @@ import apiClient from '@/services/api/client.js';
 import VehicleInspectionsService from '../services/vehicleInspections.service.js';
 import ProjectsService from '../../projects/services/projects.service.js';
 import BasePageHeader from '@/components/BasePageHeader.vue';
+import PrimeSelect from 'primevue/select';
 import BaseFormActions from '@/components/BaseFormActions.vue';
 import Swal from 'sweetalert2';
 
