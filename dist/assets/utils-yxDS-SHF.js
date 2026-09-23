@@ -1,1 +1,0 @@
-import{C as e,at as t,ut as n}from"./vendor-primevue-A2awspw1.js";function r(){n({variableName:e(`scrollbar.width`).name})}function i(){t({variableName:e(`scrollbar.width`).name})}export{i as n,r as t};
