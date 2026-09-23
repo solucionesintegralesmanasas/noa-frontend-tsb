@@ -3,6 +3,8 @@
 **Autor:** Darwin Montes  
 **Stack:** Vue 3 · Vite · Hosting compartido
 
+> **Nota:** Este workflow despliega el **web build** por FTP al hosting. Para builds **nativos iOS/Android** (y Live Updates) el despliegue profesional se hace con **Ionic Appflow** — ver [`APPFLOW.md`](./APPFLOW.md) y `.github/workflows/appflow.yml`. El repo Appflow de destino es `noa-os` (remote `git remote add noa-os https://github.com/solucionesintegralesmanasas/noa-os.git`).
+
 ---
 
 ## 1. Agregar credenciales en GitHub

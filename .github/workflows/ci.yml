@@ -4,9 +4,9 @@ name: CI frontend
 
 on:
   push:
-    branches: [feature, main]
+    branches: [feature, develop, main]
   pull_request:
-    branches: [feature, main]
+    branches: [feature, develop, main]
 
 jobs:
   verificar:

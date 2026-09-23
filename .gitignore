@@ -24,13 +24,28 @@ TestResults.xml
 node_modules/
 dist/
 dist-ssr/
-android/
-ios/
 .env
 .env.production
 .env.local
 .env.*.local
 !.env.example
+
+# Appflow (Ionic CLI)
+.appflow.yaml
+.appflow/
+
+# Keystores de firma (NUNCA subir; subir solo al dashboard de Appflow)
+*.jks
+*.keystore
+*.p12
+*.mobileprovision
+keystore.properties
+
+# Editores (Android Studio / iOS / nativo)
+.idea/
+*.iml
+xcuserdata/
+DerivedData/
 
 # Logs y sistema
 *.log

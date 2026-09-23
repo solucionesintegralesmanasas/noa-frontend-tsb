@@ -1,0 +1,75 @@
+# Appflow CI/CD — Builds nativos en la nube de Ionic Appflow.
+# Conecta este repo (noa-os) a Appflow en el dashboard y configura los secrets:
+#   APPFLOW_TOKEN        -> Personal Access Token de Appflow
+#   APPFLOW_APP_ID       -> ID de la app en Appflow
+#   APPFLOW_ANDROID_CERT -> Nombre del keystore (signing cert) cargado en Appflow
+#   APPFLOW_IOS_CERT     -> Nombre del certificado/provisioning profile iOS en Appflow
+# El Environment "Production" debe existir en Appflow con las variables VITE_* (ver .env.production.example).
+
+name: Appflow CI/CD
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+env:
+  APPFLOW_TOKEN: ${{ secrets.APPFLOW_TOKEN }}
+  APPFLOW_APP_ID: ${{ secrets.APPFLOW_APP_ID }}
+
+jobs:
+  android-debug:
+    name: Android Debug (cloud build)
+    if: startsWith(github.ref, 'refs/tags/') == false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Android (debug) en Appflow
+        if: env.APPFLOW_TOKEN != '' && env.APPFLOW_APP_ID != ''
+        uses: ionic-team/appflow-build@v1
+        with:
+          token: ${{ env.APPFLOW_TOKEN }}
+          app-id: ${{ env.APPFLOW_APP_ID }}
+          platform: Android
+          build-type: debug
+          environment: Production
+          upload-artifact: NOA-android-debug
+
+  release:
+    name: Release bins iOS + Android (App Store / Play)
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    env:
+      APPFLOW_ANDROID_CERT: ${{ secrets.APPFLOW_ANDROID_CERT }}
+      APPFLOW_IOS_CERT: ${{ secrets.APPFLOW_IOS_CERT }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Android release (AAB)
+        if: env.APPFLOW_TOKEN != '' && env.APPFLOW_APP_ID != '' && env.APPFLOW_ANDROID_CERT != ''
+        uses: ionic-team/appflow-build@v1
+        with:
+          token: ${{ env.APPFLOW_TOKEN }}
+          app-id: ${{ env.APPFLOW_APP_ID }}
+          platform: Android
+          build-type: release
+          certificate: ${{ env.APPFLOW_ANDROID_CERT }}
+          environment: Production
+          upload-artifact: NOA-android-release.aab
+
+      - name: Build iOS App Store (IPA)
+        if: env.APPFLOW_TOKEN != '' && env.APPFLOW_APP_ID != '' && env.APPFLOW_IOS_CERT != ''
+        uses: ionic-team/appflow-build@v1
+        with:
+          token: ${{ env.APPFLOW_TOKEN }}
+          app-id: ${{ env.APPFLOW_APP_ID }}
+          platform: iOS
+          build-type: app-store
+          certificate: ${{ env.APPFLOW_IOS_CERT }}
+          environment: Production
+          upload-artifact: NOA-ios-appstore.ipa

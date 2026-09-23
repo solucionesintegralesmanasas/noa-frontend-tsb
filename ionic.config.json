@@ -1,0 +1,8 @@
+{
+  "name": "noa",
+  "type": "vue",
+  "integrations": {
+    "capacitor": {}
+  },
+  "id": "REEMPLAZAR_CON_APP_ID_DE_APPFLOW"
+}

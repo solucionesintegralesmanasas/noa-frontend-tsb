@@ -16,6 +16,7 @@
 - **Alerts & Toasts:** SweetAlert2 (`^11.26.25`) con `import()` diferido vía `utils/toast.js` + Vue Toastification (`^2.0.0-rc.5`)
 - **Iconografía:** FontAwesome Pro (CSS + webfonts). `primeicons` eliminado 2026-09-15.
 - **Native Mobile:** Capacitor (`^7.0.0`) + Plugins (`@capacitor/preferences`, `CapacitorHttp`)
+- **Mobile CI/CD (Appflow):** `@ionic/cli` (`^7.2.1`) para builds nativos en la nube de Ionic Appflow. Repo Appflow: `noa-os` (remote `noa-os`). Guía completa en `APPFLOW.md`.
 - **Helpers:** DayJS (`^1.11.21`)
 - **Testing/Formatting:** ESLint flat (`npm run lint`, en verde) + `vue-tsc` con `checkJs` (`npm run typecheck`; fase 2, baseline con errores pendientes de tipar). Scripts informativos `test:a11y` / `test:perf` (ver Comandos).
 
@@ -34,8 +35,14 @@
 | `npm run test:unit` | Vitest (node): garantías del canal realtime (`src/hooks/__tests__/`) |
 | `npm run lint`    | ESLint (flat config, 0 errores en línea base 2026-09-23) |
 | `npm run typecheck` | `vue-tsc --noEmit` (fase 2: baseline ~1740 errores, no bloquea `test`) |
+| `npm run cap:sync` | `npm run build && npx cap sync` (copia `dist/` a ios/)android/) |
+| `npm run cap:assets` | Regenera iconos/splash nativos desde `assets/` (`@capacitor/assets`) |
+| `npm run cap:add:android` / `cap:add:ios` | Agrega la plataforma nativa a Capacitor |
+| `npm run cap:open:android` / `cap:open:ios` | Abre Android Studio / Xcode |
+| `ionic build` / `ionic cap sync` | Builds vía Ionic CLI (mismas operaciones que `build`/`cap:sync`) |
 
-CI (`.github/workflows/ci.yml`): `lint` + `test:a11y` + `build` + `test:unit` en push/PR a `feature`/`main`.
+CI (`.github/workflows/ci.yml`): `lint` + `test:a11y` + `build` + `test:unit` en push/PR a `feature`/`develop`/`main`.
+CI/CD nativo (`.github/workflows/appflow.yml`): builds en Appflow — Android debug por push a `main`/`develop`; iOS+Android release por tag `v*`. Requiere secrets `APPFLOW_TOKEN`, `APPFLOW_APP_ID`, `APPFLOW_ANDROID_CERT`, `APPFLOW_IOS_CERT`.
 
 > **Para Lighthouse:** medir contra `npm run preview` o el Apache de producción, **nunca** contra `localhost:5173` (dev sirve módulos sin minificar y distorsiona el puntaje).
 
