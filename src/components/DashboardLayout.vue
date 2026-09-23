@@ -52,9 +52,6 @@ onMounted(() => {
 
   var navbarVertical = document.querySelector('.navbar-vertical')
   var navbarTopVertical = document.querySelector('.content .navbar-top')
-  var navbarTop = document.querySelector('[data-layout] .navbar-top:not([data-double-top-nav')
-  var navbarDoubleTop = document.querySelector('[data-double-top-nav]')
-  var navbarTopCombo = document.querySelector('.content [data-navbar-top="combo"]')
 
   if (navbarVertical) navbarVertical.removeAttribute('style')
   if (navbarTopVertical) navbarTopVertical.removeAttribute('style')

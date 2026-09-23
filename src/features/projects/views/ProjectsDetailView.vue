@@ -296,12 +296,6 @@ const formatDateShort = (value) => {
     return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
-const formatDate = (value) => {
-    if (!value) return '—';
-    const d = new Date(value);
-    return d.toLocaleString('es-CO', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-};
-
 const formatMoney = (value) =>
     (value === null || value === undefined)
         ? '-'

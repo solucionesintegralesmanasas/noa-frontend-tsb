@@ -333,20 +333,6 @@ const removeAssignment = (index) => {
     formData.assignments.splice(index, 1);
 };
 
-const prettyField = (field) => {
-    const map = {
-        project_name: 'Nombre del proyecto',
-        start_date: 'Fecha de inicio',
-        completion_date: 'Fecha de finalización',
-        project_value: 'Valor del proyecto',
-        purchase_order: 'Orden de compra',
-        assignments: 'Asignaciones',
-        vehicles: 'Vehículos',
-        third_parties: 'Conductores',
-    };
-    return map[field] || field;
-};
-
 /** Valida los datos del formulario antes de enviar. */
 const validateForm = () => {
     const errors = {};

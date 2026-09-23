@@ -1,0 +1,35 @@
+{
+  // Typecheck progresivo (ARQ-016): JS + SFC con checkJs, sin strict.
+  // Endurecer por fases (strict, noUnusedLocals) cuando la base esté limpia.
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "strict": false,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["vite/client"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@store": ["src/store/index.js"],
+      "@store/*": ["src/store/*"],
+      "@router": ["src/router/index.js"],
+      "@router/*": ["src/router/*"],
+      "@utils/*": ["src/utils/*"],
+      "@services/*": ["src/services/*"],
+      "@components/*": ["src/components/*"],
+      "@features/*": ["src/features/*"],
+      "@pages/*": ["src/pages/*"],
+      "@assets/*": ["src/assets/*"]
+    }
+  },
+  "include": ["src/**/*.js", "src/**/*.vue", "src/types/**/*.d.ts"],
+  "exclude": ["node_modules", "dist", "public"]
+}

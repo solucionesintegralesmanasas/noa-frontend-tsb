@@ -9,7 +9,6 @@ import { createLoggerPlugin } from '@store/plugins/logger.js';
 import {
     authPersistencePlugin,
     permissionsPersistencePlugin,
-    uiPersistencePlugin,
     userProfilePersistencePlugin
 } from '@store/plugins/persistence.js';
 import { useAuthStore } from '@store/modules/auth.js';

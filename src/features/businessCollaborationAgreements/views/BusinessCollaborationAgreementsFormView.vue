@@ -242,8 +242,6 @@ const isSuperAdmin = computed(() => permissionsStore.roles?.includes('SUPERADMIN
 
 const isEditMode = computed(() => route.params.id !== undefined);
 
-/** Vehículo que originó el flujo (alta inicial o perfil). */
-const wizardUuid = computed(() => (route.query.wizard ? String(route.query.wizard) : null));
 /** Ruta a la que volver al guardar/cancelar cuando viene de otro flujo. */
 const returnTo = computed(() => (route.query.retorno ? String(route.query.retorno) : null));
 /** El convenio se abrió automáticamente tras guardar una tarjeta externa. */

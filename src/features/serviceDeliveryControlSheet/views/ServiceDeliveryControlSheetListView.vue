@@ -283,7 +283,7 @@
  * @module {Features.Fleet}
  * @resource {ServiceDeliveryControlSheet}
  */
-import { ref, onMounted, onUnmounted, reactive, computed } from 'vue';
+import { ref, onMounted, reactive, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useServiceDeliveryControlSheetStore } from '../store/serviceDeliveryControlSheet.store.js';
 import { usePermissionsStore, useUserStore } from '@store';
@@ -319,7 +319,7 @@ const canShareCoordinatorLink = computed(() => (permissionsStore.roles || []).so
 
 const permissions = reactive({ view: false, edit: false, delete: false });
 const { debouncedSearch } = useTable({}, () => store.setGlobalFilter(searchQuery.value));
-const { confirmDelete, initTooltips, destroyTooltips } = useTableActions(store, router);
+const { confirmDelete, initTooltips } = useTableActions(store, router);
 
 const clearSearch = async () => { searchQuery.value = ''; await store.clearFilters(); };
 const refreshTable = () => store.fetchItems();

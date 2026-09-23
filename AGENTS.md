@@ -11,13 +11,13 @@
 - **State Management:** Pinia 3 (version `^3.0.4`)
 - **Routing:** Vue Router 4 (version `^4.6.4`)
 - **Internationalization (i18n):** vue-i18n 11 (version `^11.4.4`)
-- **UI Library:** PrimeVue 4 (`^4.5.5`) + `@primeuix/themes` (`^2.0.3`) con preset Aura + componentes globales (`DataTable`, `Column`, `PrimeSelect`, `PrimeMultiSelect`, `PButton`)
+- **UI Library:** PrimeVue 4 (`^4.5.5`) + `@primeuix/themes` (`^2.0.3`) con preset Aura. Sin registro global desde 2026-09-23 (ARQ-013): cada vista importa localmente lo que usa.
 - **HTTP Client:** Axios (version `^1.16.1`)
 - **Alerts & Toasts:** SweetAlert2 (`^11.26.25`) con `import()` diferido vía `utils/toast.js` + Vue Toastification (`^2.0.0-rc.5`)
 - **Iconografía:** FontAwesome Pro (CSS + webfonts). `primeicons` eliminado 2026-09-15.
 - **Native Mobile:** Capacitor (`^7.0.0`) + Plugins (`@capacitor/preferences`, `CapacitorHttp`)
 - **Helpers:** DayJS (`^1.11.21`)
-- **Testing/Formatting:** Sin linter ni typecheck. Scripts informativos `test:a11y` / `test:perf` (ver Comandos).
+- **Testing/Formatting:** ESLint flat (`npm run lint`, en verde) + `vue-tsc` con `checkJs` (`npm run typecheck`; fase 2, baseline con errores pendientes de tipar). Scripts informativos `test:a11y` / `test:perf` (ver Comandos).
 
 > **Eliminados 2026-09-15:** jQuery, Select2, `primeicons`, `signature_pad`. No reintroducir.
 
@@ -28,11 +28,11 @@
 | `npm run dev`     | Vite dev server                                     |
 | `npm run build`   | Vite production build (outputs to `dist/`)          |
 | `npm run preview` | Serve `dist/` localmente (usar para medir prod)     |
-| `npm run test`    | `test:a11y` + `test:perf` — solo informan, exit 0    |
+| `npm run test`    | `test:a11y` + `test:perf` + `lint` — lint bloquea, el resto informa |
 | `npm run test:a11y` | Conteo de antipatrones a11y en `src/`             |
 | `npm run test:perf` | Presupuesto de peso de `dist/` y chequeos HTML    |
-
-No hay linter ni typecheck.
+| `npm run lint`    | ESLint (flat config, 0 errores en línea base 2026-09-23) |
+| `npm run typecheck` | `vue-tsc --noEmit` (fase 2: baseline ~1740 errores, no bloquea `test`) |
 
 > **Para Lighthouse:** medir contra `npm run preview` o el Apache de producción, **nunca** contra `localhost:5173` (dev sirve módulos sin minificar y distorsiona el puntaje).
 

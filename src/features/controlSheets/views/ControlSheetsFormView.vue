@@ -236,8 +236,6 @@ const formData = reactive({
     is_active: '1',
 });
 
-const filePreviews = reactive({});
-
 const pdfs = ref([]);
 const selectedFiles = ref([]);
 const fileInput = ref(null);

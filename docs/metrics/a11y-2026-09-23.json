@@ -9,7 +9,7 @@
     "roleButtonEnRouterLink": 0,
     "enlacesMuertos": 1,
     "aRoleButtonSinHref": 0,
-    "iconosSinAriaHidden": 964
+    "iconosSinAriaHidden": 961
   },
   "porArchivo": {
     "src\\components\\assistant\\BubbleChat.vue": {
@@ -92,7 +92,7 @@
       "iconosSinAriaHidden": 7
     },
     "src\\features\\companies\\views\\CompaniesDetailView.vue": {
-      "iconosSinAriaHidden": 20
+      "iconosSinAriaHidden": 17
     },
     "src\\features\\companies\\views\\CompaniesFormView.vue": {
       "iconosSinAriaHidden": 6

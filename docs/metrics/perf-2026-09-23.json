@@ -2,94 +2,94 @@
   "fecha": "2026-09-23",
   "dist": true,
   "metricas": {
-    "totalJS": 2805.4,
-    "inicialJS": 739.3,
-    "diferidoJS": 2066.1,
+    "totalJS": 2803,
+    "inicialJS": 738.4,
+    "diferidoJS": 2064.6,
     "totalCSS": 247.4,
     "vendorPrimevue": 223.3,
     "vendorUI": null,
     "vendorFeedback": 76.3,
     "vendorHttp": 40.1,
     "vendorVue": 209.5,
-    "indexJS": 134.8,
-    "numChunksJS": 162,
+    "indexJS": 133.9,
+    "numChunksJS": 163,
     "numChunksInicial": 19,
-    "numChunksDiferidos": 143,
+    "numChunksDiferidos": 144,
     "numChunksCSS": 87
   },
   "rutas": [
     {
-      "archivo": "ThirdPartiesFormView-CYuO0_Q2.js",
-      "kb": 99.1,
+      "archivo": "ThirdPartiesFormView-D_PSHu4u.js",
+      "kb": 99,
       "inicial": false
     },
     {
-      "archivo": "ServiceTemplateView-DQ1UUWnK.js",
-      "kb": 93.3,
+      "archivo": "ServiceTemplateView-ARJ9868f.js",
+      "kb": 93.2,
       "inicial": false
     },
     {
-      "archivo": "SystemConfigurationView-DDEr5wfL.js",
+      "archivo": "SystemConfigurationView-Dt87NwcM.js",
       "kb": 52.9,
       "inicial": false
     },
     {
-      "archivo": "FuecFormView-B30ANjuH.js",
-      "kb": 52.1,
+      "archivo": "FuecFormView-CpzW43B_.js",
+      "kb": 52,
       "inicial": false
     },
     {
-      "archivo": "VehicleDocumentsFormView-BO6hoPjy.js",
+      "archivo": "VehicleDocumentsFormView-5rr1iyrY.js",
       "kb": 40,
       "inicial": false
     },
     {
-      "archivo": "ThirdPartiesListView-D0_s0LSE.js",
-      "kb": 36,
+      "archivo": "ThirdPartiesListView-DYg0Q-s8.js",
+      "kb": 35.8,
       "inicial": false
     },
     {
-      "archivo": "ConductorDashboardView-Vh09nqN2.js",
-      "kb": 35.7,
+      "archivo": "ConductorDashboardView-DdU2T7Pm.js",
+      "kb": 35.6,
       "inicial": false
     },
     {
-      "archivo": "VehiclesFormView-DYRyf-3U.js",
+      "archivo": "VehiclesFormView-D6hzQkaX.js",
       "kb": 35.5,
       "inicial": false
     },
     {
-      "archivo": "VehiclesDetailView-CC8o-uoc.js",
+      "archivo": "VehiclesDetailView-BtjFsqIB.js",
       "kb": 33.9,
       "inicial": false
     },
     {
-      "archivo": "FuecValidationView-CoLDjzY8.js",
+      "archivo": "FuecValidationView-hHbC5XEI.js",
       "kb": 30.5,
       "inicial": false
     },
     {
-      "archivo": "VehicleInspectionListView-BXg--Mv7.js",
+      "archivo": "VehicleInspectionListView-DJhwkDZk.js",
       "kb": 30,
       "inicial": false
     },
     {
-      "archivo": "ServiceDeliveryControlSheetFormView-X-pxlVAJ.js",
+      "archivo": "ServiceDeliveryControlSheetFormView-HW6uNHeb.js",
       "kb": 25.1,
       "inicial": false
     },
     {
-      "archivo": "CompaniesFormView-CtSSw3Zs.js",
+      "archivo": "CompaniesFormView-D2viyOBx.js",
       "kb": 24.7,
       "inicial": false
     },
     {
-      "archivo": "ServiceDeliveryControlSheetListView-mnamNNdE.js",
+      "archivo": "ServiceDeliveryControlSheetListView-Cvn30OJW.js",
       "kb": 22.9,
       "inicial": false
     },
     {
-      "archivo": "AffiliateAdminChargesListView-EvcO_T4o.js",
+      "archivo": "AffiliateAdminChargesListView-TijNLDIu.js",
       "kb": 22.4,
       "inicial": false
     }
@@ -101,7 +101,7 @@
   },
   "topChunks": [
     {
-      "archivo": "column-BPTBfOLi.js",
+      "archivo": "column-CgsNU8CB.js",
       "kb": 253.8,
       "tipo": "js-diferido"
     },
@@ -121,23 +121,23 @@
       "tipo": "js-diferido"
     },
     {
-      "archivo": "index-C5_BCUbE.js",
-      "kb": 134.8,
+      "archivo": "index-CsxanHB-.js",
+      "kb": 133.9,
       "tipo": "js-inicial"
     },
     {
-      "archivo": "select-DRWnZTCW.js",
+      "archivo": "select-B4BIpPv2.js",
       "kb": 106.3,
       "tipo": "js-diferido"
     },
     {
-      "archivo": "ThirdPartiesFormView-CYuO0_Q2.js",
-      "kb": 99.1,
+      "archivo": "ThirdPartiesFormView-D_PSHu4u.js",
+      "kb": 99,
       "tipo": "js-diferido"
     },
     {
-      "archivo": "ServiceTemplateView-DQ1UUWnK.js",
-      "kb": 93.3,
+      "archivo": "ServiceTemplateView-ARJ9868f.js",
+      "kb": 93.2,
       "tipo": "js-diferido"
     },
     {
@@ -146,7 +146,7 @@
       "tipo": "js-inicial"
     },
     {
-      "archivo": "SystemConfigurationView-DDEr5wfL.js",
+      "archivo": "SystemConfigurationView-Dt87NwcM.js",
       "kb": 52.9,
       "tipo": "js-diferido"
     }

@@ -550,13 +550,12 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue';
-import { useAuthStore, usePermissionsStore, useUserStore } from '@store';
+import { useAuthStore, useUserStore } from '@store';
 import { useDashboardStore } from '../store/dashboard.store';
 import DriverSelfMap from '@/features/tracking/components/DriverSelfMap.vue';
 
 const authStore = useAuthStore();
 const userStore = useUserStore();
-const permissionsStore = usePermissionsStore();
 const dashboardStore = useDashboardStore();
 
 const selectedPeriod = ref('30');

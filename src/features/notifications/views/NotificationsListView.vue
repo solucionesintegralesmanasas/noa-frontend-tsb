@@ -308,29 +308,6 @@ const handleMarkAsRead = async (uuid) => {
     await store.markAsRead(uuid);
 };
 
-const handleDelete = async (uuid) => {
-    const result = await Swal.fire({
-        title: '¿Eliminar alerta?',
-        text: 'Esta acción no se puede deshacer.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar',
-        confirmButtonColor: '#e63757'
-    });
-
-    if (result.isConfirmed) {
-        await store.deleteNotification(uuid);
-        Swal.fire({
-            icon: 'success',
-            title: 'Eliminada',
-            text: 'La alerta ha sido eliminada.',
-            timer: 1500,
-            showConfirmButton: false
-        });
-    }
-};
-
 onMounted(async () => {
     try {
         await loadData();

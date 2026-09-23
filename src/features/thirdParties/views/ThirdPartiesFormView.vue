@@ -444,7 +444,6 @@ import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useThirdPartiesStore } from '../store/thirdParties.store.js';
 import { usePermissionsStore, useUserStore } from '@store';
-import apiClient from '@/services/api/client.js';
 import Swal from 'sweetalert2';
 import BasePageHeader from '@/components/BasePageHeader.vue';
 import PrimeSelect from 'primevue/select';

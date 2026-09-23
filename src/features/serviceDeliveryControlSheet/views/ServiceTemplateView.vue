@@ -1420,7 +1420,7 @@ import BasePageHeader from '@/components/BasePageHeader.vue';
 import { useServiceDeliveryControlSheetStore } from '../store/serviceDeliveryControlSheet.store.js';
 import serviceDeliveryControlSheetService from '../services/serviceDeliveryControlSheet.service.js';
 import vehicleInspectionsService from '../../vehicleInspections/services/vehicleInspections.service.js';
-import { usePermissionsStore, useUserStore } from '@store';
+import { useUserStore } from '@store';
 import { useDriverTrackingStore } from '../../tracking/store/driverTracking.store.js';
 import FirmaPad from '../components/FirmaPad.vue';
 
@@ -1428,7 +1428,6 @@ import FirmaPad from '../components/FirmaPad.vue';
 const route = useRoute();
 const router = useRouter();
 const store = useServiceDeliveryControlSheetStore();
-const permissionsStore = usePermissionsStore();
 const userStore = useUserStore();
 const driverTracking = useDriverTrackingStore();
 
@@ -1473,7 +1472,6 @@ const activarGpsOperativo = async () => {
 };
 
 // --- ESTADOS ---
-const isSuperAdmin = computed(() => permissionsStore.roles?.includes('SUPERADMIN'));
 const isViewLoading = ref(true);
 const submitting = ref(false);
 const validationErrors = reactive({});
@@ -2029,7 +2027,7 @@ const leerProgreso = () => {
 };
 
 const limpiarProgreso = () => {
-    try { localStorage.removeItem(PROGRESO_KEY); } catch (e) {}
+    try { localStorage.removeItem(PROGRESO_KEY); } catch (e) { /* localStorage puede no estar disponible: se ignora */ }
 };
 
 const restaurarProgreso = async () => {

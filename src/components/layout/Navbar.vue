@@ -168,11 +168,10 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useUserStore, useAuthStore, usePermissionsStore } from '@store'
-import { getMediaUrl } from '@/utils/media.js'
 import { useNotificationsStore } from '@/features/notifications/store/notifications.store.js'
 import { useConfigStore } from '@store/modules/config.js'
 
-const props = defineProps({
+defineProps({
     hideSidebarToggle: {
         type: Boolean,
         default: false
@@ -325,9 +324,6 @@ const userName = computed(() => {
     const rawName = userStore.fullName || permissionsStore.user?.name || 'Usuario'
     return getInitials(rawName)
 })
-
-const userAvatar = computed(() => getMediaUrl(userStore.avatar, null))
-const companyLogo = computed(() => getMediaUrl(userStore.logo))
 
 const displayRoles = computed(() => {
     if (!permissionsStore.roles || permissionsStore.roles.length === 0) {
