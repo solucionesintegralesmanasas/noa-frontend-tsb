@@ -1,0 +1,45 @@
+name: Build & Deploy
+
+on:
+  push:
+    branches: ['**']
+  create:
+    tags:
+      - 'v*'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Crear env de producción
+        run: |
+          cat > .env.production <<'EOF'
+          ${{ secrets.VITE_ENV_PRODUCTION }}
+          EOF
+
+      - name: Build
+        run: npm run build
+
+      - name: Deploy FTP
+        if: ${{ secrets.FTP_SERVER != '' && secrets.FTP_USERNAME != '' && secrets.FTP_PASSWORD != '' }}
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./dist/
+          server-dir: /home/transpo3/
+          protocol: ftp
