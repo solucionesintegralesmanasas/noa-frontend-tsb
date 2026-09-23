@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import trackingService from '../services/tracking.service';
+import { isCancelError } from '@/utils/error-handler.js';
 
 export const useTrackingStore = defineStore('tracking', {
     state: () => ({
@@ -29,7 +30,7 @@ export const useTrackingStore = defineStore('tracking', {
                 this.activeDrivers = response.data?.data || response.data || [];
             } catch (err) {
                 // Cancelación por AbortController (pestaña oculta o desmontaje): silencio.
-                if (err?.code === 'ERR_CANCELED') return;
+                if (isCancelError(err)) return;
                 this.error = err.message;
             } finally {
                 this.loading = false;
@@ -77,7 +78,7 @@ export const useTrackingStore = defineStore('tracking', {
                 this.geofences = response.data?.data || response.data || [];
             } catch (err) {
                 // Cancelación por AbortController (pestaña oculta o desmontaje): silencio.
-                if (err?.code === 'ERR_CANCELED') return;
+                if (isCancelError(err)) return;
                 this.error = err.message;
             } finally {
                 this.loading = false;

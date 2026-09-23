@@ -13,13 +13,8 @@ export function useNotifications() {
     const store = useNotificationsStore();
     let fallbackTimer = null;
 
-    const sseAbierto = () => {
-        const src = store.sseSource;
-        return !!src && typeof EventSource !== 'undefined' && src.readyState === EventSource.OPEN;
-    };
-
     const tickRespaldo = async () => {
-        if (sseAbierto()) return;
+        if (store.sseConnected) return;
         if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
         await store.fetchLatestNotifications();
     };

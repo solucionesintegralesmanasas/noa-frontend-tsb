@@ -1,5 +1,6 @@
-// scripts/perf-budget.js — Presupuesto de peso y HTML (solo informa, exit 0).
-// Uso: npm run test:perf (requiere npm run build previo para medir dist/).
+// scripts/perf-budget.js — Presupuesto de peso y HTML.
+// - Informa: npm run test:perf (siempre exit 0; requiere build previo).
+// - Valida: node scripts/perf-budget.js --strict (exit 1 si hay incumplimientos).
 import { readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -87,6 +88,12 @@ const report = { fecha: stamp, dist: distOk, metricas: metrics, rutas, html: che
 mkdirSync(OUT_DIR, { recursive: true });
 writeFileSync(join(OUT_DIR, `perf-${stamp}.json`), JSON.stringify(report, null, 2));
 
+// Uso: npm run test:perf (informa, exit 0) o node scripts/perf-budget.js --strict
+// (valida: exit 1 si algún presupuesto se excede; para CI).
+const STRICT = process.argv.includes('--strict');
+const incumplimientos = [];
+const exigir = (condicion, detalle) => { if (!condicion) incumplimientos.push(detalle); };
+
 console.log('\n Presupuesto de rendimiento');
 if (!distOk) console.log(' (sin dist/: ejecuta npm run build primero)');
 for (const [k, v] of Object.entries(metrics)) {
@@ -96,17 +103,29 @@ for (const [k, v] of Object.entries(metrics)) {
     continue;
   }
   const b = BUDGETS[k];
-  const flag = b !== undefined ? (v > b ? '⚠️ sobre presupuesto' : '✅') : '';
+  const excede = b !== undefined && v > b;
+  if (b !== undefined) exigir(!excede, `${k}: ${v} kB > presupuesto ${b} kB`);
+  const flag = b !== undefined ? (excede ? '⚠️ sobre presupuesto' : '✅') : '';
   console.log(` ${k.padEnd(16)} ${String(v).padStart(8)} kB  ${flag}`);
 }
 console.log(` hojasGoogleFonts: ${fontSheets} (objetivo ≤1)  ${fontSheets <= 1 ? '✅' : '⚠️'}`);
+exigir(fontSheets <= 1, `hojasGoogleFonts: ${fontSheets} > 1`);
 console.log(` scriptsSinDefer: ${sinDefer.length}  ${sinDefer.length === 0 ? '✅' : '⚠️ ' + sinDefer.join(', ')}`);
+exigir(sinDefer.length === 0, `scriptsSinDefer: ${sinDefer.join(', ')}`);
 console.log(` cssMuertoJqueryToast: ${deadCss}  ${deadCss === 0 ? '✅' : '⚠️'}`);
+exigir(deadCss === 0, 'cssMuertoJqueryToast presente');
 console.log(`\n Rutas más pesadas (presupuesto ${BUDGET_RUTA_KB} kB por vista):`);
 for (const r of rutas) {
-  const flag = r.kb > BUDGET_RUTA_KB ? '⚠️ sobre presupuesto' : '✅';
+  const excede = r.kb > BUDGET_RUTA_KB;
+  exigir(!excede, `ruta ${r.archivo}: ${r.kb} kB > presupuesto ${BUDGET_RUTA_KB} kB`);
+  const flag = excede ? '⚠️ sobre presupuesto' : '✅';
   const tag = r.inicial ? '(inicial)' : '(diferido)';
   console.log(` ${r.archivo.padEnd(48)} ${String(r.kb).padStart(8)} kB  ${tag} ${flag}`);
 }
 console.log(`\n Reporte: docs/metrics/perf-${stamp}.json`);
+if (STRICT && incumplimientos.length) {
+  console.log(`\n⛔ --strict: ${incumplimientos.length} incumplimiento(s):`);
+  for (const d of incumplimientos) console.log(`  - ${d}`);
+  process.exit(1);
+}
 process.exit(0);

@@ -45,6 +45,10 @@ export const useNotificationsStore = defineStore('notifications', {
     getters: {
         allNotificationsList: (state) => state.notifications,
         unreadCount: (state) => state.latestNotifications.filter(n => n.status !== 'LEIDA').length,
+        // El hook consulta el estado, no las tripas de la conexión (ARQ-009).
+        sseConnected: (state) => !!state.sseSource
+            && typeof EventSource !== 'undefined'
+            && state.sseSource.readyState === EventSource.OPEN,
     },
 
     actions: {

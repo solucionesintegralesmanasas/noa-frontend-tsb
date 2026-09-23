@@ -11,9 +11,10 @@
 //   que lo propague a axios. La cancelación propia es silencio.
 import { onUnmounted } from 'vue';
 import { logger } from '@utils/logger.js';
+import { isCancelError } from '@utils/error-handler.js';
 
 export function useRealtimeChannel(fetcher, options = {}) {
-    const { intervalMs = 10000, immediate = true } = options;
+    const { intervalMs = 10000 } = options;
 
     let timer = null;
     let controller = null;
@@ -23,9 +24,6 @@ export function useRealtimeChannel(fetcher, options = {}) {
 
     const isHidden = () =>
         typeof document !== 'undefined' && document.visibilityState === 'hidden';
-
-    const esCancelacion = (err) =>
-        !!err && (err.code === 'ERR_CANCELED' || err.name === 'CanceledError' || err.name === 'AbortError');
 
     function clearTimer() {
         if (timer) {
@@ -59,7 +57,7 @@ export function useRealtimeChannel(fetcher, options = {}) {
         } catch (err) {
             // Los errores HTTP ya los gestiona el llamador (store/vista);
             // aquí solo se registra lo inesperado, nunca la cancelación propia.
-            if (!esCancelacion(err)) {
+            if (!isCancelError(err)) {
                 logger.warn('[realtime] Error en ciclo de refresco:', err?.message || err);
             }
         } finally {
@@ -103,8 +101,7 @@ export function useRealtimeChannel(fetcher, options = {}) {
         if (typeof document !== 'undefined') {
             document.addEventListener('visibilitychange', onVisibility);
         }
-        if (immediate) tick();
-        else schedule();
+        tick();
     }
 
     function stop() {

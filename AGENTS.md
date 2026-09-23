@@ -28,11 +28,14 @@
 | `npm run dev`     | Vite dev server                                     |
 | `npm run build`   | Vite production build (outputs to `dist/`)          |
 | `npm run preview` | Serve `dist/` localmente (usar para medir prod)     |
-| `npm run test`    | `test:a11y` + `test:perf` + `lint` — lint bloquea, el resto informa |
+| `npm run test`    | `test:a11y` + `test:perf` + `lint` + `test:unit` — lint y unit bloquean, el resto informa |
 | `npm run test:a11y` | Conteo de antipatrones a11y en `src/`             |
-| `npm run test:perf` | Presupuesto de peso de `dist/` y chequeos HTML    |
+| `npm run test:perf` | Presupuesto de peso de `dist/` y chequeos HTML (`--strict` con `test:perf:strict` para validar) |
+| `npm run test:unit` | Vitest (node): garantías del canal realtime (`src/hooks/__tests__/`) |
 | `npm run lint`    | ESLint (flat config, 0 errores en línea base 2026-09-23) |
 | `npm run typecheck` | `vue-tsc --noEmit` (fase 2: baseline ~1740 errores, no bloquea `test`) |
+
+CI (`.github/workflows/ci.yml`): `lint` + `test:a11y` + `build` + `test:unit` en push/PR a `feature`/`main`.
 
 > **Para Lighthouse:** medir contra `npm run preview` o el Apache de producción, **nunca** contra `localhost:5173` (dev sirve módulos sin minificar y distorsiona el puntaje).
 

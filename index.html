@@ -9,7 +9,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>NOA Transportes</title>
 
-  <!-- Falcon Config -->
+  <!-- Falcon Config + SimpleBar (lo usa theme.js: `new window.SimpleBar`) -->
   <script src="/assets/js/config.js" defer></script>
   <script src="/vendors/simplebar/simplebar.min.js" defer></script>
 
@@ -133,7 +133,10 @@
   </main>
   <script type="module" src="/src/main.js"></script>
 
-  <!-- Falcon Scripts (diferidos: no bloquean el parser, mantienen orden) -->
+  <!-- Falcon Scripts (diferidos: no bloquean el parser, mantienen orden).
+       Requeridos por theme.js y vistas: popper+bootstrap (window.bootstrap),
+       anchorjs, is, lodash (window._ ×11) y theme.js. No quitar sin auditar
+       theme.js (ARQ-012: auditado 2026-09-23, todo en uso). -->
   <script src="/vendors/popper/popper.min.js" defer></script>
   <script src="/vendors/bootstrap/bootstrap.min.js" defer></script>
   <script src="/vendors/anchorjs/anchor.min.js" defer></script>
