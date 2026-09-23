@@ -5,8 +5,6 @@
 
 import PrimeVue from 'primevue/config';
 import Aura from '@primeuix/themes/aura';
-import DataTable from 'primevue/datatable';
-import Column from 'primevue/column';
 import Select from 'primevue/select';
 import MultiSelect from 'primevue/multiselect';
 import Button from 'primevue/button';
@@ -42,10 +40,10 @@ const primeVueOptions = {
 export function installPrimeVue(app) {
     app.use(PrimeVue, primeVueOptions);
 
-    // Registro global de componentes base para evitar imports repetitivos en vistas
-    // (solo los usados en varias vistas; Dialog se importa directo donde se usa)
-    app.component('DataTable', DataTable);
-    app.component('Column', Column);
+    // Registro global de componentes base para evitar imports repetitivos en vistas.
+    // DataTable/Column NO se registran aquí: son pesados, solo los usan los listados
+    // (que ya los importan localmente) y deben viajar en chunk diferido, no en el arranque.
+    // Dialog también se importa directo donde se usa.
     app.component('PrimeSelect', Select);
     app.component('PrimeMultiSelect', MultiSelect);
     app.component('PButton', Button);

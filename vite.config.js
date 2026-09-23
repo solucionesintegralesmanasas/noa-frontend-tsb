@@ -52,7 +52,12 @@ export default defineConfig(({ mode }) => {
             if (id.includes('node_modules/vue') || id.includes('node_modules/@vue') || id.includes('node_modules/vue-router') || id.includes('node_modules/pinia')) {
               return 'vendor-vue';
             }
-            // PrimeVue UI framework
+            // PrimeVue en arranque: solo config + preset Aura + componentes globales
+            // ligeros. DataTable/Column (pesados, solo en listados con import local)
+            // quedan fuera a propósito para que viajen en chunk diferido compartido.
+            if (id.includes('node_modules/primevue/datatable') || id.includes('node_modules/primevue/column')) {
+              return undefined;
+            }
             if (id.includes('node_modules/primevue') || id.includes('node_modules/@primeuix') || id.includes('node_modules/primeicons')) {
               return 'vendor-primevue';
             }
