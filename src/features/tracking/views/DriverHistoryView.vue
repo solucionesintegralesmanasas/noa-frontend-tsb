@@ -16,6 +16,8 @@ const toast = useToast();
 const driverUuid = route.params.uuid;
 const startDate = ref(dayjs().subtract(7, 'day').format('YYYY-MM-DD'));
 const endDate = ref(dayjs().format('YYYY-MM-DD'));
+// Mismo tope que el backend (LocationHistoryService::RANGO_MAXIMO_DIAS).
+const RANGO_MAXIMO_DIAS = 31;
 
 const loading = ref(false);
 const capturingMap = ref(false);
@@ -42,6 +44,10 @@ const avgSpeed = computed(() => rango.value?.avg_speed_kmh ?? 0);
 const maxSpeed = computed(() => rango.value?.max_speed_kmh ?? 0);
 
 async function loadHistory() {
+    if (dayjs(endDate.value).diff(dayjs(startDate.value), 'day') > RANGO_MAXIMO_DIAS) {
+        toast.error(`El rango máximo permitido es de ${RANGO_MAXIMO_DIAS} días`);
+        return;
+    }
     loading.value = true;
     // Mapa: trazado decimado (ARQ-002). Cards: agregados del rango (store.stats).
     await store.fetchDriverHistory(driverUuid, startDate.value, endDate.value, { mode: 'map', max_points: 1000 });

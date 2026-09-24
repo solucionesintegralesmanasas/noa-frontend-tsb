@@ -48,6 +48,8 @@ export const useTrackingStore = defineStore('tracking', {
                 });
                 this.driverHistory = response.data?.data || response.data || [];
             } catch (err) {
+                // Sin datos obsoletos: ante un error (p. ej. 422) se vacía.
+                this.driverHistory = [];
                 this.error = err.message;
             } finally {
                 this.loading = false;
@@ -64,6 +66,8 @@ export const useTrackingStore = defineStore('tracking', {
                 const response = await trackingService.getDriverStats(uuid, params);
                 this.stats = response.data?.data || response.data || null;
             } catch (err) {
+                // Sin datos obsoletos: ante un error se limpia.
+                this.stats = null;
                 this.error = err.message;
             }
         },
