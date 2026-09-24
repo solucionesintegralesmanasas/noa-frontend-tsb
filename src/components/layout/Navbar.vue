@@ -93,7 +93,7 @@
                                                     'unread-item': notification.status !== 'LEIDA',
                                                     'priority-item': group.key === 'priority'
                                                 }"
-                                                to="/notificaciones">
+                                                :to="notification.extra_data?.action?.path || '/notificaciones'">
                                                 <div class="avatar avatar-xl me-3 flex-shrink-0">
                                                     <div class="avatar-name rounded-circle d-flex align-items-center justify-content-center fw-bold text-uppercase fs-11"
                                                         :class="getAvatarClass(notification.type)">

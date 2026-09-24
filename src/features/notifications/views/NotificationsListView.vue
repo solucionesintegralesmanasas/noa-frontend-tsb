@@ -293,7 +293,16 @@ const enfatizar = (texto) => {
 // (sin permiso o etiqueta ausente), devuelve solo texto. Nunca usa v-html.
 const segmentarMensaje = (data) => {
     const message = String(data?.message ?? '');
-    const action = data?.extra_data?.action ?? null;
+    let extra = data?.extra_data ?? null;
+    // Defensivo: la API puede entregar extra_data como objeto o como string JSON.
+    if (typeof extra === 'string' && extra !== '') {
+        try {
+            extra = JSON.parse(extra);
+        } catch {
+            extra = null;
+        }
+    }
+    const action = extra?.action ?? null;
     const etiqueta = action?.label ? String(action.label) : '';
     const conEnlace = etiqueta !== ''
         && typeof action.path === 'string' && action.path !== ''
