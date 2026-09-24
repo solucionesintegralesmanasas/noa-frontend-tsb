@@ -51,11 +51,10 @@
                             <option value="VEHICLE_MAINTENANCE_ALERT">Mantenimiento Preventivo</option>
                             <option value="SOCIAL_SECURITY_MORA">Seguridad Social</option>
                         </select>
-                        <select aria-label="Filtrar por prioridad" v-model="filterPriority" @change="applyFilters" class="form-select form-select-sm border-200 w-100">
-                            <option value="">Todas las prioridades</option>
-                            <option value="PRIORITARIA">Prioritarias</option>
-                            <option value="NORMAL">Normales</option>
-                        </select>
+                        <label class="visually-hidden" for="f-priority">Filtrar por prioridad</label>
+                        <PrimeSelect input-id="f-priority" v-model="filterPriority" :options="priorityOptions"
+                            option-label="label" option-value="value" size="small" class="w-100"
+                            @change="applyFilters" />
                     </div>
                 </div>
             </div>
@@ -109,10 +108,10 @@
                         <Column field="priority" header="Prioridad" style="width: 140px;">
                             <template #body="{ data }">
                                 <span v-if="data.priority === 'PRIORITARIA'" class="badge badge-subtle badge-subtle-danger">
-                                    <i class="fad fa-triangle-exclamation me-1" /> Prioritaria
+                                    <i class="fad fa-triangle-exclamation me-1" aria-hidden="true" /> Prioritaria
                                 </span>
                                 <span v-else class="badge badge-subtle badge-subtle-secondary">
-                                    <i class="fad fa-bell me-1" /> Normal
+                                    <i class="fad fa-bell me-1" aria-hidden="true" /> Normal
                                 </span>
                             </template>
                         </Column>
@@ -220,6 +219,7 @@ import BasePageHeader from '@/components/BasePageHeader.vue';
 import NoaTableSpinner from '@/components/NoaTableSpinner.vue';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
+import PrimeSelect from 'primevue/select';
 import Swal from 'sweetalert2';
 
 const store = useNotificationsStore();
@@ -229,6 +229,12 @@ const filterStatus = ref('');
 const filterType = ref('');
 const filterPriority = ref('');
 const currentPage = ref(1);
+
+const priorityOptions = [
+    { label: 'Todas las prioridades', value: '' },
+    { label: 'Prioritarias', value: 'PRIORITARIA' },
+    { label: 'Normales', value: 'NORMAL' },
+];
 
 const getTypeIcon = (type) => {
     switch (type) {

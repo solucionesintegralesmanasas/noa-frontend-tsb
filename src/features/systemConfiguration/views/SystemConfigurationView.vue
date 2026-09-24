@@ -437,11 +437,18 @@
 
                                         <div class="col-12">
                                             <div class="col-12 col-md-8">
-                                                <label class="form-label" for="own_company_names">Nombres de la
+                                                <label class="form-label" for="f-own_company_names">Nombres de la
                                                     empresa propia</label>
-                                                <textarea id="own_company_names" v-model="ownCompanyNamesText" rows="3"
+                                                <textarea id="f-own_company_names" v-model="ownCompanyNamesText" rows="3"
                                                     class="form-control"
+                                                    :class="{ 'is-invalid': validationErrors.own_company_names }"
+                                                    :aria-invalid="!!validationErrors.own_company_names"
+                                                    :aria-describedby="validationErrors.own_company_names ? 'f-own_company_names-error' : undefined"
                                                     placeholder="Un nombre por línea. Ej: TRANSPORTES ESPECIALES SIN BARRERAS S.A.S." />
+                                                <div class="invalid-feedback"
+                                                    v-if="validationErrors.own_company_names"
+                                                    id="f-own_company_names-error" role="alert">{{
+                                                        validationErrors.own_company_names }}</div>
                                                 <p class="text-muted small mb-0 mt-1">
                                                     Nombres que identifican a la empresa propia en las tarjetas de
                                                     operación. Las alertas de esos vehículos se marcan como
@@ -1077,6 +1084,11 @@ const validateForm = () => {
                 validationErrors.notification_email = 'Ingrese un correo electrónico válido';
             }
         }
+    }
+
+    const tooLong = parseOwnCompanyNames(ownCompanyNamesText.value).filter((line) => line.length > 255);
+    if (tooLong.length > 0) {
+        validationErrors.own_company_names = 'Cada nombre debe tener máximo 255 caracteres';
     }
 
     // Validación de número interno
