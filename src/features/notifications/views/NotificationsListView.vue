@@ -51,6 +51,11 @@
                             <option value="VEHICLE_MAINTENANCE_ALERT">Mantenimiento Preventivo</option>
                             <option value="SOCIAL_SECURITY_MORA">Seguridad Social</option>
                         </select>
+                        <select aria-label="Filtrar por prioridad" v-model="filterPriority" @change="applyFilters" class="form-select form-select-sm border-200 w-100">
+                            <option value="">Todas las prioridades</option>
+                            <option value="PRIORITARIA">Prioritarias</option>
+                            <option value="NORMAL">Normales</option>
+                        </select>
                     </div>
                 </div>
             </div>
@@ -100,6 +105,18 @@
                         emptyMessage="No se encontraron alertas registradas" 
                         @page="onPageChange"
                     >
+                        <!-- Columna Prioridad -->
+                        <Column field="priority" header="Prioridad" style="width: 140px;">
+                            <template #body="{ data }">
+                                <span v-if="data.priority === 'PRIORITARIA'" class="badge badge-subtle badge-subtle-danger">
+                                    <i class="fad fa-triangle-exclamation me-1" /> Prioritaria
+                                </span>
+                                <span v-else class="badge badge-subtle badge-subtle-secondary">
+                                    <i class="fad fa-bell me-1" /> Normal
+                                </span>
+                            </template>
+                        </Column>
+
                         <!-- Columna Tipo -->
                         <Column field="type" header="Tipo de Alerta" style="width: 200px;">
                             <template #body="{ data }">
@@ -210,6 +227,7 @@ const isViewLoading = ref(true);
 
 const filterStatus = ref('');
 const filterType = ref('');
+const filterPriority = ref('');
 const currentPage = ref(1);
 
 const getTypeIcon = (type) => {
@@ -266,6 +284,7 @@ const loadData = async () => {
     const filters = {};
     if (filterStatus.value) filters.status = filterStatus.value;
     if (filterType.value) filters.type = filterType.value;
+    if (filterPriority.value) filters.priority = filterPriority.value;
     
     await store.fetchNotifications(currentPage.value, filters);
 };

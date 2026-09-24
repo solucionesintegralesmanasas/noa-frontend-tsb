@@ -38,6 +38,9 @@ export const useNotificationsStore = defineStore('notifications', {
         sseReconnectTimeout: null,
         activeExpiryToasts: [],
         dockedExpiryToasts: [],
+        // Canal separado: las prioritarias nunca se acoplan al clump normal
+        // y persisten hasta que el usuario las descarta.
+        activePriorityToasts: [],
         highlightedNotificationUuids: [],
         expiryAlertInterval: null,
     }),
@@ -45,6 +48,10 @@ export const useNotificationsStore = defineStore('notifications', {
     getters: {
         allNotificationsList: (state) => state.notifications,
         unreadCount: (state) => state.latestNotifications.filter(n => n.status !== 'LEIDA').length,
+        // Alertas prioritarias: vehículos con tarjeta de operación de la empresa propia.
+        priorityAlerts: (state) => state.latestNotifications.filter(n => n.priority === 'PRIORITARIA'),
+        normalAlerts: (state) => state.latestNotifications.filter(n => n.priority !== 'PRIORITARIA'),
+        priorityCount: (state) => state.latestNotifications.filter(n => n.priority === 'PRIORITARIA' && n.status !== 'LEIDA').length,
         // El hook consulta el estado, no las tripas de la conexión (ARQ-009).
         sseConnected: (state) => !!state.sseSource
             && typeof EventSource !== 'undefined'
@@ -410,7 +417,8 @@ export const useNotificationsStore = defineStore('notifications', {
             }
 
             if (this.activeExpiryToasts.some(t => t.uuid === notification.uuid)
-                || this.dockedExpiryToasts.some(t => t.uuid === notification.uuid)) {
+                || this.dockedExpiryToasts.some(t => t.uuid === notification.uuid)
+                || this.activePriorityToasts.some(t => t.uuid === notification.uuid)) {
                 return;
             }
 
@@ -423,8 +431,22 @@ export const useNotificationsStore = defineStore('notifications', {
                 title: notification.title,
                 message: notification.message,
                 type: notification.type,
+                priority: notification.priority ?? 'NORMAL',
                 created_at: timeStr,
             };
+
+            // Las prioritarias van a su propio grupo: no se acoplan al clump
+            // normal ni se ocultan solas; solo se retiran al descartarlas.
+            if (newToast.priority === 'PRIORITARIA') {
+                if (this.activePriorityToasts.some(t => t.uuid === notification.uuid)) {
+                    return;
+                }
+                this.activePriorityToasts.unshift(newToast);
+                while (this.activePriorityToasts.length > EXPIRY_TOAST_MAX_VISIBLE) {
+                    this.activePriorityToasts.pop();
+                }
+                return;
+            }
 
             this.activeExpiryToasts.unshift(newToast);
             await Preferences.set({ key: storageKey, value: now.toString() });
@@ -485,6 +507,11 @@ export const useNotificationsStore = defineStore('notifications', {
             clearExpiryToastTimer(id);
             this.activeExpiryToasts = this.activeExpiryToasts.filter(t => t.id !== id);
             this.dockedExpiryToasts = this.dockedExpiryToasts.filter(t => t.id !== id);
+        },
+
+        // Cierra una alerta prioritaria de su grupo separado.
+        dismissPriorityToast(id) {
+            this.activePriorityToasts = this.activePriorityToasts.filter(t => t.id !== id);
         },
 
         clearDockedExpiryToasts() {

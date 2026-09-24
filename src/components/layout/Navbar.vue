@@ -39,6 +39,16 @@
                 </li>
             </Transition>
 
+            <!-- Alertas prioritarias: vehículos de la empresa propia (canal separado) -->
+            <li v-if="store.priorityCount > 0" class="nav-item">
+                <button class="nav-link px-0 bg-transparent border-0 position-relative" type="button"
+                    :aria-label="`Alertas prioritarias sin leer: ${store.priorityCount}`"
+                    @click="showNotificationsDropdown">
+                    <span class="fas fa-triangle-exclamation text-danger priority-attention" style="font-size: 30px;" aria-hidden="true"></span>
+                    <span class="priority-badge">{{ store.priorityCount > 9 ? '9+' : store.priorityCount }}</span>
+                </button>
+            </li>
+
             <!-- Campana de Notificaciones (SSE) -->
             <li class="nav-item dropdown">
                 <button class="nav-link px-0 bg-transparent border-0"
@@ -66,44 +76,51 @@
                         </div>
                         <div class="notification-list-container">
                             <div class="list-group list-group-flush fw-normal fs-10">
-                                <template v-if="store.latestNotifications.length > 0">
-                                    <div v-for="notification in store.latestNotifications.slice(0, 8)"
-                                        :key="notification.uuid" class="list-group-item p-0">
-                                        <router-link
-                                            class="notification-item-link d-flex align-items-start p-3 border-bottom text-decoration-none"
-                                            :class="{
-                                                'unread-item': notification.status !== 'LEIDA',
-                                                'notification-item--highlight': store.highlightedNotificationUuids.includes(notification.uuid)
-                                            }"
-                                            to="/notificaciones">
-                                            <div class="avatar avatar-xl me-3 flex-shrink-0">
-                                                <div class="avatar-name rounded-circle d-flex align-items-center justify-content-center fw-bold text-uppercase fs-11"
-                                                    :class="getAvatarClass(notification.type)">
-                                                    <span>{{ getInitialsLabel(notification.type) }}</span>
+                                <template v-if="dropdownGroups.length > 0">
+                                    <template v-for="group in dropdownGroups" :key="group.key">
+                                        <div v-if="group.title" class="dropdown-section-header"
+                                            :class="{ 'dropdown-section-header--priority': group.key === 'priority' }">
+                                            <span v-if="group.key === 'priority'" class="fas fa-triangle-exclamation me-1" aria-hidden="true"></span>{{ group.title }}
+                                        </div>
+                                        <div v-for="notification in group.items"
+                                            :key="notification.uuid" class="list-group-item p-0">
+                                            <router-link
+                                                class="notification-item-link d-flex align-items-start p-3 border-bottom text-decoration-none"
+                                                :class="{
+                                                    'unread-item': notification.status !== 'LEIDA',
+                                                    'priority-item': group.key === 'priority',
+                                                    'notification-item--highlight': store.highlightedNotificationUuids.includes(notification.uuid)
+                                                }"
+                                                to="/notificaciones">
+                                                <div class="avatar avatar-xl me-3 flex-shrink-0">
+                                                    <div class="avatar-name rounded-circle d-flex align-items-center justify-content-center fw-bold text-uppercase fs-11"
+                                                        :class="getAvatarClass(notification.type)">
+                                                        <span>{{ getInitialsLabel(notification.type) }}</span>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div class="flex-grow-1 min-w-0">
-                                                <div class="d-flex justify-content-between align-items-baseline mb-1">
-                                                    <p class="mb-0 text-900 fs-11 fw-bold text-truncate pe-2"
-                                                        style="max-width: 140px;">
-                                                        {{ notification.title }}
+                                                <div class="flex-grow-1 min-w-0">
+                                                    <div class="d-flex justify-content-between align-items-baseline mb-1">
+                                                        <p class="mb-0 text-900 fs-11 fw-bold text-truncate pe-2"
+                                                            style="max-width: 140px;">
+                                                            {{ notification.title }}
+                                                        </p>
+                                                        <span
+                                                            class="fs-10 text-700 fw-normal flex-shrink-0 font-sans-serif">
+                                                            {{ timeAgo(notification.created_at) }}
+                                                        </span>
+                                                    </div>
+                                                    <p class="mb-0 text-700 fs-10 line-clamp-2" style="line-height: 1.4;">
+                                                        {{ notification.message }}
                                                     </p>
-                                                    <span
-                                                        class="fs-10 text-700 fw-normal flex-shrink-0 font-sans-serif">
-                                                        {{ timeAgo(notification.created_at) }}
-                                                    </span>
+                                                    <small v-if="notification.expiry_date"
+                                                        class="text-danger fs-10 fw-medium mt-1 d-block">
+                                                        <i class="fas fa-calendar-alt me-1"></i>Vence: {{
+                                                            formatDate(notification.expiry_date) }}
+                                                    </small>
                                                 </div>
-                                                <p class="mb-0 text-700 fs-10 line-clamp-2" style="line-height: 1.4;">
-                                                    {{ notification.message }}
-                                                </p>
-                                                <small v-if="notification.expiry_date"
-                                                    class="text-danger fs-10 fw-medium mt-1 d-block">
-                                                    <i class="fas fa-calendar-alt me-1"></i>Vence: {{
-                                                        formatDate(notification.expiry_date) }}
-                                                </small>
-                                            </div>
-                                        </router-link>
-                                    </div>
+                                            </router-link>
+                                        </div>
+                                    </template>
                                 </template>
                                 <template v-else>
                                     <div class="p-4 text-center text-700">
@@ -239,6 +256,21 @@ onUnmounted(() => {
     if (dockActivationTimeout) clearTimeout(dockActivationTimeout)
     if (bellAttentionTimeout) clearTimeout(bellAttentionTimeout)
     store.disconnectSSE()
+})
+
+// Dropdown en dos secciones: las prioritarias (empresa propia) van primero
+// y nunca se mezclan con las normales. Máximo 8 elementos en total.
+const dropdownGroups = computed(() => {
+    const priority = store.priorityAlerts.slice(0, 4)
+    const normal = store.normalAlerts.slice(0, Math.max(0, 8 - priority.length))
+    const groups = []
+    if (priority.length > 0) {
+        groups.push({ key: 'priority', title: 'Alertas prioritarias', items: priority })
+    }
+    if (normal.length > 0) {
+        groups.push({ key: 'normal', title: priority.length > 0 ? 'Notificaciones' : null, items: normal })
+    }
+    return groups
 })
 
 const getAvatarClass = (type) => {
@@ -614,5 +646,65 @@ async function handleLogout() {
     .dock-fade-enter-from {
         transform: none;
     }
+}
+
+/* Canal separado de alertas prioritarias (vehículos de la empresa propia) */
+.priority-badge {
+    position: absolute;
+    top: -2px;
+    right: -6px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--bs-danger, #e63757);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 20px;
+    text-align: center;
+    box-shadow: 0 0 0 2px var(--bs-body-bg, #fff);
+}
+
+.priority-attention {
+    animation: priority-pulse 1.6s ease-in-out infinite;
+    transform-origin: center;
+}
+
+@keyframes priority-pulse {
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.12);
+        opacity: 0.85;
+    }
+}
+
+.dropdown-section-header {
+    padding: 8px 16px 4px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--bs-gray-600);
+}
+
+.dropdown-section-header--priority {
+    color: var(--bs-danger, #e63757);
+}
+
+.priority-item {
+    border-left: 3px solid var(--bs-danger, #e63757) !important;
+}
+
+.priority-item.unread-item {
+    background-color: rgba(var(--bs-danger-rgb, 230, 55, 87), 0.07);
+}
+
+.priority-item.unread-item:hover {
+    background-color: rgba(var(--bs-danger-rgb, 230, 55, 87), 0.12);
 }
 </style>

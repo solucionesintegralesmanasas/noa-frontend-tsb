@@ -102,6 +102,38 @@ const getInitialsLabel = (type) => {
 
   <!-- Alertas temporales; el resumen vive junto a la campana en Navbar.vue -->
   <div class="expiry-notifications-hub">
+    <!-- Alertas prioritarias: grupo propio, no se acoplan al clump normal -->
+    <TransitionGroup name="toast-fade" tag="div" class="expiry-toast-stack">
+      <div v-for="toast in notificationsStore.activePriorityToasts" :key="toast.id"
+        class="expiry-toast-item expiry-toast-item--priority shadow-lg p-3 rounded bg-white border d-flex align-items-start">
+        <div class="toast-avatar me-3">
+          <div class="avatar avatar-xl">
+            <div class="avatar-name rounded-circle d-flex align-items-center justify-content-center fw-bold fs-11"
+              :class="getAvatarClass(toast.type)">
+              <span>{{ getInitialsLabel(toast.type) }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="toast-body flex-grow-1 min-w-0">
+          <div class="d-flex justify-content-between align-items-baseline mb-1">
+            <h6 class="toast-title mb-0 fs-11 text-900 fw-bold text-truncate pe-2">
+              {{ toast.title }}
+            </h6>
+            <span class="fs-10 text-white fw-bold flex-shrink-0 priority-toast-badge">
+              PRIORITARIA
+            </span>
+          </div>
+          <p class="toast-message mb-0 text-700 fs-10" style="line-height: 1.4;">
+            {{ toast.message }}
+          </p>
+          <small class="text-500 fs-11 mt-1 d-block">
+            <i class="far fa-clock me-1" aria-hidden="true"></i>{{ toast.created_at }}
+          </small>
+        </div>
+        <button type="button" class="btn-close ms-2 fs-11 text-500 flex-shrink-0" aria-label="Cerrar alerta prioritaria"
+          @click="notificationsStore.dismissPriorityToast(toast.id)"></button>
+      </div>
+    </TransitionGroup>
     <!-- Alertas visibles por unos segundos -->
     <TransitionGroup name="toast-fade" tag="div" class="expiry-toast-stack">
       <div v-for="toast in notificationsStore.activeExpiryToasts" :key="toast.id"
@@ -174,6 +206,26 @@ const getInitialsLabel = (type) => {
   border-left: 2px solid var(--bs-danger) !important;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Prioritarias: diferencia visual clara sobre las normales */
+.expiry-toast-item--priority {
+  border: 1px solid var(--bs-danger) !important;
+  border-left: 5px solid var(--bs-danger) !important;
+  background-color: #fff5f5 !important;
+}
+
+.dark .expiry-toast-item--priority {
+  background-color: #2a1518 !important;
+  border-color: var(--bs-danger) !important;
+  border-left-color: var(--bs-danger) !important;
+}
+
+.priority-toast-badge {
+  background-color: var(--bs-danger);
+  border-radius: 999px;
+  padding: 2px 8px;
+  letter-spacing: 0.04em;
 }
 
 .dark .expiry-toast-item {
