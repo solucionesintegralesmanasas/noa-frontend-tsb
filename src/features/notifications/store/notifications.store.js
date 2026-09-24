@@ -12,11 +12,9 @@ const EXPIRY_TOAST_VISIBLE_MS = 7000;
 const EXPIRY_TOAST_MAX_VISIBLE = 3;
 
 // Duración del resaltado azul sobre las alertas realmente nuevas.
-const NOTIFICATION_HIGHLIGHT_MS = 1000;
 
 // Temporizadores por alerta (fuera del estado para no persistirlos en el store).
 const expiryToastTimers = new Map();
-let notificationHighlightTimeout = null;
 
 function clearExpiryToastTimer(id) {
     const entry = expiryToastTimers.get(id);
@@ -37,21 +35,20 @@ export const useNotificationsStore = defineStore('notifications', {
         sseMaxRetries: 10,
         sseReconnectTimeout: null,
         activeExpiryToasts: [],
-        dockedExpiryToasts: [],
-        // Canal separado: las prioritarias nunca se acoplan al clump normal
-        // y persisten hasta que el usuario las descarta.
-        activePriorityToasts: [],
-        highlightedNotificationUuids: [],
+        // Conteo real de pendientes por prioridad (alimenta los clumps).
+        unreadCounts: { total: 0, PRIORITARIA: 0, NORMAL: 0 },
         expiryAlertInterval: null,
     }),
 
     getters: {
         allNotificationsList: (state) => state.notifications,
-        unreadCount: (state) => state.latestNotifications.filter(n => n.status !== 'LEIDA').length,
+        // Total real de pendientes (endpoint de conteos, sin el tope de 10).
+        unreadCount: (state) => state.unreadCounts.total,
+        unreadCompanyCount: (state) => state.unreadCounts.PRIORITARIA,
+        unreadThirdPartyCount: (state) => state.unreadCounts.NORMAL,
         // Alertas prioritarias: vehículos con tarjeta de operación de la empresa propia.
         priorityAlerts: (state) => state.latestNotifications.filter(n => n.priority === 'PRIORITARIA'),
         normalAlerts: (state) => state.latestNotifications.filter(n => n.priority !== 'PRIORITARIA'),
-        priorityCount: (state) => state.latestNotifications.filter(n => n.priority === 'PRIORITARIA' && n.status !== 'LEIDA').length,
         // El hook consulta el estado, no las tripas de la conexión (ARQ-009).
         sseConnected: (state) => !!state.sseSource
             && typeof EventSource !== 'undefined'
@@ -140,6 +137,27 @@ export const useNotificationsStore = defineStore('notifications', {
             }
         },
 
+        async fetchUnreadCounts() {
+            try {
+                const userStore = useUserStore();
+                const tenantId = userStore.company_uuid;
+                const client = tenantId ? apiClient.forTenant(tenantId) : apiClient.global;
+
+                const response = await client.get('/notifications/counts');
+
+                if (response.data && response.data.success) {
+                    const counts = response.data.data || {};
+                    this.unreadCounts = {
+                        total: Number(counts.total || 0),
+                        PRIORITARIA: Number(counts.PRIORITARIA || 0),
+                        NORMAL: Number(counts.NORMAL || 0),
+                    };
+                }
+            } catch (error) {
+                console.error('Error fetching notification counts:', error);
+            }
+        },
+
         async markAsRead(uuid) {
             try {
                 const userStore = useUserStore();
@@ -157,6 +175,10 @@ export const useNotificationsStore = defineStore('notifications', {
                     if (latestIndex !== -1) {
                         this.latestNotifications[latestIndex].status = 'LEIDA';
                     }
+                    // Al marcarla como leída deja de saltar: se retira su aviso
+                    // y el clump correspondiente baja de inmediato.
+                    this.activeExpiryToasts = this.activeExpiryToasts.filter(t => t.uuid !== uuid);
+                    await this.fetchUnreadCounts();
                 }
             } catch (error) {
                 console.error('Error marking notification as read:', error);
@@ -178,6 +200,9 @@ export const useNotificationsStore = defineStore('notifications', {
                     this.latestNotifications.forEach(n => {
                         n.status = 'LEIDA';
                     });
+                    this.activeExpiryToasts.forEach(t => clearExpiryToastTimer(t.id));
+                    this.activeExpiryToasts = [];
+                    await this.fetchUnreadCounts();
                     toast({
                         icon: 'success', title: 'Completado', text: 'Todas las notificaciones marcadas como leídas.',
                         timer: 1500,
@@ -266,6 +291,7 @@ export const useNotificationsStore = defineStore('notifications', {
             if (!this.latestNotifications || this.latestNotifications.length === 0) {
                 await this.fetchLatestNotifications();
             }
+            await this.fetchUnreadCounts();
 
             try {
                 const userStore = useUserStore();
@@ -298,6 +324,7 @@ export const useNotificationsStore = defineStore('notifications', {
                         const data = JSON.parse(event.data);
                         if (Array.isArray(data)) {
                             this.latestNotifications = data;
+                            this.fetchUnreadCounts();
                         }
                     } catch (err) {
                         console.error('Error parsing SSE notifications:', err);
@@ -398,8 +425,9 @@ export const useNotificationsStore = defineStore('notifications', {
                 console.error('Error cleaning up alert storage:', e);
             }
 
+            // Las ya leídas no vuelven a saltar: solo se avisa lo pendiente.
             const expiringToday = this.latestNotifications.filter(n => {
-                return n.expiry_date && n.expiry_date.startsWith(todayStr);
+                return n.status !== 'LEIDA' && n.expiry_date && n.expiry_date.startsWith(todayStr);
             });
 
             for (const n of expiringToday) {
@@ -416,9 +444,7 @@ export const useNotificationsStore = defineStore('notifications', {
                 return;
             }
 
-            if (this.activeExpiryToasts.some(t => t.uuid === notification.uuid)
-                || this.dockedExpiryToasts.some(t => t.uuid === notification.uuid)
-                || this.activePriorityToasts.some(t => t.uuid === notification.uuid)) {
+            if (this.activeExpiryToasts.some(t => t.uuid === notification.uuid)) {
                 return;
             }
 
@@ -435,37 +461,26 @@ export const useNotificationsStore = defineStore('notifications', {
                 created_at: timeStr,
             };
 
-            // Las prioritarias van a su propio grupo: no se acoplan al clump
-            // normal ni se ocultan solas; solo se retiran al descartarlas.
-            if (newToast.priority === 'PRIORITARIA') {
-                if (this.activePriorityToasts.some(t => t.uuid === notification.uuid)) {
-                    return;
-                }
-                this.activePriorityToasts.unshift(newToast);
-                while (this.activePriorityToasts.length > EXPIRY_TOAST_MAX_VISIBLE) {
-                    this.activePriorityToasts.pop();
-                }
-                return;
-            }
-
             this.activeExpiryToasts.unshift(newToast);
             await Preferences.set({ key: storageKey, value: now.toString() });
 
-            this.scheduleExpiryToastDock(id);
+            // Los avisos son transitorios: tras unos segundos desaparecen y su
+            // información queda en los clumps y en la campana (ya no se acoplan).
+            this.scheduleExpiryToastDismiss(id);
 
-            // Si hay demasiadas alertas visibles, las más antiguas se agrupan
+            // Si hay demasiadas alertas visibles, las más antiguas se retiran
             // de inmediato para no tapar la pantalla.
             while (this.activeExpiryToasts.length > EXPIRY_TOAST_MAX_VISIBLE) {
                 const overflow = this.activeExpiryToasts[this.activeExpiryToasts.length - 1];
-                this.dockExpiryToast(overflow.id);
+                this.dismissExpiryToast(overflow.id);
             }
         },
 
-        scheduleExpiryToastDock(id, delay = EXPIRY_TOAST_VISIBLE_MS) {
+        scheduleExpiryToastDismiss(id, delay = EXPIRY_TOAST_VISIBLE_MS) {
             clearExpiryToastTimer(id);
             const timeout = setTimeout(() => {
                 expiryToastTimers.delete(id);
-                this.dockExpiryToast(id);
+                this.dismissExpiryToast(id);
             }, delay);
             expiryToastTimers.set(id, { timeout, remaining: delay, startedAt: Date.now() });
         },
@@ -483,61 +498,18 @@ export const useNotificationsStore = defineStore('notifications', {
             if (!entry) return;
             const timeout = setTimeout(() => {
                 expiryToastTimers.delete(id);
-                this.dockExpiryToast(id);
+                this.dismissExpiryToast(id);
             }, entry.remaining);
             entry.timeout = timeout;
             entry.startedAt = Date.now();
             expiryToastTimers.set(id, entry);
         },
 
-        // Retira la alerta visible y la acopla al grupo junto a la campana.
-        dockExpiryToast(id) {
-            clearExpiryToastTimer(id);
-            const index = this.activeExpiryToasts.findIndex(t => t.id === id);
-            if (index === -1) return;
-            const [toast] = this.activeExpiryToasts.splice(index, 1);
-            if (!this.dockedExpiryToasts.some(t => t.id === toast.id)) {
-                this.dockedExpiryToasts.unshift(toast);
-            }
-        },
-
-        // Cierra la alerta por completo del área flotante. La notificación
-        // sigue disponible en la campana y en el módulo de notificaciones.
+        // Cierra la alerta del área flotante. La notificación sigue disponible
+        // en la campana y en el módulo de notificaciones.
         dismissExpiryToast(id) {
             clearExpiryToastTimer(id);
             this.activeExpiryToasts = this.activeExpiryToasts.filter(t => t.id !== id);
-            this.dockedExpiryToasts = this.dockedExpiryToasts.filter(t => t.id !== id);
         },
-
-        // Cierra una alerta prioritaria de su grupo separado.
-        dismissPriorityToast(id) {
-            this.activePriorityToasts = this.activePriorityToasts.filter(t => t.id !== id);
-        },
-
-        clearDockedExpiryToasts() {
-            this.dockedExpiryToasts.forEach(t => clearExpiryToastTimer(t.id));
-            this.dockedExpiryToasts = [];
-        },
-
-        // Resalta por un instante las alertas que originaron el clump y lo vacía.
-        // Se usa cuando el usuario abre las notificaciones desde el resumen.
-        highlightDockedExpiryToasts() {
-            const uuids = this.dockedExpiryToasts.map(t => t.uuid);
-
-            if (notificationHighlightTimeout) {
-                clearTimeout(notificationHighlightTimeout);
-                notificationHighlightTimeout = null;
-            }
-
-            this.clearDockedExpiryToasts();
-            this.highlightedNotificationUuids = uuids;
-
-            if (uuids.length === 0) return;
-
-            notificationHighlightTimeout = setTimeout(() => {
-                this.highlightedNotificationUuids = [];
-                notificationHighlightTimeout = null;
-            }, NOTIFICATION_HIGHLIGHT_MS);
-        }
     }
 });

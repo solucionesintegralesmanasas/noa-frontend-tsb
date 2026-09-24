@@ -43,9 +43,6 @@ watch(() => route.path, (newPath, oldPath) => {
   if (newPath === '/dashboard') {
     configStore.setLoading(false);
   }
-  if (newPath === '/notificaciones') {
-    notificationsStore.clearDockedExpiryToasts();
-  }
 
   const fromForm = FORM_ROUTES.some(seg => oldPath?.includes(seg));
   const toNonForm = !FORM_ROUTES.some(seg => newPath?.includes(seg));
@@ -100,44 +97,12 @@ const getInitialsLabel = (type) => {
   </component>
   <router-view v-else />
 
-  <!-- Alertas temporales; el resumen vive junto a la campana en Navbar.vue -->
+  <!-- Alertas temporales transitorias; el conteo persistente vive en los clumps del Navbar -->
   <div class="expiry-notifications-hub">
-    <!-- Alertas prioritarias: grupo propio, no se acoplan al clump normal -->
-    <TransitionGroup name="toast-fade" tag="div" class="expiry-toast-stack">
-      <div v-for="toast in notificationsStore.activePriorityToasts" :key="toast.id"
-        class="expiry-toast-item expiry-toast-item--priority shadow-lg p-3 rounded bg-white border d-flex align-items-start">
-        <div class="toast-avatar me-3">
-          <div class="avatar avatar-xl">
-            <div class="avatar-name rounded-circle d-flex align-items-center justify-content-center fw-bold fs-11"
-              :class="getAvatarClass(toast.type)">
-              <span>{{ getInitialsLabel(toast.type) }}</span>
-            </div>
-          </div>
-        </div>
-        <div class="toast-body flex-grow-1 min-w-0">
-          <div class="d-flex justify-content-between align-items-baseline mb-1">
-            <h6 class="toast-title mb-0 fs-11 text-900 fw-bold text-truncate pe-2">
-              {{ toast.title }}
-            </h6>
-            <span class="fs-10 text-white fw-bold flex-shrink-0 priority-toast-badge">
-              PRIORITARIA
-            </span>
-          </div>
-          <p class="toast-message mb-0 text-700 fs-10" style="line-height: 1.4;">
-            {{ toast.message }}
-          </p>
-          <small class="text-500 fs-11 mt-1 d-block">
-            <i class="far fa-clock me-1" aria-hidden="true"></i>{{ toast.created_at }}
-          </small>
-        </div>
-        <button type="button" class="btn-close ms-2 fs-11 text-500 flex-shrink-0" aria-label="Cerrar alerta prioritaria"
-          @click="notificationsStore.dismissPriorityToast(toast.id)"></button>
-      </div>
-    </TransitionGroup>
-    <!-- Alertas visibles por unos segundos -->
     <TransitionGroup name="toast-fade" tag="div" class="expiry-toast-stack">
       <div v-for="toast in notificationsStore.activeExpiryToasts" :key="toast.id"
         class="expiry-toast-item shadow-lg p-3 rounded bg-white border d-flex align-items-start"
+        :class="{ 'expiry-toast-item--priority': toast.priority === 'PRIORITARIA' }"
         @mouseenter="notificationsStore.pauseExpiryToastTimer(toast.id)"
         @mouseleave="notificationsStore.resumeExpiryToastTimer(toast.id)"
         @focusin="notificationsStore.pauseExpiryToastTimer(toast.id)"
@@ -155,7 +120,10 @@ const getInitialsLabel = (type) => {
             <h6 class="toast-title mb-0 fs-11 text-900 fw-bold text-truncate pe-2">
               {{ toast.title }}
             </h6>
-            <span class="fs-10 text-danger fw-bold flex-shrink-0 animate-pulse">
+            <span v-if="toast.priority === 'PRIORITARIA'" class="fs-10 text-white fw-bold flex-shrink-0 priority-toast-badge">
+              EMPRESA
+            </span>
+            <span v-else class="fs-10 text-danger fw-bold flex-shrink-0 animate-pulse">
               ¡VENCE HOY!
             </span>
           </div>

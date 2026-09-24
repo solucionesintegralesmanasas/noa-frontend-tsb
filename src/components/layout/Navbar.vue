@@ -18,43 +18,46 @@
         </router-link>
 
         <ul class="navbar-nav navbar-nav-icons ms-auto flex-row align-items-center">
-            <!-- Resumen temporal de alertas, junto a la campana -->
+            <!-- Clump: alertas de la empresa (vehículos propios) -->
             <Transition name="dock-fade">
-                <li v-if="store.dockedExpiryToasts.length" class="nav-item notification-dock-item">
+                <li v-if="store.unreadCompanyCount > 0" class="nav-item notification-dock-item">
                     <button
                         type="button"
-                        class="notification-dock-toggle"
-                        :class="{ 'is-activating': isDockActivating }"
-                        :disabled="isDockActivating"
-                        aria-label="Abrir las alertas nuevas en la campana"
+                        class="notification-dock-toggle notification-dock-toggle--company"
+                        aria-label="Abrir las alertas de la empresa en la campana"
                         @click="openNotificationsMenu"
                     >
-                        <span class="fas fa-layer-group" aria-hidden="true"></span>
-                        <span class="notification-dock-count">{{ store.dockedExpiryToasts.length }}</span>
-                        <span class="notification-dock-label">
-                            {{ store.dockedExpiryToasts.length === 1 ? 'alerta nueva' : 'alertas nuevas' }}
-                        </span>
+                        <span class="fas fa-building-shield" aria-hidden="true"></span>
+                        <span class="notification-dock-count">{{ companyClumpCount }}</span>
+                        <span class="notification-dock-label">Alertas de la empresa</span>
                         <span class="fas fa-arrow-up-right" aria-hidden="true"></span>
                     </button>
                 </li>
             </Transition>
 
-            <!-- Alertas prioritarias: vehículos de la empresa propia (canal separado) -->
-            <li v-if="store.priorityCount > 0" class="nav-item">
-                <button class="nav-link px-0 bg-transparent border-0 position-relative" type="button"
-                    :aria-label="`Alertas prioritarias sin leer: ${store.priorityCount}`"
-                    @click="showNotificationsDropdown">
-                    <span class="fas fa-triangle-exclamation text-danger priority-attention" style="font-size: 30px;" aria-hidden="true"></span>
-                    <span class="priority-badge">{{ store.priorityCount > 9 ? '9+' : store.priorityCount }}</span>
-                </button>
-            </li>
+            <!-- Clump: alertas de terceros -->
+            <Transition name="dock-fade">
+                <li v-if="store.unreadThirdPartyCount > 0" class="nav-item notification-dock-item">
+                    <button
+                        type="button"
+                        class="notification-dock-toggle notification-dock-toggle--third-party"
+                        aria-label="Abrir las alertas de terceros en la campana"
+                        @click="openNotificationsMenu"
+                    >
+                        <span class="fas fa-users" aria-hidden="true"></span>
+                        <span class="notification-dock-count">{{ thirdPartyClumpCount }}</span>
+                        <span class="notification-dock-label">Alertas de terceros</span>
+                        <span class="fas fa-arrow-up-right" aria-hidden="true"></span>
+                    </button>
+                </li>
+            </Transition>
 
             <!-- Campana de Notificaciones (SSE) -->
             <li class="nav-item dropdown">
                 <button class="nav-link px-0 bg-transparent border-0"
                     :class="{ 'notification-indicator notification-indicator-primary': store.unreadCount > 0 }"
                     id="navbarDropdownNotification" type="button" aria-label="Notificaciones" data-bs-toggle="dropdown" aria-haspopup="true"
-                    aria-expanded="false" @click="store.clearDockedExpiryToasts">
+                    aria-expanded="false">
                     <span class="fas fa-bell" :class="{ 'is-attention': isBellAttention }" style="font-size: 33px;" aria-hidden="true"></span>
                 </button>
                 <div class="dropdown-menu dropdown-caret dropdown-menu-end dropdown-menu-card dropdown-menu-notification dropdown-caret-bg"
@@ -84,12 +87,11 @@
                                         </div>
                                         <div v-for="notification in group.items"
                                             :key="notification.uuid" class="list-group-item p-0">
-                                            <router-link
+                                                <router-link
                                                 class="notification-item-link d-flex align-items-start p-3 border-bottom text-decoration-none"
                                                 :class="{
                                                     'unread-item': notification.status !== 'LEIDA',
-                                                    'priority-item': group.key === 'priority',
-                                                    'notification-item--highlight': store.highlightedNotificationUuids.includes(notification.uuid)
+                                                    'priority-item': group.key === 'priority'
                                                 }"
                                                 to="/notificaciones">
                                                 <div class="avatar avatar-xl me-3 flex-shrink-0">
@@ -206,13 +208,14 @@ const configStore = useConfigStore()
 const store = useNotificationsStore()
 const isLoggingOut = ref(false)
 
-// Animación de transición entre el clump y la campana.
-const isDockActivating = ref(false)
+// Animación de la campana al abrir desde un clump.
 const isBellAttention = ref(false)
-const DOCK_ACTIVATION_MS = 180
 const BELL_ATTENTION_MS = 600
-let dockActivationTimeout = null
 let bellAttentionTimeout = null
+
+// Conteo de los clumps, topado para no romper el pill.
+const companyClumpCount = computed(() => (store.unreadCompanyCount > 9 ? '9+' : store.unreadCompanyCount))
+const thirdPartyClumpCount = computed(() => (store.unreadThirdPartyCount > 9 ? '9+' : store.unreadThirdPartyCount))
 
 const showNotificationsDropdown = () => {
     const trigger = document.getElementById('navbarDropdownNotification')
@@ -228,24 +231,14 @@ const showNotificationsDropdown = () => {
 }
 
 const openNotificationsMenu = () => {
-    if (isDockActivating.value) return
-    isDockActivating.value = true
+    showNotificationsDropdown()
 
-    // Deja que el clump se encoja antes de replegarse, y luego abre la campana
-    // resaltando únicamente las alertas que lo originaron.
-    dockActivationTimeout = setTimeout(() => {
-        dockActivationTimeout = null
-        isDockActivating.value = false
-
-        store.highlightDockedExpiryToasts()
-        showNotificationsDropdown()
-
-        isBellAttention.value = true
-        bellAttentionTimeout = setTimeout(() => {
-            isBellAttention.value = false
-            bellAttentionTimeout = null
-        }, BELL_ATTENTION_MS)
-    }, DOCK_ACTIVATION_MS)
+    isBellAttention.value = true
+    if (bellAttentionTimeout) clearTimeout(bellAttentionTimeout)
+    bellAttentionTimeout = setTimeout(() => {
+        isBellAttention.value = false
+        bellAttentionTimeout = null
+    }, BELL_ATTENTION_MS)
 }
 
 onMounted(() => {
@@ -253,7 +246,6 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-    if (dockActivationTimeout) clearTimeout(dockActivationTimeout)
     if (bellAttentionTimeout) clearTimeout(bellAttentionTimeout)
     store.disconnectSSE()
 })
@@ -482,23 +474,6 @@ async function handleLogout() {
     color: #fff;
 }
 
-/* Transición del clump: se encoge y se repliega hacia la campana */
-.notification-dock-toggle.is-activating {
-    animation: dock-confirm 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes dock-confirm {
-    0% {
-        transform: scale(1);
-    }
-    45% {
-        transform: scale(0.94);
-    }
-    100% {
-        transform: scale(1);
-    }
-}
-
 .dock-fade-leave-active {
     transition: opacity 0.22s ease, transform 0.22s ease;
 }
@@ -533,33 +508,6 @@ async function handleLogout() {
     }
     60% {
         transform: rotate(6deg) scale(1.04);
-    }
-}
-
-/* Resaltado breve de las alertas realmente nuevas */
-.notification-item--highlight {
-    animation: notification-highlight 1s ease-out;
-}
-
-@keyframes notification-highlight {
-    0% {
-        background-color: rgba(var(--bs-primary-rgb), 0.28);
-    }
-    100% {
-        background-color: transparent;
-    }
-}
-
-.dark .notification-item--highlight {
-    animation-name: notification-highlight-dark;
-}
-
-@keyframes notification-highlight-dark {
-    0% {
-        background-color: rgba(44, 123, 229, 0.4);
-    }
-    100% {
-        background-color: transparent;
     }
 }
 
@@ -625,16 +573,8 @@ async function handleLogout() {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .notification-dock-toggle.is-activating,
-    .fas.fa-bell.is-attention,
-    .notification-item--highlight,
-    .dark .notification-item--highlight {
+    .fas.fa-bell.is-attention {
         animation: none;
-    }
-
-    .notification-item--highlight,
-    .dark .notification-item--highlight {
-        background-color: rgba(var(--bs-primary-rgb), 0.18);
     }
 
     .dock-fade-leave-active,
@@ -648,39 +588,48 @@ async function handleLogout() {
     }
 }
 
-/* Canal separado de alertas prioritarias (vehículos de la empresa propia) */
-.priority-badge {
-    position: absolute;
-    top: -2px;
-    right: -6px;
-    min-width: 20px;
-    height: 20px;
-    padding: 0 5px;
-    border-radius: 999px;
+/* Clump de la empresa: diferencia visual clara en rojo */
+.notification-dock-toggle--company {
+    border-color: rgba(var(--bs-danger-rgb, 230, 55, 87), 0.5);
+    background: rgba(var(--bs-danger-rgb, 230, 55, 87), 0.08);
+    color: var(--bs-danger, #e63757);
+}
+
+.notification-dock-toggle--company:hover {
+    background: rgba(var(--bs-danger-rgb, 230, 55, 87), 0.14);
+    border-color: rgba(var(--bs-danger-rgb, 230, 55, 87), 0.7);
+}
+
+.notification-dock-toggle--company:focus-visible {
+    outline-color: var(--bs-danger, #e63757);
+}
+
+.notification-dock-toggle--company .notification-dock-count {
     background: var(--bs-danger, #e63757);
     color: #fff;
-    font-size: 11px;
-    font-weight: 700;
-    line-height: 20px;
-    text-align: center;
-    box-shadow: 0 0 0 2px var(--bs-body-bg, #fff);
 }
 
-.priority-attention {
-    animation: priority-pulse 1.6s ease-in-out infinite;
-    transform-origin: center;
+.dark .notification-dock-toggle--company {
+    background: rgba(var(--bs-danger-rgb, 230, 55, 87), 0.18);
+    color: #f5a3b3;
 }
 
-@keyframes priority-pulse {
-    0%,
-    100% {
-        transform: scale(1);
-        opacity: 1;
-    }
-    50% {
-        transform: scale(1.12);
-        opacity: 0.85;
-    }
+/* Clump de terceros: neutro */
+.notification-dock-toggle--third-party {
+    border-color: #bcd6f7;
+    background: #e8f1fd;
+    color: #1257b8;
+}
+
+.notification-dock-toggle--third-party:hover {
+    background: #d8e8fc;
+    border-color: #93bdf3;
+}
+
+.dark .notification-dock-toggle--third-party {
+    border-color: rgba(44, 123, 229, 0.45);
+    background: rgba(44, 123, 229, 0.18);
+    color: #9ec5fe;
 }
 
 .dropdown-section-header {
