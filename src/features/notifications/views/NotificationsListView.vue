@@ -131,7 +131,7 @@
                             <template #body="{ data }">
                                 <div class="d-flex flex-column">
                                     <span class="fw-semibold text-dark fs-10 mb-1">{{ data.title }}</span>
-                                    <span class="text-600 fs-11" v-html="formatMessage(data.message)"></span>
+                                    <span class="text-600 fs-11"><template v-for="(seg, i) in segmentarMensaje(data)" :key="i"><strong v-if="seg.tipo === 'fuerte'" :class="seg.peligro ? 'text-danger' : 'text-warning'">{{ seg.texto }}</strong><router-link v-else-if="seg.tipo === 'enlace'" :to="seg.path" class="alerta-enlace" :title="seg.titulo" :aria-label="seg.aria">{{ seg.texto }}</router-link><template v-else>{{ seg.texto }}</template></template></span>
                                 </div>
                             </template>
                         </Column>
@@ -215,6 +215,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useNotificationsStore } from '../store/notifications.store.js';
+import { usePermissionsStore } from '@store';
 import BasePageHeader from '@/components/BasePageHeader.vue';
 import NoaTableSpinner from '@/components/NoaTableSpinner.vue';
 import DataTable from 'primevue/datatable';
@@ -223,6 +224,7 @@ import PrimeSelect from 'primevue/select';
 import Swal from 'sweetalert2';
 
 const store = useNotificationsStore();
+const permissionsStore = usePermissionsStore();
 const isViewLoading = ref(true);
 
 const filterStatus = ref('');
@@ -266,13 +268,51 @@ const getTypeLabel = (type) => {
     }
 };
 
-const formatMessage = (msg) => {
-    if (!msg) return '';
-    let formatted = msg;
-    // Resaltar palabras clave
-    formatted = formatted.replace(/(VENCIDO|VENCIDA|VENCIDAS)/g, '<strong class="text-danger">$1</strong>');
-    formatted = formatted.replace(/(por vencer|vence en|PRÓXIMO|PRÓXIMA|PROXIMO|PROXIMA)/gi, '<strong class="text-warning">$1</strong>');
-    return formatted;
+// Patrones de énfasis (los mismos que usaba el anterior v-html).
+const PATRON_ENFASIS = /(VENCIDO|VENCIDA|VENCIDAS|por vencer|vence en|PRÓXIMO|PRÓXIMA|PROXIMO|PROXIMA)/gi;
+const CLASE_PELIGRO = /^(VENCIDO|VENCIDA|VENCIDAS)$/i;
+
+// Parte el texto en segmentos {tipo: 'texto'|'fuerte'} sin usar v-html.
+const enfatizar = (texto) => {
+    if (!texto) return [];
+    const out = [];
+    let ultimo = 0;
+    PATRON_ENFASIS.lastIndex = 0;
+    let m;
+    while ((m = PATRON_ENFASIS.exec(texto)) !== null) {
+        if (m.index > ultimo) out.push({ tipo: 'texto', texto: texto.slice(ultimo, m.index) });
+        out.push({ tipo: 'fuerte', texto: m[0], peligro: CLASE_PELIGRO.test(m[0]) });
+        ultimo = m.index + m[0].length;
+        if (m[0].length === 0) PATRON_ENFASIS.lastIndex++;
+    }
+    if (ultimo < texto.length) out.push({ tipo: 'texto', texto: texto.slice(ultimo) });
+    return out;
+};
+
+// Divide el mensaje en texto + enlace útil. Si no hay acción válida
+// (sin permiso o etiqueta ausente), devuelve solo texto. Nunca usa v-html.
+const segmentarMensaje = (data) => {
+    const message = String(data?.message ?? '');
+    const action = data?.extra_data?.action ?? null;
+    const etiqueta = action?.label ? String(action.label) : '';
+    const conEnlace = etiqueta !== ''
+        && typeof action.path === 'string' && action.path !== ''
+        && message.includes(etiqueta)
+        && (!action.permission || permissionsStore.can(action.permission));
+
+    if (!conEnlace) return enfatizar(message);
+
+    const i = message.indexOf(etiqueta);
+    const segmentos = enfatizar(message.slice(0, i));
+    segmentos.push({
+        tipo: 'enlace',
+        texto: etiqueta,
+        path: action.path,
+        titulo: action.aria_label || etiqueta,
+        aria: action.aria_label || etiqueta,
+    });
+    segmentos.push(...enfatizar(message.slice(i + etiqueta.length)));
+    return segmentos;
 };
 
 const formatDate = (dateStr) => {
@@ -404,6 +444,24 @@ onMounted(async () => {
     background: #0d6efd !important;
     border-color: #0d6efd !important;
     color: #fff !important;
+}
+
+/* Enlace útil dentro del mensaje: hipervínculo subrayado estilo Word */
+.alerta-enlace {
+    color: var(--bs-primary, #2c7be5);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.alerta-enlace:hover {
+    color: #1a4fa0;
+}
+
+.alerta-enlace:focus-visible {
+    outline: 2px solid var(--bs-primary, #2c7be5);
+    outline-offset: 2px;
+    border-radius: 2px;
 }
 
 /* Badges */
