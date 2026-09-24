@@ -164,10 +164,8 @@
                             <Column header="Acciones" class="text-center" style="width: 80px;"
                                 v-if="can('control_sheets.update') || can('control_sheets.delete')">
                                 <template #body="{ data }">
-                                    <!-- Más acciones (Inline Botones) -->
-                                    <button class="btn btn-falcon-default btn-sm px-2" type="button" title="Imprimir" @click="handlePrint(data)">
-                                        <i class="fad fa-print text-primary"></i>
-                                    </button>
+                                    <!-- El botón Imprimir llamaba a handlePrint(), que no existe:
+                                         los PDFs ya se abren desde la columna Documentos. -->
                                     <button v-if="permissions.edit" class="btn btn-falcon-default btn-sm px-2" type="button" title="Editar" @click="goToEdit(data.uuid)">
                                         <i class="fad fa-edit text-warning"></i>
                                     </button>

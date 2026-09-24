@@ -11,7 +11,7 @@
             </button>
 
             <!-- REPORTES: un solo diálogo con rango, vehículo, conductor, día y mensual en PDF y Excel -->
-            <button class="btn btn-info btn-sm px-3 fw-medium shadow-sm me-2" type="button" title="Reportes solo días cerrados"
+            <button v-if="permissions.pdf" class="btn btn-info btn-sm px-3 fw-medium shadow-sm me-2" type="button" title="Reportes solo días cerrados"
                 @click="showReportsDialog = true">
                 <i class="fad fa-file-chart-column me-1" aria-hidden="true"></i> <span class="d-none d-sm-inline">Reportes</span>
             </button>
@@ -189,11 +189,7 @@
                             <Column header="Acciones" class="text-center" style="width: 110px;">
                                 <template #body="{ data }">
                                     <div class="d-flex align-items-center justify-content-center gap-1">
-                                        <!-- Primary Actions -->
-                                        <button v-if="permissions.view" class="btn btn-falcon-default btn-sm px-2" type="button"
-                                            title="Ver detalle" @click="goToDetail(data.uuid)">
-                                            <i class="fad fa-eye text-primary"></i>
-                                        </button>
+                                        <!-- La vista de detalle no existe (sin ruta): se eliminó el botón muerto. -->
                                         <button v-if="!isServicioCerrado(data)" class="btn btn-falcon-default btn-sm px-2" type="button"
                                             title="Continuar servicio" @click="goToControl(data.uuid)">
                                             <i class="fad fa-steering-wheel text-success"></i>
@@ -201,7 +197,7 @@
 
                                         <!-- Más acciones (Menu) -->
                                         <!-- Secondary actions -->
-<button class="btn btn-falcon-default btn-sm px-2" type="button" title="Descargar PDF Diario" @click="downloadParentPdf(data)">
+<button v-if="permissions.pdf" class="btn btn-falcon-default btn-sm px-2" type="button" title="Descargar PDF Diario" @click="downloadParentPdf(data)">
 <i class="fad fa-file-pdf text-danger"></i>
 </button>
 <button v-if="canShareCoordinatorLink && !isServicioCerrado(data) && !data.has_coordinator_signature" class="btn btn-falcon-default btn-sm px-2" type="button" title="Firma Coordinador" @click="shareCoordinatorLink(data.uuid)">
@@ -246,7 +242,7 @@
                                                     </td>
                                                     <td>{{ Array.isArray(dia.routes) ? dia.routes.length : 0 }}</td>
                                                     <td class="text-center">
-                                                        <button class="btn btn-falcon-default btn-sm p-0 px-1"
+                                                        <button v-if="permissions.pdf" class="btn btn-falcon-default btn-sm p-0 px-1"
                                                             type="button" title="Descargar PDF de este día"
                                                             :aria-label="`Descargar PDF del día ${formatRango(dia.service_date)}`"
                                                             :disabled="downloadingDaily === dia.uuid"
@@ -317,7 +313,7 @@ const sharingLink = ref(null);
 
 const canShareCoordinatorLink = computed(() => (permissionsStore.roles || []).some(r => r === 'SUPERADMIN' || r === 'ADMIN_EMPRESA' || r?.name === 'SUPERADMIN' || r?.name === 'ADMIN_EMPRESA'));
 
-const permissions = reactive({ view: false, edit: false, delete: false });
+const permissions = reactive({ edit: false, delete: false, pdf: false });
 const { debouncedSearch } = useTable({}, () => store.setGlobalFilter(searchQuery.value));
 const { confirmDelete, initTooltips } = useTableActions(store, router);
 
@@ -338,7 +334,6 @@ const tipoLabel = (type) => { const tipos = { 'DIRECTO_CON_LA_EMPRESA': 'Directo
 
 const goToInternalControl = () => router.push('/planilla-de-control-de-prestacion-servicios/control-de-servicios');
 const goToCreate = () => router.push('/planilla-de-control-de-prestacion-servicios/crear');
-const goToDetail = (uuid) => router.push(`/planilla-de-control-de-prestacion-servicios/detalle/${uuid}`);
 const goToControl = (uuid) => router.push(`/planilla-de-control-de-prestacion-servicios/control-de-servicios?id=${uuid}`);
 const goToEdit = (uuid) => router.push(`/planilla-de-control-de-prestacion-servicios/editar/${uuid}`);
 
@@ -400,7 +395,7 @@ onMounted(async () => {
     try {
         await store.loadFormOptions(userStore.company_uuid);
         if (store.catalogs.projects) store.projects = store.catalogs.projects;
-        permissions.view = permissionsStore.can('service_delivery_control_sheets.view');
+        permissions.pdf = permissionsStore.can('service_delivery_control_sheets.history_pdf');
         permissions.edit = permissionsStore.can('service_delivery_control_sheets.update');
         permissions.delete = permissionsStore.can('service_delivery_control_sheets.delete');
         await store.fetchItems();
