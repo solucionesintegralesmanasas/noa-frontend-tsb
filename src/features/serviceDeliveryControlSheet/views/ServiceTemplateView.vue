@@ -1208,10 +1208,34 @@
                         </div>
 
                         <div v-if="esDisponibilidad" class="alert alert-info bg-info bg-opacity-10 text-dark border-0 shadow-sm d-flex align-items-center gap-2 mb-3 rounded-3 py-2 px-3">
-                            <i class="fad fa-car-side text-info fs-5"></i>
+                            <i class="fad fa-car-side text-info fs-5" aria-hidden="true"></i>
                             <span class="fs-12">
                                 <strong>Vehículo en disponibilidad.</strong> Esta planilla no tiene recorridos anexados: conductor y vehículo quedan en estado de disponibilidad. Solo firman el <strong>conductor</strong> y el <strong>COORDINADOR DE SERVICIOS</strong> (vía enlace). El PDF generará una sola fila.
                             </span>
+                        </div>
+
+                        <!-- SPEC-002 §5.2: el motivo es obligatorio y queda en el PDF/Excel. -->
+                        <div v-if="esDisponibilidad" class="mb-3">
+                            <label class="form-label fw-medium text-700" for="f-availability-reason" style="font-size: 0.9rem;">
+                                Motivo de la jornada en disponibilidad <span class="text-danger ms-1" title="Campo requerido">*</span>
+                            </label>
+                            <input
+                                id="f-availability-reason"
+                                v-model="formData.availability_reason"
+                                type="text"
+                                class="form-control"
+                                :class="{ 'is-invalid': errorAvailabilityReason }"
+                                :aria-invalid="errorAvailabilityReason ? 'true' : 'false'"
+                                :aria-describedby="errorAvailabilityReason ? 'f-availability-reason-error' : 'f-availability-reason-help'"
+                                maxlength="255"
+                                placeholder="Ej.: vehículo en mantenimiento, vía cerrada, descanso"
+                            />
+                            <small id="f-availability-reason-help" class="form-text text-muted">
+                                Quedará registrado en el PDF y el Excel como respaldo de que el vehículo no prestó servicio ese día.
+                            </small>
+                            <div v-if="errorAvailabilityReason" id="f-availability-reason-error" class="invalid-feedback d-block" role="alert">
+                                {{ errorAvailabilityReason }}
+                            </div>
                         </div>
 
                         <div v-if="!rutasMulti" class="row g-3 mb-4">
@@ -1527,6 +1551,8 @@ const formData = reactive({
     number_of_tolls: 0,
     total_toll_value: 0,
     end_novelty: '',
+    // SPEC-002 §5.2: motivo obligatorio cuando el día se declara en disponibilidad.
+    availability_reason: '',
 });
 
 const firma = reactive({
@@ -1539,7 +1565,29 @@ const firma = reactive({
 // flujo normal (diligenciamiento único, firmas únicas).
 const rutasMulti = computed(() => recorridosPlanillaActiva.value.length > 1);
 // Disponibilidad: la planilla inició sin recorridos anexados. Solo firman conductor y coordinador.
-const esDisponibilidad = computed(() => (recorridosPlanillaActiva.value || []).length === 0);
+// SPEC-002 §5.2: manda la declaración explícita; si no hay declaración (histórico),
+// se mantiene la inferencia anterior de "sin recorridos = disponibilidad".
+const esDisponibilidad = computed(() => {
+    if (planillaActiva.value?.day_kind === 'disponibilidad') return true;
+    return (recorridosPlanillaActiva.value || []).length === 0;
+});
+
+/** Error accesible del motivo de disponibilidad (SPEC-002 §5.2). */
+const errorAvailabilityReason = ref('');
+
+const validarMotivoDisponibilidad = () => {
+    if (!esDisponibilidad.value) {
+        errorAvailabilityReason.value = '';
+        return true;
+    }
+    const motivo = (formData.availability_reason || '').trim();
+    errorAvailabilityReason.value = motivo ? '' : 'Indique el motivo por el que el vehículo queda en disponibilidad.';
+    if (errorAvailabilityReason.value) {
+        document.getElementById('f-availability-reason')?.focus();
+        return false;
+    }
+    return true;
+};
 const cierresRecorridos = ref([]);
 const firmasRecorridos = ref([]);
 const firmaPadsRecorridos = ref({});
@@ -2431,6 +2479,9 @@ const guardarPlanilla = async () => {
     }
 
     // Disponibilidad: solo firman conductor y coordinador (vía enlace). No se exige firma de funcionario.
+    if (esDisponibilidad.value && !validarMotivoDisponibilidad()) {
+        return;
+    }
     if (!esDisponibilidad.value && firmaFuncionarioVacia.value) {
         return toast('Falta Firma', 'La firma del funcionario es requerida para certificar la planilla.', 'warning');
     }
@@ -2479,6 +2530,11 @@ const guardarPlanilla = async () => {
             conductor_name: firma.conductorNombre,
             total_hours: resumen.duracionFormatted,
             status: 'COMPLETED',
+            // SPEC-002 §5.2: se declara el día para que el motivo quede persistido
+            // y el PDF/Excel no inventen un texto fijo.
+            ...(esDisponibilidad.value
+                ? { day_kind: 'disponibilidad', availability_reason: (formData.availability_reason || '').trim() }
+                : { day_kind: 'operacion' }),
             ...(cierreRutaUnica ? { routes: cierreRutaUnica } : {}),
         };
 
