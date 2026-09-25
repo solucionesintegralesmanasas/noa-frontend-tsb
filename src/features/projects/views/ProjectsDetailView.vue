@@ -229,7 +229,7 @@
                             Evidencia acumulada
                             <span v-if="!evidenciaLoading" class="badge badge-subtle-success ms-1"
                                 style="font-size:0.65rem;">
-                                {{ evidenciaTotal }} planillas · {{ evidenciaCerradas }} cerradas
+                                {{ evidenciaTotal }} días · {{ evidenciaCerradas }} cerrados
                             </span>
                         </h6>
                         <button type="button" class="btn btn-sm btn-falcon-default py-0 px-2 ms-auto"
@@ -252,14 +252,22 @@
                         </p>
                         <div v-else>
                             <div class="d-flex flex-wrap gap-2 my-2 small">
-                                <span class="badge badge-subtle-success">Cerradas: {{ evidenciaCerradas }}</span>
+                                <span class="badge badge-subtle-success">Cerrados: {{ evidenciaCerradas }}</span>
                                 <span class="badge badge-subtle-danger">En curso: {{ evidenciaEnCurso }}</span>
                                 <span v-if="diasIncompletos > 0" class="badge badge-subtle-warning"
-                                    :title="'Días cerrados a los que les falta firma o datos'">
+                                    :title="'Días con datos o firmas operativas pendientes'">
                                     <i class="fad fa-triangle-exclamation me-1" aria-hidden="true"></i>
                                     {{ diasIncompletos }} con evidencia incompleta
                                 </span>
-                                <span v-else-if="evidenciaTotal > 0" class="badge badge-subtle-success">
+                                <span v-if="evidenciaResumen.pendiente_certificacion > 0" class="badge badge-subtle-info"
+                                    :title="'Días operativamente completos que aún esperan firma del coordinador'">
+                                    {{ evidenciaResumen.pendiente_certificacion }} por certificar
+                                </span>
+                                <span v-if="evidenciaResumen.excepciones > 0" class="badge badge-subtle-danger"
+                                    :title="'Días cerrados con una excepción aprobada'">
+                                    {{ evidenciaResumen.excepciones }} excepción(es)
+                                </span>
+                                <span v-if="evidenciaTotal > 0 && !evidenciaEnCurso && !diasIncompletos && !evidenciaResumen.pendiente_certificacion && !evidenciaResumen.excepciones" class="badge badge-subtle-success">
                                     <i class="fad fa-circle-check me-1" aria-hidden="true"></i>Evidencia completa
                                 </span>
                             </div>
@@ -278,15 +286,11 @@
                                             <tr v-for="dia in diasDe(padre)" :key="dia.uuid || dia.service_date">
                                                 <td>{{ formatRango(dia.service_date) || '—' }}</td>
                                                 <td>
-                                                    <span v-if="esCerrado(dia)" class="badge badge-subtle-success"
-                                                        style="font-size:0.65rem;">Cerrado</span>
-                                                    <span v-else class="badge badge-subtle-danger"
-                                                        style="font-size:0.65rem;">En curso</span>
                                                     <!-- SPEC-002 §8: estado administrativo y evidencia del día -->
                                                     <span v-if="dia.estado" class="badge rounded-pill d-block mt-1"
-                                                        :class="estadoAdminClass(dia.estado)" style="font-size:0.6rem;"
-                                                        :title="estadoAdminTitle(dia)">
-                                                        {{ estadoAdminLabel(dia.estado) }}
+                                                        :class="claseEstadoServicio(dia.estado)" style="font-size:0.6rem;"
+                                                        :title="tituloEstadoServicio(dia)">
+                                                        {{ etiquetaEstadoServicio(dia.estado) }}
                                                     </span>
                                                 </td>
                                                 <td>{{ recorridosDe(dia) }}</td>
@@ -349,6 +353,7 @@ import { usePermissionsStore } from '@store';
 import { toast } from '@/utils/toast.js';
 import BasePageHeader from '@/components/BasePageHeader.vue';
 import { getMediaUrl } from '@/utils/media.js';
+import { claseEstadoServicio, etiquetaEstadoServicio, tituloEstadoServicio } from '@/utils/serviceDeliveryStatus.js';
 
 const route = useRoute();
 const router = useRouter();
@@ -425,6 +430,15 @@ const EVIDENCIA_POR_PAGINA = 10;
 const evidenciaItems = ref([]);
 const evidenciaTotal = ref(0);
 const evidenciaCerradas = ref(0);
+const evidenciaResumen = ref({
+    total_dias: 0,
+    cerrados: 0,
+    en_curso: 0,
+    evidencia_incompleta: 0,
+    pendiente_certificacion: 0,
+    excepciones: 0,
+    certificados: 0,
+});
 const evidenciaPage = ref(1);
 const evidenciaLastPage = ref(1);
 const evidenciaLoading = ref(false);
@@ -432,58 +446,32 @@ const evidenciaError = ref('');
 const descargandoPdf = ref(null);
 
 const projectUuid = computed(() => project.value?.uuid || route.params.id);
-const evidenciaEnCurso = computed(() => Math.max(evidenciaTotal.value - evidenciaCerradas.value, 0));
+const evidenciaEnCurso = computed(() => evidenciaResumen.value.en_curso || 0);
 const diasDe = (padre) => diasHijos(padre, false);
 const recorridosDe = (dia) => recorridosCount(dia);
 
-// SPEC-002 §8 — Estado administrativo derivado (viene del backend).
-const ESTADOS_ADMIN = {
-    BORRADOR: { label: 'Borrador', clase: 'badge-subtle-secondary' },
-    EN_CURSO: { label: 'En curso', clase: 'badge-subtle-info' },
-    PARCIAL: { label: 'Parcial', clase: 'badge-subtle-warning' },
-    CERRADA_OPERATIVAMENTE: { label: 'Cerrada op.', clase: 'badge-subtle-primary' },
-    CERTIFICADA: { label: 'Certificada', clase: 'badge-subtle-success' },
-    CERRADA_CON_EXCEPCION: { label: 'Con excepción', clase: 'badge-subtle-danger' },
-};
-const estadoAdminLabel = (estado) => ESTADOS_ADMIN[estado]?.label || estado;
-const estadoAdminClass = (estado) => ESTADOS_ADMIN[estado]?.clase || 'badge-subtle-secondary';
-/** El title del badge explica qué falta, para no depender solo del color. */
-const estadoAdminTitle = (dia) => {
-    const pendientes = dia?.firmas_pendientes || [];
-    if (pendientes.length) {
-        return `${dia.estado} — pendiente: ${pendientes.map((p) => p.etiqueta).join(' · ')}`;
-    }
-    return `Estado: ${dia.estado}`;
-};
-/** Días con evidencia incompleta: el hueco que más importa ver en un proyecto. */
-const diasIncompletos = computed(() => evidenciaItems.value.reduce(
-    (total, padre) => total + diasDe(padre).filter((dia) => (dia.firmas_pendientes || []).length > 0).length,
-    0
-));
+/** Conteo global, calculado por backend en bloques; no solo la página visible. */
+const diasIncompletos = computed(() => evidenciaResumen.value.evidencia_incompleta || 0);
 
 const cargarEvidencia = async (page = 1) => {
     evidenciaLoading.value = true;
     evidenciaError.value = '';
     try {
-        const resp = await serviceDeliveryControlSheetService.list({
-            project_uuid: projectUuid.value,
-            per_page: EVIDENCIA_POR_PAGINA,
-            page,
-        });
+        const [resp, respResumen] = await Promise.all([
+            serviceDeliveryControlSheetService.list({
+                project_uuid: projectUuid.value,
+                per_page: EVIDENCIA_POR_PAGINA,
+                page,
+            }),
+            serviceDeliveryControlSheetService.projectEvidenceSummary(projectUuid.value),
+        ]);
         const p = resp?.data ?? resp;
         evidenciaItems.value = p.data ?? [];
-        evidenciaTotal.value = p.total ?? 0;
         evidenciaLastPage.value = p.last_page ?? 1;
         evidenciaPage.value = p.current_page ?? page;
-        // Total de cerradas con los mismos filtros (solo cuenta, 1 fila).
-        const respCerr = await serviceDeliveryControlSheetService.list({
-            project_uuid: projectUuid.value,
-            per_page: 1,
-            page: 1,
-            solo_cerradas: true,
-        });
-        const pc = respCerr?.data ?? respCerr;
-        evidenciaCerradas.value = pc.total ?? 0;
+        evidenciaResumen.value = respResumen?.data ?? respResumen;
+        evidenciaTotal.value = evidenciaResumen.value.total_dias ?? 0;
+        evidenciaCerradas.value = evidenciaResumen.value.cerrados ?? 0;
     } catch (err) {
         evidenciaError.value = 'No se pudo cargar la evidencia del proyecto.';
     } finally {

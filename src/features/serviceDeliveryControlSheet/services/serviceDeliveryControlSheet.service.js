@@ -23,6 +23,15 @@ class ServiceDeliveryControlSheetService extends BaseService {
     list(params = {}) { return this._request('GET', '', { params }); }
 
     /**
+     * Obtiene los conteos globales de días/evidencia de un proyecto,
+     * independientes de la página actual del listado.
+     * @param {string} projectUuid - UUID del proyecto.
+     */
+    projectEvidenceSummary(projectUuid) {
+        return this._request('GET', '/project-summary', { params: { project_uuid: projectUuid } });
+    }
+
+    /**
      * Obtiene un registro específico por su UUID.
      * @param {string} uuid - Identificador único del registro.
      * @returns {Promise<Object>} Datos del registro.
