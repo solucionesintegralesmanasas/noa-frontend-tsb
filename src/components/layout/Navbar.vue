@@ -25,7 +25,7 @@
                         type="button"
                         class="notification-dock-toggle notification-dock-toggle--company"
                         aria-label="Abrir las alertas de la empresa en la campana"
-                        @click="openNotificationsMenu('priority')"
+                        @click.stop="openNotificationsMenu('priority')"
                     >
                         <span class="fas fa-building-shield" aria-hidden="true"></span>
                         <span class="notification-dock-count">{{ companyClumpCount }}</span>
@@ -43,7 +43,7 @@
                         type="button"
                         class="notification-dock-toggle notification-dock-toggle--third-party"
                         aria-label="Abrir las alertas de terceros en la campana"
-                        @click="openNotificationsMenu('normal')"
+                        @click.stop="openNotificationsMenu('normal')"
                     >
                         <span class="fas fa-users" aria-hidden="true"></span>
                         <span class="notification-dock-count">{{ thirdPartyClumpCount }}</span>
