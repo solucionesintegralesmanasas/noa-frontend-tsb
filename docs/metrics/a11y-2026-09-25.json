@@ -9,7 +9,7 @@
     "roleButtonEnRouterLink": 0,
     "enlacesMuertos": 1,
     "aRoleButtonSinHref": 0,
-    "iconosSinAriaHidden": 962
+    "iconosSinAriaHidden": 959
   },
   "porArchivo": {
     "src\\components\\assistant\\BubbleChat.vue": {
@@ -17,7 +17,7 @@
       "iconosSinAriaHidden": 6
     },
     "src\\components\\layout\\Navbar.vue": {
-      "iconosSinAriaHidden": 2
+      "iconosSinAriaHidden": 1
     },
     "src\\components\\RuesLookupPanel.vue": {
       "labelsSinFor": 1,
@@ -107,7 +107,7 @@
     },
     "src\\features\\controlSheets\\views\\ControlSheetsListView.vue": {
       "controlesVModelSinId": 1,
-      "iconosSinAriaHidden": 16
+      "iconosSinAriaHidden": 15
     },
     "src\\features\\conveyorCapacity\\views\\ConveyorCapacityFormView.vue": {
       "iconosSinAriaHidden": 3
@@ -115,6 +115,9 @@
     "src\\features\\conveyorCapacity\\views\\ConveyorCapacityListView.vue": {
       "controlesVModelSinId": 1,
       "iconosSinAriaHidden": 6
+    },
+    "src\\features\\dashboard\\views\\ConductorDashboardMobileView.vue": {
+      "iconosSinAriaHidden": 2
     },
     "src\\features\\dashboard\\views\\ConductorDashboardView.vue": {
       "controlesVModelSinId": 1,
@@ -205,7 +208,7 @@
       "iconosSinAriaHidden": 6
     },
     "src\\features\\projects\\views\\ProjectsDetailView.vue": {
-      "iconosSinAriaHidden": 19
+      "iconosSinAriaHidden": 18
     },
     "src\\features\\projects\\views\\ProjectsFormView.vue": {
       "controlesVModelSinId": 1,
@@ -237,12 +240,12 @@
     },
     "src\\features\\serviceDeliveryControlSheet\\views\\ServiceDeliveryControlSheetListView.vue": {
       "controlesVModelSinId": 2,
-      "iconosSinAriaHidden": 21
+      "iconosSinAriaHidden": 20
     },
     "src\\features\\serviceDeliveryControlSheet\\views\\ServiceTemplateView.vue": {
       "labelsSinFor": 34,
       "controlesVModelSinId": 29,
-      "iconosSinAriaHidden": 120
+      "iconosSinAriaHidden": 119
     },
     "src\\features\\systemConfiguration\\views\\PlatformFeesView.vue": {
       "iconosSinAriaHidden": 3

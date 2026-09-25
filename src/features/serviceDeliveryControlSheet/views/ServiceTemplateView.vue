@@ -1216,24 +1216,24 @@
 
                         <!-- SPEC-002 §5.2: el motivo es obligatorio y queda en el PDF/Excel. -->
                         <div v-if="esDisponibilidad" class="mb-3">
-                            <label class="form-label fw-medium text-700" for="f-availability-reason" style="font-size: 0.9rem;">
+                            <label class="form-label fw-medium text-700" for="f-availability_reason" style="font-size: 0.9rem;">
                                 Motivo de la jornada en disponibilidad <span class="text-danger ms-1" title="Campo requerido">*</span>
                             </label>
                             <input
-                                id="f-availability-reason"
+                                id="f-availability_reason"
                                 v-model="formData.availability_reason"
                                 type="text"
                                 class="form-control"
                                 :class="{ 'is-invalid': errorAvailabilityReason }"
                                 :aria-invalid="errorAvailabilityReason ? 'true' : 'false'"
-                                :aria-describedby="errorAvailabilityReason ? 'f-availability-reason-error' : 'f-availability-reason-help'"
+                                :aria-describedby="errorAvailabilityReason ? 'f-availability_reason-error' : 'f-availability_reason-help'"
                                 maxlength="255"
                                 placeholder="Ej.: vehículo en mantenimiento, vía cerrada, descanso"
                             />
-                            <small id="f-availability-reason-help" class="form-text text-muted">
+                            <small id="f-availability_reason-help" class="form-text text-muted">
                                 Quedará registrado en el PDF y el Excel como respaldo de que el vehículo no prestó servicio ese día.
                             </small>
-                            <div v-if="errorAvailabilityReason" id="f-availability-reason-error" class="invalid-feedback d-block" role="alert">
+                            <div v-if="errorAvailabilityReason" id="f-availability_reason-error" class="invalid-feedback d-block" role="alert">
                                 {{ errorAvailabilityReason }}
                             </div>
                         </div>
@@ -1583,7 +1583,7 @@ const validarMotivoDisponibilidad = () => {
     const motivo = (formData.availability_reason || '').trim();
     errorAvailabilityReason.value = motivo ? '' : 'Indique el motivo por el que el vehículo queda en disponibilidad.';
     if (errorAvailabilityReason.value) {
-        document.getElementById('f-availability-reason')?.focus();
+        document.getElementById('f-availability_reason')?.focus();
         return false;
     }
     return true;
