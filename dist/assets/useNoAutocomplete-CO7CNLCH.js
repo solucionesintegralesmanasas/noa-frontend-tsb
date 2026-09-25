@@ -1,0 +1,1 @@
+import{R as e}from"./vendor-vue-YDiet9Ok.js";function t(t,n={}){let{except:r=[]}=n,i=()=>{let e=t?.value;e?.querySelectorAll&&e.querySelectorAll(`input[type="text"], input[type="date"], input:not([type])`).forEach(e=>{r.includes(e.id)||(e.setAttribute(`autocomplete`,`off`),e.setAttribute(`name`,`noa_${Math.random().toString(36).slice(2)}`))})};return e(i),{scrub:i}}export{t};

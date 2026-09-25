@@ -894,4 +894,19 @@ onMounted(async () => {
     margin-top: 0.1rem;
     display: block;
 }
+
+@media (max-width: 768px) {
+    .btn-status {
+        width: 38px;
+        height: 38px;
+        font-size: 0.85rem;
+    }
+    .inspection-item {
+        padding: 10px 8px !important;
+        min-height: 48px;
+    }
+    .category-header {
+        padding: 10px 12px !important;
+    }
+}
 </style>
