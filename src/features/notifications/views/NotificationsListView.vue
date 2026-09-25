@@ -185,7 +185,7 @@
                         </Column>
 
                         <!-- Columna Acciones -->
-                        <Column header="Acciones" class="text-center" style="width: 150px;">
+                        <Column header="Acciones" class="text-center" style="width: 170px;">
                             <template #body="{ data }">
                                 <div class="d-flex align-items-center justify-content-center gap-1">
                                     <button

@@ -25,11 +25,12 @@
                         type="button"
                         class="notification-dock-toggle notification-dock-toggle--company"
                         aria-label="Abrir las alertas de la empresa en la campana"
-                        @click="openNotificationsMenu"
+                        @click="openNotificationsMenu('priority')"
                     >
                         <span class="fas fa-building-shield" aria-hidden="true"></span>
                         <span class="notification-dock-count">{{ companyClumpCount }}</span>
-                        <span class="notification-dock-label">Alertas de la empresa</span>
+                        <span class="notification-dock-label d-none d-sm-inline">Alertas de la empresa</span>
+                        <span class="notification-dock-label d-sm-none">Empresa</span>
                         <span class="fas fa-arrow-up-right" aria-hidden="true"></span>
                     </button>
                 </li>
@@ -42,11 +43,12 @@
                         type="button"
                         class="notification-dock-toggle notification-dock-toggle--third-party"
                         aria-label="Abrir las alertas de terceros en la campana"
-                        @click="openNotificationsMenu"
+                        @click="openNotificationsMenu('normal')"
                     >
                         <span class="fas fa-users" aria-hidden="true"></span>
                         <span class="notification-dock-count">{{ thirdPartyClumpCount }}</span>
-                        <span class="notification-dock-label">Alertas de terceros</span>
+                        <span class="notification-dock-label d-none d-sm-inline">Alertas de terceros</span>
+                        <span class="notification-dock-label d-sm-none">Terceros</span>
                         <span class="fas fa-arrow-up-right" aria-hidden="true"></span>
                     </button>
                 </li>
@@ -82,7 +84,7 @@
                                 <template v-if="dropdownGroups.length > 0">
                                     <template v-for="group in dropdownGroups" :key="group.key">
                                         <div v-if="group.title" class="dropdown-section-header"
-                                            :class="{ 'dropdown-section-header--priority': group.key === 'priority' }">
+                                            :class="{ 'dropdown-section-header--priority': group.key === 'priority', 'dropdown-section-header--highlight': store.seccionResaltada === group.key }">
                                             <span v-if="group.key === 'priority'" class="fas fa-triangle-exclamation me-1" aria-hidden="true"></span>{{ group.title }}
                                         </div>
                                         <div v-for="notification in group.items"
@@ -93,7 +95,7 @@
                                                     'unread-item': notification.status !== 'LEIDA',
                                                     'priority-item': group.key === 'priority'
                                                 }"
-                                                :to="notification.extra_data?.action?.path || '/notificaciones'">
+                                                :to="destinoNotificacion(notification)">
                                                 <div class="avatar avatar-xl me-3 flex-shrink-0">
                                                     <div class="avatar-name rounded-circle d-flex align-items-center justify-content-center fw-bold text-uppercase fs-11"
                                                         :class="getAvatarClass(notification.type)">
@@ -116,7 +118,7 @@
                                                     </p>
                                                     <small v-if="notification.expiry_date"
                                                         class="text-danger fs-10 fw-medium mt-1 d-block">
-                                                        <i class="fas fa-calendar-alt me-1"></i>Vence: {{
+                                                        <i class="fas fa-calendar-alt me-1" aria-hidden="true"></i>Vence: {{
                                                             formatDate(notification.expiry_date) }}
                                                     </small>
                                                 </div>
@@ -230,7 +232,8 @@ const showNotificationsDropdown = () => {
     trigger.click()
 }
 
-const openNotificationsMenu = () => {
+const openNotificationsMenu = (origen = null) => {
+    if (origen) store.resaltarSeccion(origen)
     showNotificationsDropdown()
 
     isBellAttention.value = true
@@ -249,6 +252,25 @@ onUnmounted(() => {
     if (bellAttentionTimeout) clearTimeout(bellAttentionTimeout)
     store.disconnectSSE()
 })
+
+// Destino de la fila: la ficha indicada por la alerta, solo si el usuario
+// tiene el permiso; si no, el listado (igual que el módulo, que oculta el
+// enlace en ese caso pero aquí la fila siempre debe llevar a algo útil).
+const destinoNotificacion = (notification) => {
+    let extra = notification?.extra_data ?? null
+    if (typeof extra === 'string' && extra !== '') {
+        try {
+            extra = JSON.parse(extra)
+        } catch {
+            extra = null
+        }
+    }
+    const action = extra?.action ?? null
+    if (action?.path && (!action.permission || permissionsStore.can(action.permission))) {
+        return action.path
+    }
+    return '/notificaciones'
+}
 
 // Dropdown en dos secciones: las prioritarias (empresa propia) van primero
 // y nunca se mezclan con las normales. Máximo 8 elementos en total.
@@ -643,6 +665,11 @@ async function handleLogout() {
 
 .dropdown-section-header--priority {
     color: var(--bs-danger, #e63757);
+}
+
+.dropdown-section-header--highlight {
+    background-color: rgba(var(--bs-primary-rgb, 44, 123, 229), 0.12);
+    border-radius: 4px;
 }
 
 .priority-item {

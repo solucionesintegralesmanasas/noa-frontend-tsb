@@ -103,6 +103,7 @@ const getInitialsLabel = (type) => {
       <div v-for="toast in notificationsStore.activeExpiryToasts" :key="toast.id"
         class="expiry-toast-item shadow-lg p-3 rounded bg-white border d-flex align-items-start"
         :class="{ 'expiry-toast-item--priority': toast.priority === 'PRIORITARIA' }"
+        role="status"
         @mouseenter="notificationsStore.pauseExpiryToastTimer(toast.id)"
         @mouseleave="notificationsStore.resumeExpiryToastTimer(toast.id)"
         @focusin="notificationsStore.pauseExpiryToastTimer(toast.id)"
