@@ -188,11 +188,11 @@
                         <Column header="Acciones" class="text-center" style="width: 150px;">
                             <template #body="{ data }">
                                 <div class="d-flex align-items-center justify-content-center gap-1">
-                                    <button 
-                                        v-if="data.status !== 'LEIDA'" 
-                                        class="btn btn-falcon-default btn-sm shadow-sm" 
-                                        type="button" 
-                                        title="Marcar como leída" 
+                                    <button
+                                        v-if="data.status !== 'LEIDA'"
+                                        class="btn btn-falcon-default btn-sm shadow-sm"
+                                        type="button"
+                                        title="Marcar como leída"
                                         @click="handleMarkAsRead(data.uuid)"
                                     >
                                         <i class="fad fa-check text-success me-1" /> Marcar Leída
@@ -200,21 +200,25 @@
                                     <span v-else class="text-muted fs-11 fw-medium">
                                         <i class="fad fa-check-double text-success me-1" /> Leída
                                     </span>
-                                    <button
-                                        v-if="accionesVisibles(data).length > 0"
-                                        class="btn btn-falcon-default btn-sm shadow-sm"
-                                        type="button"
-                                        aria-label="Acciones de la alerta"
-                                        aria-haspopup="menu"
-                                        title="Ver opciones"
-                                        @click="abrirMenuAcciones($event, data)"
-                                    >
-                                        <i class="fad fa-ellipsis-h" aria-hidden="true" />
-                                    </button>
+                                    <div v-if="accionesVisibles(data).length > 0" class="dropdown position-static">
+                                        <button class="btn btn-link text-600 btn-sm dropdown-toggle btn-reveal"
+                                            type="button" data-bs-toggle="dropdown" data-boundary="window"
+                                            aria-haspopup="true" aria-expanded="false"
+                                            aria-label="Acciones de la alerta">
+                                            <span class="fas fa-ellipsis-h fs--1" aria-hidden="true"></span>
+                                        </button>
+                                        <div class="dropdown-menu dropdown-menu-end border py-0">
+                                            <div class="py-2">
+                                                <router-link v-for="accion in accionesVisibles(data)"
+                                                    :key="accion.key" class="dropdown-item" :to="accion.path">
+                                                    {{ accion.label }}
+                                                </router-link>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </template>
                         </Column>
-                        <Menu ref="menuAcciones" :model="itemsMenuAcciones" popup />
                         <!-- Loading state -->
                             <template #loading>
                                 <NoaTableSpinner message="Cargando datos..." />
@@ -235,7 +239,6 @@ import NoaTableSpinner from '@/components/NoaTableSpinner.vue';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import PrimeSelect from 'primevue/select';
-import Menu from 'primevue/menu';
 import Swal from 'sweetalert2';
 
 const store = useNotificationsStore();
@@ -400,16 +403,8 @@ const handleMarkAsRead = async (uuid) => {
 // Menú contextual por fila: las mismas opciones del perfil del vehículo
 // (Ver documentos, Completar, Editar documento, Registrar nuevo),
 // filtradas por el permiso de cada destino.
-const menuAcciones = ref(null);
-const itemsMenuAcciones = ref([]);
-
 const accionesVisibles = (data) => (data?.extra_data?.actions ?? [])
     .filter((a) => a && a.path && (!a.permission || permissionsStore.can(a.permission)));
-
-const abrirMenuAcciones = (event, data) => {
-    itemsMenuAcciones.value = accionesVisibles(data).map((a) => ({ label: a.label, to: a.path }));
-    menuAcciones.value?.toggle(event);
-};
 
 onMounted(async () => {
     try {
