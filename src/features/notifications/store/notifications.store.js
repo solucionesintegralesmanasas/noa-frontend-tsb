@@ -12,8 +12,6 @@ const EXPIRY_TOAST_VISIBLE_MS = 7000;
 // Máximo de alertas visibles al mismo tiempo; el resto se agrupa de inmediato.
 const EXPIRY_TOAST_MAX_VISIBLE = 3;
 
-// Duración del resaltado azul sobre las alertas realmente nuevas.
-
 // Temporizadores por alerta (fuera del estado para no persistirlos en el store).
 const expiryToastTimers = new Map();
 
@@ -158,10 +156,25 @@ export const useNotificationsStore = defineStore('notifications', {
                         PRIORITARIA: Number(counts.PRIORITARIA || 0),
                         NORMAL: Number(counts.NORMAL || 0),
                     };
+                } else {
+                    this.derivarConteosLocales();
                 }
             } catch (error) {
                 logger.error('Error fetching notification counts:', error?.message || error);
+                // Sin conteo del servidor los clumps no deben quedar en cero:
+                // se derivan de la muestra cargada como respaldo.
+                this.derivarConteosLocales();
             }
+        },
+
+        derivarConteosLocales() {
+            const pendientes = (this.latestNotifications || []).filter(n => n.status !== 'LEIDA');
+            const propias = pendientes.filter(n => n.priority === 'PRIORITARIA').length;
+            this.unreadCounts = {
+                total: pendientes.length,
+                PRIORITARIA: propias,
+                NORMAL: pendientes.length - propias,
+            };
         },
 
         async markAsRead(uuid) {
@@ -182,7 +195,10 @@ export const useNotificationsStore = defineStore('notifications', {
                         this.latestNotifications[latestIndex].status = 'LEIDA';
                     }
                     // Al marcarla como leída deja de saltar: se retira su aviso
-                    // y el clump correspondiente baja de inmediato.
+                    // (incluido el temporizador) y el clump baja de inmediato.
+                    this.activeExpiryToasts
+                        .filter(t => t.uuid === uuid)
+                        .forEach(t => clearExpiryToastTimer(t.id));
                     this.activeExpiryToasts = this.activeExpiryToasts.filter(t => t.uuid !== uuid);
                     await this.fetchUnreadCounts();
                 }

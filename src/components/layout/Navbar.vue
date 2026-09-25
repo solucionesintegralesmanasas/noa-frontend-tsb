@@ -29,7 +29,7 @@
                     >
                         <span class="fas fa-building-shield" aria-hidden="true"></span>
                         <span class="notification-dock-count">{{ companyClumpCount }}</span>
-                        <span class="notification-dock-label d-none d-sm-inline">Alertas de la empresa</span>
+                        <span class="notification-dock-label notification-dock-label--full d-none d-sm-inline">Alertas de la empresa</span>
                         <span class="notification-dock-label d-sm-none">Empresa</span>
                         <span class="fas fa-arrow-up-right" aria-hidden="true"></span>
                     </button>
@@ -47,7 +47,7 @@
                     >
                         <span class="fas fa-users" aria-hidden="true"></span>
                         <span class="notification-dock-count">{{ thirdPartyClumpCount }}</span>
-                        <span class="notification-dock-label d-none d-sm-inline">Alertas de terceros</span>
+                        <span class="notification-dock-label notification-dock-label--full d-none d-sm-inline">Alertas de terceros</span>
                         <span class="notification-dock-label d-sm-none">Terceros</span>
                         <span class="fas fa-arrow-up-right" aria-hidden="true"></span>
                     </button>
@@ -282,11 +282,15 @@ const dropdownGroups = computed(() => {
         groups.push({ key: 'priority', title: 'Alertas prioritarias', items: priority })
     }
     if (normal.length > 0) {
-        groups.push({ key: 'normal', title: priority.length > 0 ? 'Notificaciones' : null, items: normal })
+        // Título siempre presente para que el resaltado por clump tenga
+        // ancla visible aunque no haya prioritarias.
+        groups.push({ key: 'normal', title: 'Notificaciones', items: normal })
     }
     return groups
 })
 
+// Destino de la fila de la campana: respeta el permiso igual que el módulo;
+// sin permiso cae al listado en vez de a una ruta bloqueada.
 const getAvatarClass = (type) => {
     switch (type) {
         case 'VEHICLE_DOCUMENT': return 'bg-subtle-info text-info'
@@ -580,7 +584,7 @@ async function handleLogout() {
         margin-right: 0.4rem;
     }
 
-    .notification-dock-label {
+    .notification-dock-label--full {
         display: none;
     }
 
