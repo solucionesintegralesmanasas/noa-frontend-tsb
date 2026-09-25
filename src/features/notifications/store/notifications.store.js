@@ -143,6 +143,9 @@ export const useNotificationsStore = defineStore('notifications', {
 
         async fetchUnreadCounts() {
             try {
+                const token = await tokenManager.getAccessToken();
+                if (!token) return;
+
                 const userStore = useUserStore();
                 const tenantId = userStore.company_uuid;
                 const client = tenantId ? apiClient.forTenant(tenantId) : apiClient.global;
@@ -160,6 +163,7 @@ export const useNotificationsStore = defineStore('notifications', {
                     this.derivarConteosLocales();
                 }
             } catch (error) {
+                if (error?.response?.status === 401) return;
                 logger.error('Error fetching notification counts:', error?.message || error);
                 // Sin conteo del servidor los clumps no deben quedar en cero:
                 // se derivan de la muestra cargada como respaldo.
@@ -270,6 +274,9 @@ export const useNotificationsStore = defineStore('notifications', {
 
         async fetchLatestNotifications() {
             try {
+                const token = await tokenManager.getAccessToken();
+                if (!token) return;
+
                 const userStore = useUserStore();
                 const tenantId = userStore.company_uuid;
                 const client = tenantId ? apiClient.forTenant(tenantId) : apiClient.global;
@@ -297,6 +304,7 @@ export const useNotificationsStore = defineStore('notifications', {
                         .sort((a, b) => (a.priority === 'PRIORITARIA' ? 0 : 1) - (b.priority === 'PRIORITARIA' ? 0 : 1));
                 }
             } catch (error) {
+                if (error?.response?.status === 401) return;
                 console.error('Error fetching latest notifications:', error);
             }
         },
@@ -306,6 +314,12 @@ export const useNotificationsStore = defineStore('notifications', {
             if (this.sseSource && this.sseSource.readyState !== EventSource.CLOSED) return;
             if (this.sseRetryCount >= this.sseMaxRetries) {
                 console.warn(`SSE: máximo de reintentos alcanzado (${this.sseMaxRetries})`);
+                return;
+            }
+
+            const token = await tokenManager.getAccessToken();
+            if (!token) {
+                this.closeSSESource();
                 return;
             }
 
@@ -319,9 +333,6 @@ export const useNotificationsStore = defineStore('notifications', {
             try {
                 const userStore = useUserStore();
                 const tenantId = userStore.company_uuid;
-                const token = await tokenManager.getAccessToken();
-
-                if (!token) return;
 
                 let baseUrl = env.API_BASE_URL;
                 if (baseUrl.endsWith('/')) {
@@ -362,7 +373,7 @@ export const useNotificationsStore = defineStore('notifications', {
                     }, 1000);
                 });
 
-                this.sseSource.onerror = (err) => {
+                this.sseSource.onerror = async (err) => {
                     // Si ya se cerró por timeout, el listener anterior gestiona la reconexión.
                     if (!this.sseSource || this.sseSource.readyState === EventSource.CLOSED) {
                         console.warn('SSE: conexión cerrada, reintentando...', err?.type || 'error');
@@ -370,6 +381,11 @@ export const useNotificationsStore = defineStore('notifications', {
                         console.error('SSE connection error:', err);
                     }
                     this.closeSSESource();
+
+                    // Si ya no hay token activo, detener reintentos
+                    const currentToken = await tokenManager.getAccessToken();
+                    if (!currentToken) return;
+
                     this.sseRetryCount++;
                     if (this.sseRetryCount > this.sseMaxRetries) {
                         console.warn(`SSE: máximo de reintentos alcanzado (${this.sseMaxRetries})`);
