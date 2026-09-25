@@ -254,6 +254,14 @@
                             <div class="d-flex flex-wrap gap-2 my-2 small">
                                 <span class="badge badge-subtle-success">Cerradas: {{ evidenciaCerradas }}</span>
                                 <span class="badge badge-subtle-danger">En curso: {{ evidenciaEnCurso }}</span>
+                                <span v-if="diasIncompletos > 0" class="badge badge-subtle-warning"
+                                    :title="'Días cerrados a los que les falta firma o datos'">
+                                    <i class="fad fa-triangle-exclamation me-1" aria-hidden="true"></i>
+                                    {{ diasIncompletos }} con evidencia incompleta
+                                </span>
+                                <span v-else-if="evidenciaTotal > 0" class="badge badge-subtle-success">
+                                    <i class="fad fa-circle-check me-1" aria-hidden="true"></i>Evidencia completa
+                                </span>
                             </div>
                             <div class="table-responsive">
                                 <table class="table table-sm mb-0">
@@ -274,6 +282,12 @@
                                                         style="font-size:0.65rem;">Cerrado</span>
                                                     <span v-else class="badge badge-subtle-danger"
                                                         style="font-size:0.65rem;">En curso</span>
+                                                    <!-- SPEC-002 §8: estado administrativo y evidencia del día -->
+                                                    <span v-if="dia.estado" class="badge rounded-pill d-block mt-1"
+                                                        :class="estadoAdminClass(dia.estado)" style="font-size:0.6rem;"
+                                                        :title="estadoAdminTitle(dia)">
+                                                        {{ estadoAdminLabel(dia.estado) }}
+                                                    </span>
                                                 </td>
                                                 <td>{{ recorridosDe(dia) }}</td>
                                                 <td class="text-center">
@@ -421,6 +435,31 @@ const projectUuid = computed(() => project.value?.uuid || route.params.id);
 const evidenciaEnCurso = computed(() => Math.max(evidenciaTotal.value - evidenciaCerradas.value, 0));
 const diasDe = (padre) => diasHijos(padre, false);
 const recorridosDe = (dia) => recorridosCount(dia);
+
+// SPEC-002 §8 — Estado administrativo derivado (viene del backend).
+const ESTADOS_ADMIN = {
+    BORRADOR: { label: 'Borrador', clase: 'badge-subtle-secondary' },
+    EN_CURSO: { label: 'En curso', clase: 'badge-subtle-info' },
+    PARCIAL: { label: 'Parcial', clase: 'badge-subtle-warning' },
+    CERRADA_OPERATIVAMENTE: { label: 'Cerrada op.', clase: 'badge-subtle-primary' },
+    CERTIFICADA: { label: 'Certificada', clase: 'badge-subtle-success' },
+    CERRADA_CON_EXCEPCION: { label: 'Con excepción', clase: 'badge-subtle-danger' },
+};
+const estadoAdminLabel = (estado) => ESTADOS_ADMIN[estado]?.label || estado;
+const estadoAdminClass = (estado) => ESTADOS_ADMIN[estado]?.clase || 'badge-subtle-secondary';
+/** El title del badge explica qué falta, para no depender solo del color. */
+const estadoAdminTitle = (dia) => {
+    const pendientes = dia?.firmas_pendientes || [];
+    if (pendientes.length) {
+        return `${dia.estado} — pendiente: ${pendientes.map((p) => p.etiqueta).join(' · ')}`;
+    }
+    return `Estado: ${dia.estado}`;
+};
+/** Días con evidencia incompleta: el hueco que más importa ver en un proyecto. */
+const diasIncompletos = computed(() => evidenciaItems.value.reduce(
+    (total, padre) => total + diasDe(padre).filter((dia) => (dia.firmas_pendientes || []).length > 0).length,
+    0
+));
 
 const cargarEvidencia = async (page = 1) => {
     evidenciaLoading.value = true;

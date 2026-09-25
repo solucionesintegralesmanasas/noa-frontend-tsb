@@ -2,9 +2,9 @@
   "fecha": "2026-09-25",
   "dist": true,
   "metricas": {
-    "totalJS": 2851.5,
+    "totalJS": 2854.2,
     "inicialJS": 747.4,
-    "diferidoJS": 2104.1,
+    "diferidoJS": 2106.8,
     "totalCSS": 275.9,
     "vendorPrimevue": 223.3,
     "vendorUI": null,
@@ -19,77 +19,77 @@
   },
   "rutas": [
     {
-      "archivo": "ThirdPartiesFormView-CGyJjdIg.js",
+      "archivo": "ThirdPartiesFormView-B9VN3M-n.js",
       "kb": 99,
       "inicial": false
     },
     {
-      "archivo": "ServiceTemplateView-CTlCPQrR.js",
+      "archivo": "ServiceTemplateView-qN1X52WY.js",
       "kb": 96.6,
       "inicial": false
     },
     {
-      "archivo": "DashboardView-C7gsw7NC.js",
+      "archivo": "DashboardView-Dz2N6oTE.js",
       "kb": 61.6,
       "inicial": false
     },
     {
-      "archivo": "SystemConfigurationView-oT4Ogc4Y.js",
+      "archivo": "SystemConfigurationView-DsiKRH3f.js",
       "kb": 54.3,
       "inicial": false
     },
     {
-      "archivo": "FuecFormView-C6x0Y4jX.js",
+      "archivo": "FuecFormView-DebKRJbP.js",
       "kb": 52,
       "inicial": false
     },
     {
-      "archivo": "VehicleDocumentsFormView-DJMRNnnX.js",
+      "archivo": "VehicleDocumentsFormView-ClGG9CcT.js",
       "kb": 40,
       "inicial": false
     },
     {
-      "archivo": "ThirdPartiesListView-B9Elt74K.js",
+      "archivo": "ThirdPartiesListView-DwXyB2Ep.js",
       "kb": 35.7,
       "inicial": false
     },
     {
-      "archivo": "VehiclesFormView-C5FbzY2i.js",
+      "archivo": "VehiclesFormView-2wpIv4iL.js",
       "kb": 35.4,
       "inicial": false
     },
     {
-      "archivo": "VehiclesDetailView-BK1ZQRj4.js",
+      "archivo": "VehiclesDetailView-DH4583Cm.js",
       "kb": 33.8,
       "inicial": false
     },
     {
-      "archivo": "VehicleInspectionListView-BZnFXepF.js",
+      "archivo": "VehicleInspectionListView-Bmc9FXho.js",
       "kb": 33.7,
       "inicial": false
     },
     {
-      "archivo": "FuecValidationView-WLX42ABB.js",
+      "archivo": "FuecValidationView-BK9F1lgn.js",
       "kb": 30.5,
       "inicial": false
     },
     {
-      "archivo": "ServiceDeliveryControlSheetListView-DufCPJoS.js",
-      "kb": 25.4,
+      "archivo": "ServiceDeliveryControlSheetListView-ByK8ARps.js",
+      "kb": 26.8,
       "inicial": false
     },
     {
-      "archivo": "ServiceDeliveryControlSheetFormView-DROmgxKK.js",
+      "archivo": "ServiceDeliveryControlSheetFormView-VaT_xJ1c.js",
       "kb": 25.1,
       "inicial": false
     },
     {
-      "archivo": "CompaniesFormView-CxJJhdib.js",
+      "archivo": "CompaniesFormView-Cby9tO6Q.js",
       "kb": 24.7,
       "inicial": false
     },
     {
-      "archivo": "AffiliateAdminChargesListView-B5NKq41N.js",
+      "archivo": "AffiliateAdminChargesListView-tqe_gtB2.js",
       "kb": 22.4,
       "inicial": false
     }
@@ -101,7 +101,7 @@
   },
   "topChunks": [
     {
-      "archivo": "column-BdYQxg_y.js",
+      "archivo": "column-Cnyy2qEy.js",
       "kb": 253.8,
       "tipo": "js-diferido"
     },
@@ -121,22 +121,22 @@
       "tipo": "js-diferido"
     },
     {
-      "archivo": "index-DP55T8zW.js",
+      "archivo": "index-CdPrpD1E.js",
       "kb": 143.1,
       "tipo": "js-inicial"
     },
     {
-      "archivo": "select-BJ7lExbE.js",
+      "archivo": "select-CdhKCiu3.js",
       "kb": 106.3,
       "tipo": "js-diferido"
     },
     {
-      "archivo": "ThirdPartiesFormView-CGyJjdIg.js",
+      "archivo": "ThirdPartiesFormView-B9VN3M-n.js",
       "kb": 99,
       "tipo": "js-diferido"
     },
     {
-      "archivo": "ServiceTemplateView-CTlCPQrR.js",
+      "archivo": "ServiceTemplateView-qN1X52WY.js",
       "kb": 96.6,
       "tipo": "js-diferido"
     },
@@ -146,7 +146,7 @@
       "tipo": "js-inicial"
     },
     {
-      "archivo": "DashboardView-C7gsw7NC.js",
+      "archivo": "DashboardView-Dz2N6oTE.js",
       "kb": 61.6,
       "tipo": "js-diferido"
     }

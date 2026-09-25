@@ -186,6 +186,18 @@
                                         <i :class="estadoIcono(data)" style="font-size:10px;" />
                                         {{ estadoLabel(data) }}
                                     </span>
+                                    <!-- SPEC-002 §8: estado administrativo derivado -->
+                                    <span v-if="data.estado && data.estado !== 'ABIERTA'" class="badge rounded-pill mt-1 d-block"
+                                        :class="estadoAdminClass(data.estado)" style="font-size: 0.62rem;"
+                                        :title="`Estado administrativo: ${data.estado}`">
+                                        {{ estadoAdminLabel(data.estado) }}
+                                    </span>
+                                    <span v-if="data.dias_pendientes > 0" class="badge rounded-pill badge-subtle-warning mt-1 d-block"
+                                        style="font-size: 0.62rem;"
+                                        :aria-label="`${data.dias_pendientes} día(s) con evidencia incompleta`"
+                                        :title="`${data.dias_pendientes} día(s) con firmas o datos pendientes`">
+                                        <i class="fad fa-triangle-exclamation me-1" aria-hidden="true"></i>{{ data.dias_pendientes }} pend.
+                                    </span>
                                 </template>
                             </Column>
 
@@ -241,6 +253,12 @@
                                                         <span class="badge rounded-pill"
                                                             :class="(dia.is_active == 1 || dia.is_active === true) ? 'badge-subtle-success' : 'badge-subtle-secondary'">
                                                             {{ (dia.is_active == 1 || dia.is_active === true) ? 'Abierto' : 'Cerrado' }}
+                                                        </span>
+                                                        <!-- SPEC-002 §8: estado administrativo del día -->
+                                                        <span v-if="dia.estado" class="badge rounded-pill d-block mt-1"
+                                                            :class="estadoAdminClass(dia.estado)" style="font-size:0.6rem;"
+                                                            :title="estadoAdminTitle(dia)">
+                                                            {{ estadoAdminLabel(dia.estado) }}
                                                         </span>
                                                     </td>
                                                     <td>{{ Array.isArray(dia.routes) ? dia.routes.length : 0 }}</td>
@@ -420,6 +438,26 @@ const isServicioCerrado = (data) => esCerrado(data) || data.control_status === '
 const estadoLabel = (data) => isServicioCerrado(data) ? 'CERRADO' : 'EN CURSO';
 const estadoBadge = (data) => isServicioCerrado(data) ? 'badge-subtle-secondary' : 'badge-subtle-success';
 const estadoIcono = (data) => isServicioCerrado(data) ? 'fad fa-lock me-1' : 'fad fa-clock me-1';
+
+// SPEC-002 §8 — Estado administrativo derivado (viene del backend).
+const ESTADOS_ADMIN = {
+    BORRADOR: { label: 'Borrador', clase: 'badge-subtle-secondary' },
+    EN_CURSO: { label: 'En curso', clase: 'badge-subtle-info' },
+    PARCIAL: { label: 'Parcial', clase: 'badge-subtle-warning' },
+    CERRADA_OPERATIVAMENTE: { label: 'Cerrada op.', clase: 'badge-subtle-primary' },
+    CERTIFICADA: { label: 'Certificada', clase: 'badge-subtle-success' },
+    CERRADA_CON_EXCEPCION: { label: 'Con excepción', clase: 'badge-subtle-danger' },
+};
+const estadoAdminLabel = (estado) => ESTADOS_ADMIN[estado]?.label || estado;
+const estadoAdminClass = (estado) => ESTADOS_ADMIN[estado]?.clase || 'badge-subtle-secondary';
+/** El title del badge explica qué falta, para no depender solo del color. */
+const estadoAdminTitle = (dia) => {
+    const pendientes = dia?.firmas_pendientes || [];
+    if (pendientes.length) {
+        return `${dia.estado} — pendiente: ${pendientes.map((p) => p.etiqueta).join(' · ')}`;
+    }
+    return `Estado: ${dia.estado}`;
+};
 const tipoLabel = (type) => { const tipos = { 'DIRECTO_CON_LA_EMPRESA': 'Directo con la empresa', 'SUBCONTRATADO': 'Subcontratado', 'CON_VEHICULO_CONTRATADO': 'Vehículo contratado', 'EXTERNO_PLATAFORMA': 'Externo de plataforma' }; return tipos[type] || type || 'Desconocido'; };
 
 const goToInternalControl = () => router.push('/planilla-de-control-de-prestacion-servicios/control-de-servicios');
