@@ -611,6 +611,9 @@ onMounted(async () => {
         } else if (wizardUuid.value) {
             // Modo asistente: vehículo prefijado y documentos ya registrados
             formData.vehicle_uuid = wizardUuid.value;
+        } else if (route.query.vehicle_uuid && !formData.vehicle_uuid) {
+            // Prefijado neutro desde el reporte de vehículos (sin flujo de asistente)
+            formData.vehicle_uuid = String(route.query.vehicle_uuid);
         }
 
         // Progreso del stepper + precarga de la tarjeta existente (una sola consulta)

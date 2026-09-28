@@ -39,6 +39,7 @@ import { assistantRoutes } from "@features/assistant/routes.js";
 import { employmentContractsRoutes } from "@features/humanResources/routes.js";
 import { projectsRoutes } from "@features/projects/routes.js";
 import { trackingRoutes } from "@features/tracking/routes.js";
+import { vehicleReportsRoutes } from "@features/vehicleReports/routes.js";
 
 
 const tenantGuard = (to, from, next) => next(); // TODO: Implementar tenantGuard
@@ -101,6 +102,7 @@ const routes = [
     ...employmentContractsRoutes,
     ...projectsRoutes,
     ...trackingRoutes,
+    ...vehicleReportsRoutes,
     // Errores - Estructura estandarizada
     createRoute("/401", () => import("@pages/errors/Error401.vue"), { layout: "minimal", meta: { title: "No autorizado" } }),
     createRoute("/403", () => import("@pages/errors/Error403.vue"), { layout: "minimal", meta: { title: "Acceso denegado" } }),

@@ -390,6 +390,7 @@ const handleDelete = (item) => confirmDelete(item, {
 onMounted(async () => {
     try {
         searchQuery.value = store.search;
+        store.vehicleUuidFilter = route.query.vehicle_uuid || null;
         const type = route.params.documentType;
         if (type === 'soat') store.documentTypeFilter = 'SOAT';
         else if (type === 'tecnomecanica') store.documentTypeFilter = 'RTM';
@@ -404,6 +405,7 @@ onMounted(async () => {
 
 watch(() => route.path, async () => {
     isViewLoading.value = true;
+    store.vehicleUuidFilter = route.query.vehicle_uuid || null;
     const type = route.params.documentType;
     if (type === 'soat') store.documentTypeFilter = 'SOAT';
     else if (type === 'tecnomecanica') store.documentTypeFilter = 'RTM';
@@ -413,6 +415,12 @@ watch(() => route.path, async () => {
     await store.setPage(1);
     isViewLoading.value = false;
     initTooltips();
+});
+
+watch(() => route.query.vehicle_uuid, async (next, prev) => {
+    if (next === prev) return;
+    store.vehicleUuidFilter = next || null;
+    await store.setPage(1);
 });
 
 onUnmounted(() => destroyTooltips());
