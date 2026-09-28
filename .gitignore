@@ -50,3 +50,7 @@ DerivedData/
 npm-debug.log*
 .DS_Store
 Thumbs.db
+
+# Build (se genera en CI con npm run build; no versionar)
+dist/
+dist-ssr/
