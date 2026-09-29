@@ -247,12 +247,12 @@
                                 </div>
                                 <div class="col-12 col-md-2">
                                     <label class="form-label mb-1 small text-muted">Fecha Expedición *</label>
-                                    <input type="date" v-model="newLicense.issue_date"
+                                    <DateInput v-model="newLicense.issue_date"
                                         class="form-control form-control-sm" required placeholder="YYYY-MM-DD" />
                                 </div>
                                 <div class="col-12 col-md-2">
                                     <label class="form-label mb-1 small text-muted">Fecha Vencimiento *</label>
-                                    <input type="date" v-model="newLicense.expiration_date"
+                                    <DateInput v-model="newLicense.expiration_date"
                                         class="form-control form-control-sm" required placeholder="YYYY-MM-DD" />
                                 </div>
                                 <div class="col-12 col-md-1 d-flex align-items-end">
@@ -376,7 +376,7 @@
                             <div class="row gx-2 gy-2">
                                 <div class="col-12 col-md-2">
                                     <label class="form-label mb-1 small text-muted">Periodo Facturación *</label>
-                                    <input type="date" v-model="newContribution.billing_period"
+                                    <DateInput v-model="newContribution.billing_period"
                                         class="form-control form-control-sm" required placeholder="YYYY-MM" />
                                 </div>
                                 <div class="col-12 col-md-2">
@@ -401,7 +401,7 @@
                                 </div>
                                 <div class="col-12 col-md-2">
                                     <label class="form-label mb-1 small text-muted">Fecha Pago</label>
-                                    <input type="date" v-model="newContribution.payment_date"
+                                    <DateInput v-model="newContribution.payment_date"
                                         class="form-control form-control-sm" placeholder="YYYY-MM-DD" />
                                 </div>
                                 <div class="col-12 col-md-2">
@@ -423,7 +423,7 @@
                                 </div>
                                 <div class="col-12 col-md-3 mt-2">
                                     <label class="form-label mb-1 small text-muted">Fecha Afiliación EPS</label>
-                                    <input type="date" v-model="newContribution.eps_affiliation_date"
+                                    <DateInput v-model="newContribution.eps_affiliation_date"
                                         class="form-control form-control-sm" placeholder="YYYY-MM-DD" />
                                 </div>
                                 <div class="col-12 col-md-3 mt-2">
@@ -434,7 +434,7 @@
                                 </div>
                                 <div class="col-12 col-md-3 mt-2">
                                     <label class="form-label mb-1 small text-muted">Fecha Afiliación Pensión</label>
-                                    <input type="date" v-model="newContribution.pension_affiliation_date"
+                                    <DateInput v-model="newContribution.pension_affiliation_date"
                                         class="form-control form-control-sm" placeholder="YYYY-MM-DD" />
                                 </div>
                                 <div class="col-12 col-md-3 mt-2">
@@ -444,7 +444,7 @@
                                 </div>
                                 <div class="col-12 col-md-3 mt-2">
                                     <label class="form-label mb-1 small text-muted">Fecha Afiliación ARL</label>
-                                    <input type="date" v-model="newContribution.risk_labor_affiliation_date"
+                                    <DateInput v-model="newContribution.risk_labor_affiliation_date"
                                         class="form-control form-control-sm" placeholder="YYYY-MM-DD" />
                                 </div>
                                 <div class="col-12 col-md-3 mt-2">
@@ -455,7 +455,7 @@
                                 </div>
                                 <div class="col-12 col-md-3 mt-2">
                                     <label class="form-label mb-1 small text-muted">Fecha Afiliación Caja</label>
-                                    <input type="date" v-model="newContribution.compensation_fund_affiliation_date"
+                                    <DateInput v-model="newContribution.compensation_fund_affiliation_date"
                                         class="form-control form-control-sm" placeholder="YYYY-MM-DD" />
                                 </div>
                                 <!-- Checkboxes coberturas -->
@@ -594,6 +594,7 @@ import { useTable } from '@/hooks/useTable.js';
 import { useTableActions } from '@/hooks/useTableActions.js';
 import Swal from 'sweetalert2';
 import BasePageHeader from '@/components/BasePageHeader.vue';
+import DateInput from '@/components/form/DateInput.vue';
 import NoaTableSpinner from '@/components/NoaTableSpinner.vue';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';

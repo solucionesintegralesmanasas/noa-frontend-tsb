@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import dayjs from 'dayjs';
 import BasePageHeader from '@/components/BasePageHeader.vue';
+import DateInput from '@/components/form/DateInput.vue';
 import { useTrackingStore } from '../store/tracking.store';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useToast } from 'vue-toastification';
@@ -168,12 +169,12 @@ onMounted(async () => {
                         <div class="d-flex flex-wrap align-items-center gap-2">
                             <div class="input-group input-group-sm" style="max-width: 220px;">
                                 <span class="input-group-text bg-light border-end-0"><i class="fad fa-calendar-alt text-muted" /></span>
-                                <input type="date" v-model="startDate" class="form-control border-start-0 shadow-none" />
+                                <DateInput v-model="startDate" class="form-control border-start-0 shadow-none" />
                             </div>
                             <span class="text-muted fs--2">a</span>
                             <div class="input-group input-group-sm" style="max-width: 220px;">
                                 <span class="input-group-text bg-light border-end-0"><i class="fad fa-calendar-check text-muted" /></span>
-                                <input type="date" v-model="endDate" class="form-control border-start-0 shadow-none" />
+                                <DateInput v-model="endDate" class="form-control border-start-0 shadow-none" />
                             </div>
                         </div>
                     </div>

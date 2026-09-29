@@ -93,7 +93,7 @@
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-issue_date">Fecha de
                                     Expedición</label>
-                                <input id="f-issue_date" :aria-invalid="!!validationErrors['issue_date']" :aria-describedby="validationErrors['issue_date'] ? 'f-issue_date-error' : undefined" type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control" v-model="formData.issue_date"
+                                <DateInput id="f-issue_date" :aria-invalid="!!validationErrors['issue_date']" :aria-describedby="validationErrors['issue_date'] ? 'f-issue_date-error' : undefined" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control" v-model="formData.issue_date"
                                     required :class="fieldClass('issue_date')" @blur="markAsTouched('issue_date')" />
                                 <div v-if="validationErrors.issue_date" class="invalid-feedback d-block" id="f-issue_date-error" role="alert">
                                     {{ validationErrors.issue_date }}
@@ -102,7 +102,7 @@
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-effective_date">Fecha inicio
                                     de vigencia</label>
-                                <input id="f-effective_date" :aria-invalid="!!validationErrors['effective_date']" :aria-describedby="validationErrors['effective_date'] ? 'f-effective_date-error' : undefined" type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control"
+                                <DateInput id="f-effective_date" :aria-invalid="!!validationErrors['effective_date']" :aria-describedby="validationErrors['effective_date'] ? 'f-effective_date-error' : undefined" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control"
                                     v-model="formData.effective_date" required :class="fieldClass('effective_date')"
                                     @blur="markAsTouched('effective_date')" />
                                 <div v-if="validationErrors.effective_date" class="invalid-feedback d-block" id="f-effective_date-error" role="alert">
@@ -112,7 +112,7 @@
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-expiry_date">Fecha de
                                     Vencimiento</label>
-                                <input id="f-expiry_date" :aria-invalid="!!validationErrors['expiry_date']" :aria-describedby="validationErrors['expiry_date'] ? 'f-expiry_date-error' : undefined" type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control"
+                                <DateInput id="f-expiry_date" :aria-invalid="!!validationErrors['expiry_date']" :aria-describedby="validationErrors['expiry_date'] ? 'f-expiry_date-error' : undefined" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control"
                                     v-model="formData.expiry_date" required :class="fieldClass('expiry_date')"
                                     @blur="markAsTouched('expiry_date')" />
                                 <div v-if="validationErrors.expiry_date" class="invalid-feedback d-block" id="f-expiry_date-error" role="alert">
@@ -213,7 +213,7 @@
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-issue_date">Fecha de
                                     Expedición</label>
-                                <input id="f-issue_date" :aria-invalid="!!validationErrors['issue_date']" :aria-describedby="validationErrors['issue_date'] ? 'f-issue_date-error' : undefined" type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control" v-model="formData.issue_date"
+                                <DateInput id="f-issue_date" :aria-invalid="!!validationErrors['issue_date']" :aria-describedby="validationErrors['issue_date'] ? 'f-issue_date-error' : undefined" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control" v-model="formData.issue_date"
                                     required :class="fieldClass('issue_date')" @blur="markAsTouched('issue_date')" />
                                 <div v-if="validationErrors.issue_date" class="invalid-feedback d-block" id="f-issue_date-error" role="alert">
                                     {{ validationErrors.issue_date }}
@@ -222,7 +222,7 @@
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-effective_date">Fecha inicio
                                     de vigencia</label>
-                                <input id="f-effective_date" :aria-invalid="!!validationErrors['effective_date']" :aria-describedby="validationErrors['effective_date'] ? 'f-effective_date-error' : undefined" type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control"
+                                <DateInput id="f-effective_date" :aria-invalid="!!validationErrors['effective_date']" :aria-describedby="validationErrors['effective_date'] ? 'f-effective_date-error' : undefined" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control"
                                     v-model="formData.effective_date" required :class="fieldClass('effective_date')"
                                     @blur="markAsTouched('effective_date')" />
                                 <div v-if="validationErrors.effective_date" class="invalid-feedback d-block" id="f-effective_date-error" role="alert">
@@ -232,7 +232,7 @@
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-expiry_date">Fecha de
                                     Vencimiento</label>
-                                <input id="f-expiry_date" :aria-invalid="!!validationErrors['expiry_date']" :aria-describedby="validationErrors['expiry_date'] ? 'f-expiry_date-error' : undefined" type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control"
+                                <DateInput id="f-expiry_date" :aria-invalid="!!validationErrors['expiry_date']" :aria-describedby="validationErrors['expiry_date'] ? 'f-expiry_date-error' : undefined" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control"
                                     v-model="formData.expiry_date" required :class="fieldClass('expiry_date')"
                                     @blur="markAsTouched('expiry_date')" />
                                 <div v-if="validationErrors.expiry_date" class="invalid-feedback d-block" id="f-expiry_date-error" role="alert">
@@ -295,7 +295,7 @@
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-issue_date">Fecha de
                                     Expedición</label>
-                                <input id="f-issue_date" :aria-invalid="!!validationErrors['issue_date']" :aria-describedby="validationErrors['issue_date'] ? 'f-issue_date-error' : undefined" type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control" v-model="formData.issue_date"
+                                <DateInput id="f-issue_date" :aria-invalid="!!validationErrors['issue_date']" :aria-describedby="validationErrors['issue_date'] ? 'f-issue_date-error' : undefined" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control" v-model="formData.issue_date"
                                     required :class="fieldClass('issue_date')" @blur="markAsTouched('issue_date')" />
                                 <div v-if="validationErrors.issue_date" class="invalid-feedback d-block" id="f-issue_date-error" role="alert">
                                     {{ validationErrors.issue_date }}
@@ -304,7 +304,7 @@
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-effective_date">Fecha inicio
                                     de vigencia</label>
-                                <input id="f-effective_date" :aria-invalid="!!validationErrors['effective_date']" :aria-describedby="validationErrors['effective_date'] ? 'f-effective_date-error' : undefined" type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control"
+                                <DateInput id="f-effective_date" :aria-invalid="!!validationErrors['effective_date']" :aria-describedby="validationErrors['effective_date'] ? 'f-effective_date-error' : undefined" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control"
                                     v-model="formData.effective_date" required :class="fieldClass('effective_date')"
                                     @blur="markAsTouched('effective_date')" />
                                 <div v-if="validationErrors.effective_date" class="invalid-feedback d-block" id="f-effective_date-error" role="alert">
@@ -314,7 +314,7 @@
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-expiry_date">Fecha de
                                     Vencimiento</label>
-                                <input id="f-expiry_date" :aria-invalid="!!validationErrors['expiry_date']" :aria-describedby="validationErrors['expiry_date'] ? 'f-expiry_date-error' : undefined" type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control"
+                                <DateInput id="f-expiry_date" :aria-invalid="!!validationErrors['expiry_date']" :aria-describedby="validationErrors['expiry_date'] ? 'f-expiry_date-error' : undefined" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control"
                                     v-model="formData.expiry_date" required :class="fieldClass('expiry_date')"
                                     @blur="markAsTouched('expiry_date')" />
                                 <div v-if="validationErrors.expiry_date" class="invalid-feedback d-block" id="f-expiry_date-error" role="alert">
@@ -400,7 +400,7 @@
                             <div class="col-12 col-sm-6 col-md-4 col-lg-4">
                                 <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-issue_date">Fecha de
                                     Expedición</label>
-                                <input id="f-issue_date" :aria-invalid="!!validationErrors['issue_date']" :aria-describedby="validationErrors['issue_date'] ? 'f-issue_date-error' : undefined" type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control" v-model="formData.issue_date"
+                                <DateInput id="f-issue_date" :aria-invalid="!!validationErrors['issue_date']" :aria-describedby="validationErrors['issue_date'] ? 'f-issue_date-error' : undefined" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control" v-model="formData.issue_date"
                                     required :class="fieldClass('issue_date')" @blur="markAsTouched('issue_date')" />
                                 <div v-if="validationErrors.issue_date" class="invalid-feedback d-block" id="f-issue_date-error" role="alert">
                                     {{ validationErrors.issue_date }}
@@ -409,7 +409,7 @@
                             <div class="col-12 col-sm-6 col-md-4 col-lg-4">
                                 <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-expiry_date">Fecha de
                                     Vencimiento</label>
-                                <input id="f-expiry_date" :aria-invalid="!!validationErrors['expiry_date']" :aria-describedby="validationErrors['expiry_date'] ? 'f-expiry_date-error' : undefined" type="date" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control"
+                                <DateInput id="f-expiry_date" :aria-invalid="!!validationErrors['expiry_date']" :aria-describedby="validationErrors['expiry_date'] ? 'f-expiry_date-error' : undefined" autocomplete="off" placeholder="YYYY-MM-DD" class="form-control"
                                     v-model="formData.expiry_date" required :class="fieldClass('expiry_date')"
                                     @blur="markAsTouched('expiry_date')" />
                                 <div v-if="validationErrors.expiry_date" class="invalid-feedback d-block" id="f-expiry_date-error" role="alert">
@@ -450,7 +450,7 @@
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-status">Estado</label>
                                 <PrimeSelect :input-id="'f-status'" v-model="formData.status"
-                                    :options="[{ label: 'Si', value: 'SI' }, { label: 'No', value: 'NO' }]"
+                                    :options="[{ label: 'VIGENTE', value: 'VIGENTE' }, { label: 'NO VIGENTE', value: 'NO VIGENTE' }]"
                                     option-label="label" option-value="value" placeholder="Seleccione un estado" showClear filter class="w-100"
                                     :invalid="!!validationErrors['status']" />
                                 <div v-if="validationErrors.status" class="invalid-feedback d-block" id="f-status-error" role="alert">
@@ -514,13 +514,15 @@
 
 <script setup>
 import { toast } from '@/utils/toast.js';
+import { normalizarEstadoDocumento } from '@/utils/documentStatus.js';
 import { ref, reactive, computed, onMounted, nextTick, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useVehicleDocumentsStore } from '../store/vehicleDocuments.store.js';
 import { usePermissionsStore, useUserStore } from '@store';
 import { useNoAutocomplete } from '@/hooks/useNoAutocomplete.js';
 import BasePageHeader from '@/components/BasePageHeader.vue';
-import PrimeSelect from 'primevue/select';
+import PrimeSelect from '@/components/form/PrimeSelect.vue';
+import DateInput from '@/components/form/DateInput.vue';
 import BaseFormActions from '@/components/BaseFormActions.vue';
 import WizardProgress from '@/components/WizardProgress.vue';
 import { useDocumentWizard } from '@/hooks/useDocumentWizard.js';
@@ -805,7 +807,7 @@ const preloadStepDoc = (found, step) => {
             issuing_entity: d.issuing_entity ?? '',
             issue_date: toDateInput(d.issue_date),
             expiry_date: toDateInput(d.expiry_date),
-            status: d.status ?? 'SI',
+            status: normalizarEstadoDocumento(d.status) || 'VIGENTE',
             company_uuid: d.company_uuid || formData.company_uuid,
         });
     } else if (step === 'poliza' && (found.rce || found.rcc)) {

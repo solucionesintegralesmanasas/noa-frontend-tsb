@@ -116,11 +116,8 @@
 
                                 <Column field="status" header="Estado" sortable class="text-center" style="width: 120px;">
                                     <template #body="{ data }">
-                                        <span class="badge rounded-pill badge-subtle" :class="data.status === 'VIGENTE'
-                                            ? 'badge-subtle-success'
-                                            : 'badge-subtle-warning'
-                                            ">
-                                            {{ data.status }}
+                                        <span class="badge rounded-pill badge-subtle" :class="claseEstadoDocumento(data.status)">
+                                            {{ normalizarEstadoDocumento(data.status) }}
                                         </span>
                                     </template>
                                 </Column>
@@ -186,11 +183,8 @@
 
                                 <Column field="status" header="Estado" sortable class="text-center" style="width: 120px;">
                                     <template #body="{ data }">
-                                        <span class="badge rounded-pill badge-subtle" :class="data.status === 'VIGENTE'
-                                            ? 'badge-subtle-success'
-                                            : 'badge-subtle-warning'
-                                            ">
-                                            {{ data.status }}
+                                        <span class="badge rounded-pill badge-subtle" :class="claseEstadoDocumento(data.status)">
+                                            {{ normalizarEstadoDocumento(data.status) }}
                                         </span>
                                     </template>
                                 </Column>
@@ -254,11 +248,8 @@
                         </div>
                         <div class="d-flex justify-content-between">
                             <span class="text-muted small">Estado</span>
-                            <span class="badge rounded-pill" :class="doc.status === 'VIGENTE'
-                                ? 'badge-subtle-success'
-                                : 'badge-subtle-warning'
-                                ">
-                                {{ doc.status }}
+                            <span class="badge rounded-pill" :class="claseEstadoDocumento(doc.status)">
+                                {{ normalizarEstadoDocumento(doc.status) }}
                             </span>
                         </div>
                     </div>
@@ -280,6 +271,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useVehicleDocumentsStore } from '../store/vehicleDocuments.store.js';
 import { usePermissionsStore } from '@store';
 import { useTable } from '@/hooks/useTable.js';
+import { normalizarEstadoDocumento, claseEstadoDocumento } from '@/utils/documentStatus.js';
 import { useTableActions } from '@/hooks/useTableActions.js';
 import BasePageHeader from '@/components/BasePageHeader.vue';
 import NoaTableSpinner from '@/components/NoaTableSpinner.vue';

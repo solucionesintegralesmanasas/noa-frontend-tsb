@@ -238,7 +238,7 @@ import BasePageHeader from '@/components/BasePageHeader.vue';
 import NoaTableSpinner from '@/components/NoaTableSpinner.vue';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import PrimeSelect from 'primevue/select';
+import PrimeSelect from '@/components/form/PrimeSelect.vue';
 import Swal from 'sweetalert2';
 
 const store = useNotificationsStore();

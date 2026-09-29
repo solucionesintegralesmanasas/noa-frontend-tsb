@@ -1463,7 +1463,7 @@ import { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } from
 import { useRoute, useRouter } from 'vue-router';
 import { toast } from '@/utils/toast.js';
 import BasePageHeader from '@/components/BasePageHeader.vue';
-import PrimeSelect from 'primevue/select';
+import PrimeSelect from '@/components/form/PrimeSelect.vue';
 import { useServiceDeliveryControlSheetStore } from '../store/serviceDeliveryControlSheet.store.js';
 import serviceDeliveryControlSheetService from '../services/serviceDeliveryControlSheet.service.js';
 import vehicleInspectionsService from '../../vehicleInspections/services/vehicleInspections.service.js';

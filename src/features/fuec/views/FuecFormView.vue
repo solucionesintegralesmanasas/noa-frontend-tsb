@@ -250,7 +250,7 @@
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-effective_date">Fecha de
                                     Inicio</label>
-                                <input id="f-effective_date" :aria-invalid="!!validationErrors['effective_date']" :aria-describedby="validationErrors['effective_date'] ? 'f-effective_date-error' : undefined" type="date" class="form-control" placeholder="YYYY-MM-DD" :class="{
+                                <DateInput id="f-effective_date" :aria-invalid="!!validationErrors['effective_date']" :aria-describedby="validationErrors['effective_date'] ? 'f-effective_date-error' : undefined" class="form-control" placeholder="YYYY-MM-DD" :class="{
                                     'is-invalid': validationErrors['effective_date'],
                                     'is-valid': formData.effective_date && !validationErrors['effective_date']
                                 }" v-model="formData.effective_date"
@@ -264,7 +264,7 @@
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-expiration_date">Fecha de
                                     Vencimiento</label>
-                                <input id="f-expiration_date" :aria-invalid="!!validationErrors['expiration_date']" :aria-describedby="validationErrors['expiration_date'] ? 'f-expiration_date-error' : undefined" type="date" class="form-control" placeholder="YYYY-MM-DD" :class="{
+                                <DateInput id="f-expiration_date" :aria-invalid="!!validationErrors['expiration_date']" :aria-describedby="validationErrors['expiration_date'] ? 'f-expiration_date-error' : undefined" class="form-control" placeholder="YYYY-MM-DD" :class="{
                                     'is-invalid': validationErrors['expiration_date'],
                                     'is-valid': formData.expiration_date && !validationErrors['expiration_date']
                                 }" v-model="formData.expiration_date" :max="vehiclePaymentLimit"
@@ -453,7 +453,8 @@ import { useAuthStore } from '@store';
 import { useSystemConfigurationStore } from '@/features/systemConfiguration/store/systemConfiguration.store.js';
 import { useThirdPartiesStore } from '@/features/thirdParties/store/thirdParties.store.js';
 import BasePageHeader from '@/components/BasePageHeader.vue';
-import PrimeSelect from 'primevue/select';
+import PrimeSelect from '@/components/form/PrimeSelect.vue';
+import DateInput from '@/components/form/DateInput.vue';
 import BaseFormActions from '@/components/BaseFormActions.vue';
 import Swal from 'sweetalert2';
 import { dateUtils } from '@utils/date.js';

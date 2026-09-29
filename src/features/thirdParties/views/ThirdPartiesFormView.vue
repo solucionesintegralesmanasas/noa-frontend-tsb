@@ -299,8 +299,8 @@
                             </div>
                         </div>
 
-                            <!-- INFORMACIÓN DE LICENCIA (Solo para Conductores en Creación) -->
-                        <div class="col-12" v-show="formData.partyTypes && formData.partyTypes.includes('is_driver') && !isEditMode">
+                            <!-- INFORMACIÓN DE LICENCIA (Conductores) -->
+                        <div class="col-12" v-show="formData.partyTypes && formData.partyTypes.includes('is_driver')">
                             <h6 class="text-uppercase fw-bold text-secondary mb-3 mt-4 border-bottom pb-2">
                                 <i class="fas fa-id-card me-2"></i>
                                 Información de Licencia de Conducción y Afiliación
@@ -336,16 +336,16 @@
                                 </div>
                                 <div class="col-12 col-sm-6 col-md-4 col-lg-4">
                                     <label class="form-label required" for="license_issue_date">Fecha Expedición</label>
-                                    <input type="date" id="license_issue_date" v-model="formData.license_issue_date"
-                                        class="form-control" :class="{ 'is-invalid': validationErrors.license_issue_date }" placeholder="YYYY-MM-DD">
+                                    <DateInput id="license_issue_date" v-model="formData.license_issue_date"
+                                        class="form-control" :class="{ 'is-invalid': validationErrors.license_issue_date }" placeholder="YYYY-MM-DD" />
                                     <div v-if="validationErrors.license_issue_date" class="invalid-feedback d-block" id="f-license_issue_date-error" role="alert">
                                         {{ validationErrors.license_issue_date }}
                                     </div>
                                 </div>
                                 <div class="col-12 col-sm-6 col-md-4 col-lg-4">
                                     <label class="form-label required" for="license_expiration_date">Fecha Expiración</label>
-                                    <input type="date" id="license_expiration_date" v-model="formData.license_expiration_date"
-                                        class="form-control" :class="{ 'is-invalid': validationErrors.license_expiration_date }" placeholder="YYYY-MM-DD">
+                                    <DateInput id="license_expiration_date" v-model="formData.license_expiration_date"
+                                        class="form-control" :class="{ 'is-invalid': validationErrors.license_expiration_date }" placeholder="YYYY-MM-DD" />
                                     <div v-if="validationErrors.license_expiration_date" class="invalid-feedback d-block" id="f-license_expiration_date-error" role="alert">
                                         {{ validationErrors.license_expiration_date }}
                                     </div>
@@ -446,8 +446,9 @@ import { useThirdPartiesStore } from '../store/thirdParties.store.js';
 import { usePermissionsStore, useUserStore } from '@store';
 import Swal from 'sweetalert2';
 import BasePageHeader from '@/components/BasePageHeader.vue';
-import PrimeSelect from 'primevue/select';
-import PrimeMultiSelect from 'primevue/multiselect';
+import PrimeSelect from '@/components/form/PrimeSelect.vue';
+import DateInput from '@/components/form/DateInput.vue';
+import PrimeMultiSelect from '@/components/form/PrimeMultiSelect.vue';
 import BaseFormActions from '@/components/BaseFormActions.vue';
 import ProfilePhotoUploader from '@/components/ProfilePhotoUploader.vue';
 import RuesLookupPanel from '@/components/RuesLookupPanel.vue';
@@ -659,8 +660,8 @@ const validateForm = () => {
         }
     }
 
-    // Validar licencia si es conductor (solo al crear)
-    if (formData.partyTypes && formData.partyTypes.includes('is_driver') && !isEditMode.value) {
+    // Validar licencia si es conductor
+    if (formData.partyTypes && formData.partyTypes.includes('is_driver')) {
         if (!isOwnerDriver.value && isEmpty(formData.affiliate_uuid)) {
             validationErrors.affiliate_uuid = 'Debe asignar el conductor a un afiliado';
         }
@@ -839,6 +840,24 @@ onMounted(async () => {
                     : [];
 
                 formData.is_active = (item.is_active == 1 || item.is_active === true || item.is_active === '1') ? '1' : '0';
+
+                // Licencia existente: precargarla para editarla igual que en el registro.
+                if (formData.partyTypes.includes('is_driver')) {
+                    try {
+                        const licencias = await store.fetchDriverLicenses(route.params.id);
+                        const licencia = Array.isArray(licencias) ? licencias[0] : null;
+                        if (licencia) {
+                            formData.license_number = licencia.number ?? null;
+                            formData.license_category = licencia.category ?? null;
+                            formData.license_issue_date = licencia.issue_date ? String(licencia.issue_date).slice(0, 10) : null;
+                            formData.license_expiration_date = licencia.expiration_date ? String(licencia.expiration_date).slice(0, 10) : null;
+                            formData.license_restrictions = licencia.restrictions ?? null;
+                            formData.license_status = licencia.status ?? 'ACTIVA';
+                        }
+                    } catch {
+                        // Sin licencia previa: el formulario queda listo para registrarla.
+                    }
+                }
                 
                 if (item.photo_url || item.logo_url) {
                     filePreviews.photo = item.photo_url || item.logo_url;
