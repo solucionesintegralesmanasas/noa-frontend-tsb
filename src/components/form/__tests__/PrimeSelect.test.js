@@ -10,7 +10,7 @@ import PrimeSelect from '../PrimeSelect.vue';
 // Doble del Select de PrimeVue: expone props y reemite eventos.
 const SelectSimulado = {
     name: 'Select',
-    props: ['modelValue', 'options', 'optionLabel', 'optionValue', 'focusOnHover', 'autoFilterFocus'],
+    props: ['modelValue', 'options', 'optionLabel', 'optionValue', 'focusOnHover', 'autoFilterFocus', 'filter'],
     emits: ['update:modelValue', 'filter', 'show', 'hide', 'keydown'],
     render() {
         return h('input', {
@@ -145,5 +145,20 @@ describe('PrimeSelect (wrapper del proyecto)', () => {
         const wrapper = montar();
         await filtrar(wrapper, 'toy');
         expect(wrapper.emitted('filter')[0][0]).toEqual({ value: 'toy' });
+    });
+
+    it('activa el filtro solo en listas largas sin valor explícito', () => {
+        const larga = Array.from({ length: 8 }, (_, i) => ({ uuid: `u${i}`, description: `Opción ${i}` }));
+        const conFiltro = montar({ options: larga, filter: undefined });
+        expect(conFiltro.findComponent(SelectSimulado).props('filter')).toBe(true);
+
+        const corta = montar({ filter: undefined });
+        expect(corta.findComponent(SelectSimulado).props('filter')).toBe(false);
+    });
+
+    it('respeta el filtro explícito aunque la lista sea larga', () => {
+        const larga = Array.from({ length: 20 }, (_, i) => ({ uuid: `u${i}`, description: `Opción ${i}` }));
+        const wrapper = montar({ options: larga, filter: false });
+        expect(wrapper.findComponent(SelectSimulado).props('filter')).toBe(false);
     });
 });

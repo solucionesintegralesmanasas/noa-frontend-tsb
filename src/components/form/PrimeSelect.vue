@@ -24,7 +24,13 @@ const props = defineProps({
     optionGroupLabel: { type: [String, Function], default: undefined },
     optionGroupChildren: { type: [String, Function], default: undefined },
     filterFields: { type: Array, default: undefined },
+    // Sin valor explícito, el filtro se activa solo en listas largas para no
+    // ensuciar los combos cortos; con filtro hay búsqueda y Ctrl+V funciona.
+    filter: { type: Boolean, default: undefined },
 });
+
+// Filtro efectivo: el explícito manda; si no, listas de más de 7 opciones.
+const filtroActivo = computed(() => props.filter ?? ((props.options?.length ?? 0) > 7));
 
 // Se reenvía todo salvo el filtro, que se reemite desde el wrapper para que el
 // padre lo reciba una sola vez.
@@ -113,6 +119,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', alTecla, true));
         :optionGroupLabel="props.optionGroupLabel"
         :optionGroupChildren="props.optionGroupChildren"
         :filterFields="props.filterFields"
+        :filter="filtroActivo"
         :focusOnHover="false"
         :autoFilterFocus="true"
         @filter="alFiltrar"

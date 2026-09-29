@@ -479,6 +479,8 @@ const routeType = computed(() => {
 
 const isViewLoading = ref(true);
 const submitting = ref(false);
+// Indica si en edición se cargó una licencia existente del conductor.
+const licenciaCargada = ref(false);
 const validationErrors = reactive({});
 
 // Estado inicial del formulario (inicializar campos del JSON de la Tarea 1)
@@ -660,8 +662,18 @@ const validateForm = () => {
         }
     }
 
-    // Validar licencia si es conductor
-    if (formData.partyTypes && formData.partyTypes.includes('is_driver')) {
+    // Validar licencia si es conductor. En edición no se exige cuando el
+    // conductor no tiene licencia registrada ni se está diligenciando una,
+    // para no bloquear cambios de otros campos; si se empieza a diligenciar,
+    // debe completarse igual que en el registro.
+    const licenciaEnCurso = !isEmpty(formData.license_number)
+        || !isEmpty(formData.license_category)
+        || !isEmpty(formData.license_issue_date)
+        || !isEmpty(formData.license_expiration_date);
+    const exigirLicencia = formData.partyTypes
+        && formData.partyTypes.includes('is_driver')
+        && (!isEditMode.value || licenciaCargada.value || licenciaEnCurso);
+    if (exigirLicencia) {
         if (!isOwnerDriver.value && isEmpty(formData.affiliate_uuid)) {
             validationErrors.affiliate_uuid = 'Debe asignar el conductor a un afiliado';
         }
@@ -847,6 +859,7 @@ onMounted(async () => {
                         const licencias = await store.fetchDriverLicenses(route.params.id);
                         const licencia = Array.isArray(licencias) ? licencias[0] : null;
                         if (licencia) {
+                            licenciaCargada.value = true;
                             formData.license_number = licencia.number ?? null;
                             formData.license_category = licencia.category ?? null;
                             formData.license_issue_date = licencia.issue_date ? String(licencia.issue_date).slice(0, 10) : null;
