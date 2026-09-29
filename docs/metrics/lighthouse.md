@@ -116,3 +116,33 @@ volumen de bytes + latencia de red/API, no JS pesado en ejecución.
 
 - `a11y-YYYY-MM-DD.json`: conteo de antipatrones (`npm run test:a11y`).
 - `perf-YYYY-MM-DD.json`: pesos de `dist/` + chequeos de `index.html` (`npm run test:perf`).
+- `perf-<host>-YYYY-MM-DD.json`: mismo presupuesto contra el HTML desplegado
+  (`npm run perf:budget:prod` o `node scripts/perf-budget.js --url=<base>`).
+- `lighthouse-<local|prod>-<desktop|mobile>-YYYY-MM-DD.json`: bucle de navegador
+  (`node scripts/lighthouse.js --url=<base> --device=<desktop|mobile> --page=<paginas> --runs=3`).
+  Mismo comando en local (`vite preview`) y en producción; Lighthouse 12.8.2
+  fijado, corridas secuenciales, mediana por página.
+
+## Bucle automatizado (Fase 0, 2026-09-29)
+
+El protocolo manual de arriba sigue vigente para la cifra oficial. Para iterar
+se usa el mismo test en ambos entornos:
+
+```bash
+# Pesos (incluye public/ + buildId; --url mide el desplegado)
+npm run perf:budget:local
+npm run perf:budget:prod
+
+# Navegador (requiere `npm run preview` en otra terminal para local)
+node scripts/lighthouse.js --url=http://localhost:4173 --page=login --runs=3
+node scripts/lighthouse.js --url=http://localhost:4173 --device=mobile --page=conductor --runs=3
+node scripts/lighthouse.js --url=https://apptransportessinbarreras.transportessinbarreras.com --page=login,mapa
+```
+
+Páginas: `login`, `dashboard`, `mapa`, `historial` (requiere `--uuid=<id>`),
+`geocercas`, `conductor` (`/?view=conductor`). Rutas privadas sin `--profile`
+miden el login tras el redirect (el informe registra `finalUrl`).
+Con `--profile=<dir>` se reutiliza una sesión de Chrome iniciada a mano una vez.
+
+Baseline local 2026-09-29 (build BVZL8Rlr, `vite preview`):
+login desktop perf 95 / LCP 1200 ms; conductor móvil perf 65 / LCP 6047 ms.
