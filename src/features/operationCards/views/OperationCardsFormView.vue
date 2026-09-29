@@ -539,7 +539,7 @@ const goToAgreementForm = () => {
             vehicle_uuid: formData.vehicle_uuid,
             company_uuid: formData.company_uuid,
             contracting_entity_name: formData.affiliated_company,
-            effective_date: dateUtils.dayjs().format('YYYY-MM-DD'),
+            effective_date: dateUtils.now('YYYY-MM-DD'),
             operating_card_number: formData.operating_card_number,
             vehicle_plate: plate,
         },

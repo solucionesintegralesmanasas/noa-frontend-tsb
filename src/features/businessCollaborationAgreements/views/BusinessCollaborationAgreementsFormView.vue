@@ -386,7 +386,7 @@ onMounted(async () => {
             applyAgreementPrefill();
             // El convenio rige desde hoy salvo que la precarga traiga otra fecha.
             if (!formData.effective_date) {
-                formData.effective_date = dateUtils.dayjs().format('YYYY-MM-DD');
+                formData.effective_date = dateUtils.now('YYYY-MM-DD');
             }
             formData.agreement_internal_id = await store.fetchNextConsecutive(formData.company_uuid);
         }

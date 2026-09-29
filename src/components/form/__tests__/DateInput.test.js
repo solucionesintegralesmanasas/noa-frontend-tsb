@@ -33,6 +33,12 @@ describe('DateInput', () => {
         expect(wrapper.emitted('update:modelValue').at(-1)[0]).toBe('2026-09-14');
     });
 
+    it('al limpiar conserva la cadena vacía del input nativo', async () => {
+        const wrapper = mount(DateInput, { props: { modelValue: '2026-09-14', id: 'f-fecha' } });
+        await wrapper.find('input').setValue('');
+        expect(wrapper.emitted('update:modelValue').at(-1)[0]).toBe('');
+    });
+
     it('conserva id y atributos del padre', () => {
         const wrapper = mount(DateInput, {
             props: { modelValue: null, id: 'f-fecha' },

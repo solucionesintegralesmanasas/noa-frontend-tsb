@@ -37,7 +37,6 @@ const DEVICE = opt('device', 'desktop'); // desktop | mobile
 const RUNS = Math.max(1, parseInt(opt('runs', '3'), 10) || 3);
 const PAGINAS_PEDIDAS = (opt('page', opt('pages', 'login')) || 'login').split(',').map((s) => s.trim()).filter(Boolean);
 const UUID = opt('uuid', '');
-const ENV = opt('env', '') || (/localhost|127\.0\.0\.1/.test(BASE) ? 'local' : new URL(BASE).hostname.replace(/\./g, '-'));
 const PERFIL = opt('profile', ''); // dir de datos de Chrome con sesión iniciada (rutas privadas)
 
 if (!BASE) {
@@ -48,6 +47,9 @@ if (!['desktop', 'mobile'].includes(DEVICE)) {
   console.error('--device debe ser desktop o mobile');
   process.exit(2);
 }
+
+// La etiqueta del reporte se deriva de la URL una vez validada.
+const ENV = opt('env', '') || (/localhost|127\.0\.0\.1/.test(BASE) ? 'local' : new URL(BASE).hostname.replace(/\./g, '-'));
 
 const mediana = (xs) => {
   const v = [...xs].sort((a, b) => a - b);

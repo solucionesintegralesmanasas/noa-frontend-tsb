@@ -13,7 +13,9 @@ const props = defineProps({
 const inputRef = ref(null);
 
 function alEscribir(evento) {
-    modelo.value = evento.target.value || null;
+    // Se conserva el valor nativo tal cual (cadena vacía al limpiar), para no
+    // cambiar la semántica que ya tenían los formularios con input type="date".
+    modelo.value = evento.target.value;
 }
 
 function alPegar(evento) {

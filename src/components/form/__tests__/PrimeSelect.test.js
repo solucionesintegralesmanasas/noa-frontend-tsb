@@ -1,16 +1,17 @@
 // @vitest-environment jsdom
-// Comportamiento fijado del combobox del proyecto: sin salto por hover,
-// foco automático del filtro (pegar funciona) y Enter que toma la opción única.
-import { describe, expect, it } from 'vitest';
+// Comportamiento fijado del combobox del proyecto: v-model conectado al Select
+// interno, sin salto por hover, foco automático del filtro (pegar funciona) y
+// Enter que toma la opción única mientras el panel está abierto.
+import { afterEach, describe, expect, it } from 'vitest';
 import { mount } from '@vue/test-utils';
 import { h } from 'vue';
 import PrimeSelect from '../PrimeSelect.vue';
 
-// Doble del Select de PrimeVue: expone props y reemite filtro/teclado/ocultar.
+// Doble del Select de PrimeVue: expone props y reemite eventos.
 const SelectSimulado = {
     name: 'Select',
     props: ['modelValue', 'options', 'optionLabel', 'optionValue', 'focusOnHover', 'autoFilterFocus'],
-    emits: ['update:modelValue', 'filter', 'hide', 'keydown'],
+    emits: ['update:modelValue', 'filter', 'show', 'hide', 'keydown'],
     render() {
         return h('input', {
             'data-test': 'filtro',
@@ -26,7 +27,7 @@ const opciones = [
     { uuid: 'c3', description: 'Mazda' },
 ];
 
-function montar(props = {}, attrs = {}) {
+function montar(props = {}) {
     return mount(PrimeSelect, {
         props: {
             modelValue: null,
@@ -36,47 +37,70 @@ function montar(props = {}, attrs = {}) {
             filter: true,
             ...props,
         },
-        attrs,
         global: { stubs: { Select: SelectSimulado } },
     });
 }
 
-async function escribir(wrapper, texto) {
-    const input = wrapper.find('[data-test="filtro"]');
-    await input.setValue(texto);
+const interno = (wrapper) => wrapper.findComponent(SelectSimulado);
+
+async function abrir(wrapper) {
+    interno(wrapper).vm.$emit('show');
+    await wrapper.vm.$nextTick();
 }
 
-async function enter(wrapper) {
-    await wrapper.find('[data-test="filtro"]').trigger('keydown', { key: 'Enter' });
+async function filtrar(wrapper, texto) {
+    interno(wrapper).vm.$emit('filter', { value: texto });
+    await wrapper.vm.$nextTick();
 }
+
+function enterEnDocumento() {
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+}
+
+afterEach(() => {
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+});
 
 describe('PrimeSelect (wrapper del proyecto)', () => {
     it('fija focusOnHover en falso y autoFilterFocus en verdadero', () => {
         const wrapper = montar();
-        const interno = wrapper.findComponent(SelectSimulado);
-        expect(interno.props('focusOnHover')).toBe(false);
-        expect(interno.props('autoFilterFocus')).toBe(true);
+        expect(interno(wrapper).props('focusOnHover')).toBe(false);
+        expect(interno(wrapper).props('autoFilterFocus')).toBe(true);
+    });
+
+    it('conecta el v-model del padre con el Select interno', async () => {
+        const wrapper = montar({ modelValue: 'b2' });
+        expect(interno(wrapper).props('modelValue')).toBe('b2');
+
+        // La selección del interior sube al padre a través del wrapper.
+        interno(wrapper).vm.$emit('update:modelValue', 'c3');
+        await wrapper.vm.$nextTick();
+        expect(wrapper.emitted('update:modelValue').at(-1)[0]).toBe('c3');
     });
 
     it('Enter selecciona cuando el filtro deja una sola opción', async () => {
         const wrapper = montar();
-        await escribir(wrapper, 'mazd');
-        await enter(wrapper);
-        const emitido = wrapper.emitted('update:modelValue');
-        expect(emitido).toBeTruthy();
-        expect(emitido.at(-1)[0]).toBe('c3');
+        await abrir(wrapper);
+        await filtrar(wrapper, 'mazd');
+        enterEnDocumento();
+        await wrapper.vm.$nextTick();
+        expect(wrapper.emitted('update:modelValue').at(-1)[0]).toBe('c3');
     });
 
     it('Enter no cambia nada con varias opciones', async () => {
         const wrapper = montar();
-        await escribir(wrapper, 'o');
-        await enter(wrapper);
+        await abrir(wrapper);
+        await filtrar(wrapper, 'o');
+        enterEnDocumento();
+        await wrapper.vm.$nextTick();
         expect(wrapper.emitted('update:modelValue')).toBeFalsy();
     });
 
     it('Enter no cambia nada sin filtrar', async () => {
         const wrapper = montar();
-        await enter(wrapper);
+        await abrir(wrapper);
+        enterEnDocumento();
+        await wrapper.vm.$nextTick();
         expect(wrapper.emitted('update:modelValue')).toBeFalsy();
     });
 
@@ -86,24 +110,40 @@ describe('PrimeSelect (wrapper del proyecto)', () => {
             optionGroupLabel: 'grupo',
             optionGroupChildren: 'items',
         });
-        await escribir(wrapper, 'mazd');
-        await enter(wrapper);
+        await abrir(wrapper);
+        await filtrar(wrapper, 'mazd');
+        enterEnDocumento();
+        await wrapper.vm.$nextTick();
         expect(wrapper.emitted('update:modelValue')).toBeFalsy();
     });
 
-    it('ocultar limpia la consulta anterior', async () => {
-        const wrapper = montar();
-        await escribir(wrapper, 'mazd');
-        wrapper.findComponent(SelectSimulado).vm.$emit('hide');
+    it('usa `label` como etiqueta por defecto en objetos', async () => {
+        const wrapper = montar({
+            optionLabel: undefined,
+            optionValue: undefined,
+            options: [{ label: 'Única', value: 'x' }],
+        });
+        await abrir(wrapper);
+        await filtrar(wrapper, 'únic');
+        enterEnDocumento();
         await wrapper.vm.$nextTick();
-        await enter(wrapper);
+        expect(wrapper.emitted('update:modelValue').at(-1)[0]).toEqual({ label: 'Única', value: 'x' });
+    });
+
+    it('al cerrar deja de escuchar Enter y limpia la consulta', async () => {
+        const wrapper = montar();
+        await abrir(wrapper);
+        await filtrar(wrapper, 'mazd');
+        interno(wrapper).vm.$emit('hide');
+        await wrapper.vm.$nextTick();
+        enterEnDocumento();
+        await wrapper.vm.$nextTick();
         expect(wrapper.emitted('update:modelValue')).toBeFalsy();
     });
 
     it('reemite el evento filter al padre', async () => {
         const wrapper = montar();
-        await escribir(wrapper, 'toy');
-        expect(wrapper.emitted('filter')).toBeTruthy();
+        await filtrar(wrapper, 'toy');
         expect(wrapper.emitted('filter')[0][0]).toEqual({ value: 'toy' });
     });
 });

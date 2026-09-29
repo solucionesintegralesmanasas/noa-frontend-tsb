@@ -6,7 +6,7 @@
      - Enter selecciona cuando el filtro deja una sola opción.
      No usa slots: ningún uso actual los necesita. -->
 <script setup>
-import { computed, ref, useAttrs } from 'vue';
+import { computed, onBeforeUnmount, ref, useAttrs } from 'vue';
 import PrimeVueSelect from 'primevue/select';
 
 defineOptions({ inheritAttrs: false });
@@ -26,13 +26,11 @@ const props = defineProps({
     filterFields: { type: Array, default: undefined },
 });
 
-// Se reenvía todo salvo lo interceptado (filter/keydown/hide), que se
-// llama a mano para no duplicar ni perder el listener del padre.
+// Se reenvía todo salvo el filtro, que se reemite desde el wrapper para que el
+// padre lo reciba una sola vez.
 const attrsLimpios = computed(() => {
     const resto = { ...attrs };
     delete resto.onFilter;
-    delete resto.onKeydown;
-    delete resto.onHide;
     return resto;
 });
 
@@ -46,10 +44,12 @@ function resolver(origen, opcion) {
 }
 
 const etiquetaDe = (opcion) => {
-    if (props.optionLabel === undefined) {
-        return typeof opcion === 'object' && opcion !== null ? '' : String(opcion ?? '');
+    // Sin optionLabel, PrimeVue usa `label` por defecto para objetos.
+    const clave = props.optionLabel ?? 'label';
+    if (typeof opcion === 'object' && opcion !== null && clave in opcion) {
+        return String(resolver(clave, opcion) ?? '');
     }
-    return String(resolver(props.optionLabel, opcion) ?? '');
+    return typeof opcion === 'object' && opcion !== null ? '' : String(opcion ?? '');
 };
 
 const valorDe = (opcion) => {
@@ -77,34 +77,35 @@ function alFiltrar(evento) {
     emitir('filter', evento);
 }
 
-function alOcultar(evento) {
-    consulta.value = '';
-    if (typeof attrs.onHide === 'function') attrs.onHide(evento);
+// El panel de PrimeVue se teletransporta fuera del wrapper, así que un keydown
+// sobre la raíz no lo alcanza: mientras el panel está abierto se escucha en
+// documento (fase de captura) para interceptar el Enter antes que PrimeVue.
+function alTecla(evento) {
+    if (evento.key !== 'Enter') return;
+    const filtradas = opcionesFiltradas();
+    if (!filtradas || filtradas.length !== 1) return;
+    modelo.value = valorDe(filtradas[0]);
+    selectRef.value?.hide?.();
+    evento.preventDefault();
+    evento.stopPropagation();
 }
 
-function alTecla(evento) {
-    if (evento.key === 'Enter') {
-        const filtradas = opcionesFiltradas();
-        if (filtradas && filtradas.length === 1) {
-            const valor = valorDe(filtradas[0]);
-            const actual = modelo.value;
-            const igual = JSON.stringify(actual) === JSON.stringify(valor) || actual === valor;
-            if (!igual) {
-                modelo.value = valor;
-                selectRef.value?.hide?.();
-                evento.preventDefault();
-                evento.stopPropagation();
-                return;
-            }
-        }
-    }
-    if (typeof attrs.onKeydown === 'function') attrs.onKeydown(evento);
+function alMostrar() {
+    document.addEventListener('keydown', alTecla, true);
 }
+
+function alOcultar() {
+    document.removeEventListener('keydown', alTecla, true);
+    consulta.value = '';
+}
+
+onBeforeUnmount(() => document.removeEventListener('keydown', alTecla, true));
 </script>
 
 <template>
     <PrimeVueSelect
         ref="selectRef"
+        v-model="modelo"
         v-bind="attrsLimpios"
         :options="props.options"
         :optionLabel="props.optionLabel"
@@ -115,7 +116,7 @@ function alTecla(evento) {
         :focusOnHover="false"
         :autoFilterFocus="true"
         @filter="alFiltrar"
-        @keydown.capture="alTecla"
+        @show="alMostrar"
         @hide="alOcultar"
     />
 </template>

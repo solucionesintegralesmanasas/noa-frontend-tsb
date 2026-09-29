@@ -795,7 +795,7 @@ const preloadStepDoc = (found, step) => {
             issue_date: toDateInput(d.issue_date),
             effective_date: toDateInput(d.effective_date),
             expiry_date: toDateInput(d.expiry_date),
-            status: d.status ?? 'VIGENTE',
+            status: normalizarEstadoDocumento(d.status) || 'VIGENTE',
             tariff_code: d.tariff_code ?? '',
             company_uuid: d.company_uuid || formData.company_uuid,
         });
@@ -822,7 +822,7 @@ const preloadStepDoc = (found, step) => {
             issue_date: toDateInput(source?.issue_date),
             effective_date: toDateInput(source?.effective_date),
             expiry_date: toDateInput(source?.expiry_date),
-            status: source?.status ?? 'VIGENTE',
+            status: normalizarEstadoDocumento(source?.status) || 'VIGENTE',
             company_uuid: source?.company_uuid || formData.company_uuid,
         });
     }

@@ -149,7 +149,15 @@ async function tamanoRemoto(url) {
 }
 
 async function medirRemoto(base) {
-  const html = await (await fetch(base, { signal: AbortSignal.timeout(20000) })).text();
+  let html;
+  try {
+    const r = await fetch(base, { signal: AbortSignal.timeout(20000) });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    html = await r.text();
+  } catch (e) {
+    console.error(`No se pudo leer ${base}: ${String(e.message || e).split('\n')[0]}`);
+    process.exit(1);
+  }
   const { inicial, estilos, clasicos } = extraer(html);
   const ver = async (rutas, tipo) => {
     const unicas = [...new Set(rutas.filter((r) => typeof r === 'string' && r.startsWith('/')))];
