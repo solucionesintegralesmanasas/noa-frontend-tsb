@@ -139,17 +139,18 @@
                                         </button>
                                         <button
                                             v-if="store.typeFilter === 'is_driver' || data.is_driver || (data.roles && data.roles.includes('is_driver'))"
-                                            class="btn btn-falcon-default" type="button" title="Gestión de Licencias" :aria-label="`Gestionar licencias de ${data.trade_name}`"
+                                            class="btn btn-falcon-default" type="button"                                             title="Gestión de Licencias" :aria-label="etiquetaBotonLicencias(data)"
                                             @click="openLicensesModal(data.uuid, data.company_uuid)">
-                                            <!-- Icono dinámico basado en las licencias cargadas (eager loaded) -->
-                                            <i v-if="!data.driver_licenses || data.driver_licenses.length === 0"
+                                            <!-- Icono dinámico: verde si tiene licencia ACTIVA y vigente -->
+                                            <i v-if="tieneFilaLicenciaVigente(data)" class="fad fa-id-card text-success"
+                                                style="font-size:14px;" title="Licencia activa y vigente"
+                                                aria-hidden="true" />
+                                            <i v-else-if="!data.driver_licenses || data.driver_licenses.length === 0"
                                                 class="fad fa-id-card text-secondary" style="font-size:14px;"
-                                                title="Sin licencias registradas" />
-                                            <i v-else-if="data.driver_licenses.some(l => l.status === 'ACTIVA')"
-                                                class="fad fa-id-card text-info" style="font-size:14px;"
-                                                title="Licencia Activa" />
+                                                title="Sin licencias registradas" aria-hidden="true" />
                                             <i v-else class="fad fa-exclamation-triangle text-danger"
-                                                style="font-size:14px;" title="Licencia Vencida o Inactiva" />
+                                                style="font-size:14px;" title="Licencia vencida o inactiva"
+                                                aria-hidden="true" />
                                         </button>
                                         <button
                                             v-if="store.typeFilter === 'is_driver' || store.typeFilter === 'is_employee' || data.is_driver || data.is_employee"
@@ -587,7 +588,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useThirdPartiesStore } from '../store/thirdParties.store.js';
+import { useThirdPartiesStore, tieneFilaLicenciaVigente } from '../store/thirdParties.store.js';
 import ThirdPartiesService from '../services/thirdParties.service.js';
 import { usePermissionsStore, useUserStore } from '@store';
 import { useTable } from '@/hooks/useTable.js';
@@ -792,11 +793,27 @@ const loadLicensesForModal = async (uuid) => {
     isLoadingLicenses.value = true;
     try {
         driverLicenses.value = await store.fetchDriverLicenses(uuid);
+        store.syncDriverLicenses(uuid, driverLicenses.value);
     } catch (err) {
         console.error('Error cargando licencias', err);
     } finally {
         isLoadingLicenses.value = false;
     }
+};
+
+/**
+ * Etiqueta accesible del botón de licencias, incluyendo el estado
+ * para que el lector de pantalla anuncie si la licencia está vigente.
+ * @param {Object} data - Fila del conductor.
+ * @returns {string}
+ */
+const etiquetaBotonLicencias = (data) => {
+    const nombre = data.full_name || data.trade_name || 'conductor';
+    if (tieneFilaLicenciaVigente(data)) return `Gestionar licencias de ${nombre}: licencia activa y vigente`;
+    if (Array.isArray(data.driver_licenses) && data.driver_licenses.length > 0) {
+        return `Gestionar licencias de ${nombre}: licencia vencida o inactiva`;
+    }
+    return `Gestionar licencias de ${nombre}: sin licencias registradas`;
 };
 
 const openLicensesModal = async (uuid, companyUuid) => {
