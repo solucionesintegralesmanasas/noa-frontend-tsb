@@ -171,10 +171,10 @@
 
                             <Column field="soat_expiry" header="SOAT">
                                 <template #body="{ data }">
-                                    <router-link v-if="docCreateLink(data, 'SOAT')" :to="docCreateLink(data, 'SOAT')"
+                                    <router-link v-if="docEditLink(data, 'SOAT')" :to="docEditLink(data, 'SOAT')"
                                         :class="expiryClass(data.soat_expiry)"
-                                        :title="`Agregar SOAT — placa ${data.vehicle_license_plate}`"
-                                        :aria-label="`Agregar SOAT para el vehículo ${data.vehicle_license_plate}, vence ${formatDate(data.soat_expiry)}`">{{
+                                        :title="`Actualizar SOAT — placa ${data.vehicle_license_plate}`"
+                                        :aria-label="`Actualizar SOAT del vehículo ${data.vehicle_license_plate}, vence ${formatDate(data.soat_expiry)}`">{{
                                         formatDate(data.soat_expiry) }}</router-link>
                                     <span v-else :class="expiryClass(data.soat_expiry)">{{ formatDate(data.soat_expiry) }}</span>
                                 </template>
@@ -182,10 +182,10 @@
 
                             <Column field="rcc_expiry" header="RCC">
                                 <template #body="{ data }">
-                                    <router-link v-if="docCreateLink(data, 'RCC')" :to="docCreateLink(data, 'RCC')"
+                                    <router-link v-if="docEditLink(data, 'RCC')" :to="docEditLink(data, 'RCC')"
                                         :class="expiryClass(data.rcc_expiry)"
-                                        :title="`Agregar RCC — placa ${data.vehicle_license_plate}`"
-                                        :aria-label="`Agregar póliza RCC para el vehículo ${data.vehicle_license_plate}, vence ${formatDate(data.rcc_expiry)}`">{{
+                                        :title="`Actualizar póliza RCC — placa ${data.vehicle_license_plate}`"
+                                        :aria-label="`Actualizar póliza RCC del vehículo ${data.vehicle_license_plate}, vence ${formatDate(data.rcc_expiry)}`">{{
                                         formatDate(data.rcc_expiry) }}</router-link>
                                     <span v-else :class="expiryClass(data.rcc_expiry)">{{ formatDate(data.rcc_expiry) }}</span>
                                 </template>
@@ -193,10 +193,10 @@
 
                             <Column field="rce_expiry" header="RCE">
                                 <template #body="{ data }">
-                                    <router-link v-if="docCreateLink(data, 'RCE')" :to="docCreateLink(data, 'RCE')"
+                                    <router-link v-if="docEditLink(data, 'RCE')" :to="docEditLink(data, 'RCE')"
                                         :class="expiryClass(data.rce_expiry)"
-                                        :title="`Agregar RCE — placa ${data.vehicle_license_plate}`"
-                                        :aria-label="`Agregar póliza RCE para el vehículo ${data.vehicle_license_plate}, vence ${formatDate(data.rce_expiry)}`">{{
+                                        :title="`Actualizar póliza RCE — placa ${data.vehicle_license_plate}`"
+                                        :aria-label="`Actualizar póliza RCE del vehículo ${data.vehicle_license_plate}, vence ${formatDate(data.rce_expiry)}`">{{
                                         formatDate(data.rce_expiry) }}</router-link>
                                     <span v-else :class="expiryClass(data.rce_expiry)">{{ formatDate(data.rce_expiry) }}</span>
                                 </template>
@@ -204,10 +204,10 @@
 
                             <Column field="rtm_expiry" header="RTM">
                                 <template #body="{ data }">
-                                    <router-link v-if="docCreateLink(data, 'RTM')" :to="docCreateLink(data, 'RTM')"
+                                    <router-link v-if="docEditLink(data, 'RTM')" :to="docEditLink(data, 'RTM')"
                                         :class="expiryClass(data.rtm_expiry)"
-                                        :title="`Agregar RTM — placa ${data.vehicle_license_plate}`"
-                                        :aria-label="`Agregar revisión RTM para el vehículo ${data.vehicle_license_plate}, vence ${formatDate(data.rtm_expiry)}`">{{
+                                        :title="`Actualizar RTM — placa ${data.vehicle_license_plate}`"
+                                        :aria-label="`Actualizar revisión RTM del vehículo ${data.vehicle_license_plate}, vence ${formatDate(data.rtm_expiry)}`">{{
                                         formatDate(data.rtm_expiry) }}</router-link>
                                     <span v-else :class="expiryClass(data.rtm_expiry)">{{ formatDate(data.rtm_expiry) }}</span>
                                 </template>
@@ -215,10 +215,10 @@
 
                             <Column field="operation_card_expiry" header="Tarj. operación">
                                 <template #body="{ data }">
-                                    <router-link v-if="opCardCreateLink(data)" :to="opCardCreateLink(data)"
+                                    <router-link v-if="opCardEditLink(data)" :to="opCardEditLink(data)"
                                         :class="expiryClass(data.operation_card_expiry)"
-                                        :title="`Agregar tarjeta de operación — placa ${data.vehicle_license_plate}`"
-                                        :aria-label="`Agregar tarjeta de operación para el vehículo ${data.vehicle_license_plate}, vence ${formatDate(data.operation_card_expiry)}`">{{
+                                        :title="`Actualizar tarjeta de operación — placa ${data.vehicle_license_plate}`"
+                                        :aria-label="`Actualizar tarjeta de operación del vehículo ${data.vehicle_license_plate}, vence ${formatDate(data.operation_card_expiry)}`">{{
                                         formatDate(data.operation_card_expiry) }}</router-link>
                                     <span v-else :class="expiryClass(data.operation_card_expiry)">{{ formatDate(data.operation_card_expiry) }}</span>
                                     <small v-if="data.operation_card_number" class="text-muted d-block" style="font-size: 0.72rem;">
@@ -357,20 +357,34 @@ const clearAll = async () => {
 };
 
 /**
- * Ruta al formulario de creación del documento con el vehículo preseleccionado.
- * SOAT→soat, RCC/RCE→poliza, RTM→tecnomecanica. Nulo sin permiso de creación.
+ * Enlace siempre a editar, sin importar si está vencido o vigente.
+ * Usa el uuid del documento que envía el reporte; si no hay documento
+ * cae a crear con el vehículo prefijado (?wizard=).
  */
-const docCreateLink = (row, tipo) => {
-    if (!can('vehicle_documents.create')) return null;
+const docEditLink = (row, tipo) => {
     const segmentos = { SOAT: 'soat', RCC: 'poliza', RCE: 'poliza', RTM: 'tecnomecanica' };
+    const porTipo = { SOAT: row?.soat_uuid, RCC: row?.rcc_uuid || row?.rce_uuid, RCE: row?.rce_uuid || row?.rcc_uuid, RTM: row?.rtm_uuid };
     const seg = segmentos[tipo];
     if (!seg || !row?.uuid) return null;
-    return { path: `/vehiculos-documentos/${seg}/crear`, query: { vehicle_uuid: row.uuid } };
+    const docUuid = porTipo[tipo];
+    if (docUuid && can('vehicle_documents.update')) {
+        return { path: `/vehiculos-documentos/${seg}/editar/${docUuid}`, query: { wizard: row.uuid } };
+    }
+    if (can('vehicle_documents.create')) {
+        return { path: `/vehiculos-documentos/${seg}/crear`, query: { wizard: row.uuid } };
+    }
+    return null;
 };
 
-const opCardCreateLink = (row) => {
-    if (!can('operation_cards.create') || !row?.uuid) return null;
-    return { path: '/tarjetas-de-operacion/crear', query: { vehicle_uuid: row.uuid } };
+const opCardEditLink = (row) => {
+    if (!row?.uuid) return null;
+    if (row?.operation_card_uuid && can('operation_cards.update')) {
+        return { path: `/tarjetas-de-operacion/editar/${row.operation_card_uuid}`, query: { wizard: row.uuid } };
+    }
+    if (can('operation_cards.create')) {
+        return { path: '/tarjetas-de-operacion/crear', query: { wizard: row.uuid } };
+    }
+    return null;
 };
 
 const formatDate = (value) => {    if (!value) return '-';
