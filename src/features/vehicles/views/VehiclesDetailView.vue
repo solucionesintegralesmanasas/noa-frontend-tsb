@@ -418,7 +418,8 @@
                     <div class="d-flex align-items-center gap-2">
                         <i class="fad fa-file-contract text-primary" style="font-size: 14px;"></i>
                         <h6 class="mb-0 fw-medium" style="font-size: 0.9rem;">
-                            Documentos y Seguros ({{ vehicle.vehicle_documents?.length || 0 }})
+                            Documentos y Seguros ({{ documentosAgrupados.length }}
+                            {{ documentosAgrupados.length === 1 ? 'tipo' : 'tipos' }} · {{ vehicle.vehicle_documents?.length || 0 }} registros)
                         </h6>
                     </div>
                     <div class="d-flex gap-2">
@@ -443,37 +444,76 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="doc in vehicle.vehicle_documents" :key="doc.uuid">
-                                    <td class="ps-3">
-                                        <span class="fw-medium text-dark d-flex align-items-center gap-1">
-                                            <i :class="getDocumentIcon(doc.document_type)" class="text-primary"></i>
-                                            {{ doc.document_type }}
-                                        </span>
-                                        <small v-if="doc.tariff_code" class="text-muted d-block font-monospace"
-                                            style="font-size: 0.7rem;">
-                                            Código: {{ doc.tariff_code }}
-                                        </small>
-                                    </td>
-                                    <td>
-                                        <span class="fw-medium font-monospace">{{ doc.policy_number }}</span>
-                                    </td>
-                                    <td>
-                                        <small class="text-dark">{{ doc.issuing_entity }}</small>
-                                    </td>
-                                    <td class="text-center">
-                                        <small class="text-muted d-block">Hasta: {{ formatDateShort(doc.expiry_date) }}</small>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge rounded-pill" :class="getDocumentStatusClass(doc)"
-                                            style="font-size: 0.65rem; padding: 0.2em 0.5em;">
-                                            {{ getDocumentStatusLabel(doc) }}
-                                        </span>
-                                        <small v-if="isExpiringSoon(doc.expiry_date)" class="text-warning d-block mt-1"
-                                            style="font-size: 0.65rem;">
-                                            <i class="fad fa-exclamation-triangle me-1"></i>Vence pronto
-                                        </small>
-                                    </td>
-                                </tr>
+                                <template v-for="grupo in documentosAgrupados" :key="grupo.tipo">
+                                    <!-- Documento más reciente del tipo; si hay historial, la fila se despliega -->
+                                    <tr :class="{ 'doc-fila-expandible': grupo.anteriores.length, 'doc-fila-abierta': tipoAbierto(grupo.tipo) }"
+                                        :tabindex="grupo.anteriores.length ? 0 : undefined"
+                                        :aria-expanded="grupo.anteriores.length ? String(tipoAbierto(grupo.tipo)) : undefined"
+                                        :aria-controls="grupo.anteriores.length ? `docs-hist-${grupo.tipo}` : undefined"
+                                        :aria-label="grupo.anteriores.length ? `${grupo.tipo}: ${tipoAbierto(grupo.tipo) ? 'ocultar' : 'ver'} ${grupo.anteriores.length} documento(s) anterior(es)` : undefined"
+                                        @click="alternarTipo(grupo)" @keydown.enter.prevent="alternarTipo(grupo)"
+                                        @keydown.space.prevent="alternarTipo(grupo)">
+                                        <td class="ps-3">
+                                            <span class="fw-medium text-dark d-flex align-items-center gap-1">
+                                                <i v-if="grupo.anteriores.length" class="fas fa-chevron-right doc-chevron text-primary"
+                                                    :class="{ 'doc-chevron-abierto': tipoAbierto(grupo.tipo) }" aria-hidden="true"></i>
+                                                <i :class="getDocumentIcon(grupo.tipo)" class="text-primary" aria-hidden="true"></i>
+                                                {{ grupo.tipo }}
+                                            </span>
+                                            <small v-if="grupo.principal.tariff_code" class="text-muted d-block font-monospace"
+                                                style="font-size: 0.7rem;">
+                                                Código: {{ grupo.principal.tariff_code }}
+                                            </small>
+                                            <span v-if="grupo.anteriores.length" class="badge rounded-pill bg-light text-secondary border doc-historial-pill mt-1">
+                                                <i class="fad fa-clock-rotate-left me-1" aria-hidden="true"></i>{{ grupo.anteriores.length }}
+                                                {{ grupo.anteriores.length === 1 ? 'anterior' : 'anteriores' }}
+                                                · {{ tipoAbierto(grupo.tipo) ? 'ocultar' : 'ver historial' }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="fw-medium font-monospace">{{ grupo.principal.policy_number }}</span>
+                                        </td>
+                                        <td>
+                                            <small class="text-dark">{{ grupo.principal.issuing_entity }}</small>
+                                        </td>
+                                        <td class="text-center">
+                                            <small class="text-muted d-block">Hasta: {{ formatDateShort(grupo.principal.expiry_date) }}</small>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge rounded-pill" :class="getDocumentStatusClass(grupo.principal)"
+                                                style="font-size: 0.65rem; padding: 0.2em 0.5em;">
+                                                {{ getDocumentStatusLabel(grupo.principal) }}
+                                            </span>
+                                            <small v-if="isExpiringSoon(grupo.principal.expiry_date)" class="text-warning d-block mt-1"
+                                                style="font-size: 0.65rem;">
+                                                <i class="fad fa-exclamation-triangle me-1" aria-hidden="true"></i>Vence pronto
+                                            </small>
+                                        </td>
+                                    </tr>
+                                    <!-- Historial del tipo: documentos anteriores o vencidos, del más reciente al más antiguo -->
+                                    <template v-if="grupo.anteriores.length && tipoAbierto(grupo.tipo)">
+                                        <tr v-for="(doc, i) in grupo.anteriores" :id="i === 0 ? `docs-hist-${grupo.tipo}` : undefined"
+                                            :key="doc.uuid" class="doc-fila-historial">
+                                            <td class="ps-3">
+                                                <span class="text-muted d-flex align-items-center gap-1 doc-historial-sangria">
+                                                    <i class="fas fa-turn-up fa-rotate-90 text-muted" aria-hidden="true"></i>
+                                                    {{ grupo.tipo }} anterior
+                                                </span>
+                                            </td>
+                                            <td><span class="font-monospace text-muted">{{ doc.policy_number }}</span></td>
+                                            <td><small class="text-muted">{{ doc.issuing_entity }}</small></td>
+                                            <td class="text-center">
+                                                <small class="text-muted d-block">Hasta: {{ formatDateShort(doc.expiry_date) }}</small>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge rounded-pill" :class="getDocumentStatusClass(doc)"
+                                                    style="font-size: 0.65rem; padding: 0.2em 0.5em;">
+                                                    {{ getDocumentStatusLabel(doc) }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </template>
                                 <tr v-if="!vehicle.vehicle_documents?.length">
                                     <td colspan="5" class="text-center text-muted py-3 small">
                                         No hay documentos registrados
@@ -588,6 +628,7 @@ import VehiclesService from '../services/vehicles.service.js';
 import { useToast } from 'vue-toastification';
 import BasePageHeader from '@/components/BasePageHeader.vue';
 import VehicleDocumentsMenu from '../components/VehicleDocumentsMenu.vue';
+import { masReciente } from '@/hooks/useDocumentWizard.js';
 
 // ===== DEPENDENCIAS =====
 const route = useRoute();
@@ -644,18 +685,50 @@ const ownerDisplayName = computed(() => {
     return 'Sin asignar';
 });
 
-const validDocumentsCount = computed(() => {
-    return vehicle.value.vehicle_documents?.filter(doc =>
-        doc.status === 'VIGENTE' || doc.status === 'SI' || isDocumentValid(doc.expiry_date)
-    ).length || 0;
+// Orden de los tipos en la tabla; los desconocidos van al final.
+const ORDEN_TIPOS_DOCUMENTO = ['SOAT', 'RTM', 'RCC', 'RCE'];
+
+/**
+ * Documentos agrupados por tipo: `principal` es el más reciente (el vigente en la práctica) y
+ * `anteriores` el historial (vencidos o reemplazados) del más reciente al más antiguo.
+ */
+const documentosAgrupados = computed(() => {
+    const docs = vehicle.value.vehicle_documents ?? [];
+    const tipos = [...new Set(docs.map((d) => d.document_type))].sort((a, b) => {
+        const ia = ORDEN_TIPOS_DOCUMENTO.indexOf(a);
+        const ib = ORDEN_TIPOS_DOCUMENTO.indexOf(b);
+        return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib) || String(a).localeCompare(String(b));
+    });
+
+    return tipos.map((tipo) => {
+        const principal = masReciente(docs, (d) => d.document_type === tipo);
+        const anteriores = docs
+            .filter((d) => d.document_type === tipo && d.uuid !== principal?.uuid)
+            .sort((a, b) => new Date(b.expiry_date ?? 0) - new Date(a.expiry_date ?? 0));
+        return { tipo, principal, anteriores };
+    });
 });
+
+const tiposAbiertos = ref(new Set());
+const tipoAbierto = (tipo) => tiposAbiertos.value.has(tipo);
+const alternarTipo = (grupo) => {
+    if (!grupo.anteriores.length) return;
+    const siguiente = new Set(tiposAbiertos.value);
+    if (!siguiente.delete(grupo.tipo)) siguiente.add(grupo.tipo);
+    tiposAbiertos.value = siguiente;
+};
+
+// Los contadores cuentan el documento actual de cada tipo, no el historial.
+const validDocumentsCount = computed(() => documentosAgrupados.value.filter(({ principal }) =>
+    principal.status === 'VIGENTE' || principal.status === 'SI' || isDocumentValid(principal.expiry_date)
+).length);
 
 const expiringSoonCount = computed(() => {
     const daysThreshold = 30;
-    return vehicle.value.vehicle_documents?.filter(doc =>
-        isExpiringSoon(doc.expiry_date, daysThreshold) &&
-        (doc.status === 'VIGENTE' || doc.status === 'SI')
-    ).length || 0;
+    return documentosAgrupados.value.filter(({ principal }) =>
+        isExpiringSoon(principal.expiry_date, daysThreshold) &&
+        (principal.status === 'VIGENTE' || principal.status === 'SI')
+    ).length;
 });
 
 const pendingChargesCount = computed(() => {
@@ -868,6 +941,71 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* ===== DOCUMENTOS POR TIPO (fila principal desplegable + historial) ===== */
+.doc-fila-expandible {
+    cursor: pointer;
+}
+
+.doc-fila-expandible:hover > td {
+    background-color: rgba(44, 123, 229, 0.05);
+}
+
+.doc-fila-expandible:focus-visible {
+    outline: 2px solid #2c7be5;
+    outline-offset: -2px;
+}
+
+.doc-fila-abierta > td {
+    background-color: rgba(44, 123, 229, 0.06);
+    border-bottom-color: transparent;
+}
+
+.doc-chevron {
+    font-size: 0.65rem;
+    transition: transform 0.2s ease;
+}
+
+.doc-chevron-abierto {
+    transform: rotate(90deg);
+}
+
+.doc-historial-pill {
+    font-size: 0.65rem;
+    font-weight: 500;
+}
+
+.doc-fila-historial > td {
+    background-color: #f8fafc;
+    font-size: 0.78rem;
+    animation: doc-historial-entra 0.25s ease-out;
+}
+
+.doc-historial-sangria {
+    padding-left: 1.1rem;
+}
+
+@keyframes doc-historial-entra {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .doc-chevron {
+        transition: none;
+    }
+
+    .doc-fila-historial > td {
+        animation: none;
+    }
+}
+
 /* ===== HEREDA VARIABLES DEL SISTEMA - MISMO ESTILO QUE TERCEROS ===== */
 
 /* ===== ANIMACIONES ===== */
