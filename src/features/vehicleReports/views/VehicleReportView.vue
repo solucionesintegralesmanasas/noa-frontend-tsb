@@ -182,7 +182,8 @@
 
                             <Column field="rcc_expiry" header="RCC">
                                 <template #body="{ data }">
-                                    <router-link v-if="docEditLink(data, 'RCC')" :to="docEditLink(data, 'RCC')"
+                                    <span v-if="data.es_particular" class="text-muted small">No aplica</span>
+                                    <router-link v-else-if="docEditLink(data, 'RCC')" :to="docEditLink(data, 'RCC')"
                                         :class="expiryClass(data.rcc_expiry)"
                                         :title="`Actualizar póliza RCC — placa ${data.vehicle_license_plate}`"
                                         :aria-label="`Actualizar póliza RCC del vehículo ${data.vehicle_license_plate}, vence ${formatDate(data.rcc_expiry)}`">{{
@@ -193,7 +194,8 @@
 
                             <Column field="rce_expiry" header="RCE">
                                 <template #body="{ data }">
-                                    <router-link v-if="docEditLink(data, 'RCE')" :to="docEditLink(data, 'RCE')"
+                                    <span v-if="data.es_particular" class="text-muted small">No aplica</span>
+                                    <router-link v-else-if="docEditLink(data, 'RCE')" :to="docEditLink(data, 'RCE')"
                                         :class="expiryClass(data.rce_expiry)"
                                         :title="`Actualizar póliza RCE — placa ${data.vehicle_license_plate}`"
                                         :aria-label="`Actualizar póliza RCE del vehículo ${data.vehicle_license_plate}, vence ${formatDate(data.rce_expiry)}`">{{
@@ -215,7 +217,8 @@
 
                             <Column field="operation_card_expiry" header="Tarj. operación">
                                 <template #body="{ data }">
-                                    <router-link v-if="opCardEditLink(data)" :to="opCardEditLink(data)"
+                                    <span v-if="data.es_particular" class="text-muted small">No aplica</span>
+                                    <router-link v-else-if="opCardEditLink(data)" :to="opCardEditLink(data)"
                                         :class="expiryClass(data.operation_card_expiry)"
                                         :title="`Actualizar tarjeta de operación — placa ${data.vehicle_license_plate}`"
                                         :aria-label="`Actualizar tarjeta de operación del vehículo ${data.vehicle_license_plate}, vence ${formatDate(data.operation_card_expiry)}`">{{

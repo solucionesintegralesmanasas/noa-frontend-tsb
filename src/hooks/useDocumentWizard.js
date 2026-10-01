@@ -13,10 +13,27 @@ import vehiclesService from '@/features/vehicles/services/vehicles.service.js';
 export const WIZARD_STEPS = [
     { key: 'vehiculo', label: 'Vehículo', icon: 'fad fa-car', permission: 'vehicles.create', hint: 'Registra los datos del vehículo y el afiliado; luego seguirás con sus documentos' },
     { key: 'soat', label: 'SOAT', icon: 'fad fa-file-invoice', permission: 'vehicle_documents.create', hint: 'Ten a la mano el número de SOAT, la entidad emisora y las fechas de vigencia' },
-    { key: 'poliza', label: 'Pólizas RCE/RCC', icon: 'fad fa-file-contract', permission: 'vehicle_documents.create', hint: 'Consulta los números de póliza RCE y RCC, el tomador y la aseguradora' },
+    { key: 'poliza', label: 'Pólizas RCE/RCC', icon: 'fad fa-file-contract', soloPublico: true, permission: 'vehicle_documents.create', hint: 'Consulta los números de póliza RCE y RCC, el tomador y la aseguradora' },
     { key: 'tecnomecanica', label: 'Tecnomecánica', icon: 'fad fa-industry', permission: 'vehicle_documents.create', hint: 'Consulta el número de revisión y el CDA que la expidió' },
-    { key: 'tarjeta', label: 'Tarjeta de operación', icon: 'fad fa-car-bus', permission: 'operation_cards.create', hint: 'Ten a la mano el número de tarjeta y sus fechas de expedición y vencimiento' },
+    { key: 'tarjeta', label: 'Tarjeta de operación', icon: 'fad fa-car-bus', soloPublico: true, permission: 'operation_cards.create', hint: 'Ten a la mano el número de tarjeta y sus fechas de expedición y vencimiento' },
 ];
+
+/**
+ * Regla de negocio: un vehículo particular no tiene pólizas RCC/RCE ni tarjeta de operación
+ * (solo SOAT y tecnomecánica). Los pasos marcados `soloPublico` no se le ofrecen.
+ * @param {{type_of_service?: string}|null|undefined} vehiculo
+ * @returns {boolean}
+ */
+export const esVehiculoParticular = (vehiculo) =>
+    String(vehiculo?.type_of_service ?? '').toUpperCase() === 'PARTICULAR';
+
+/**
+ * Pasos del asistente aplicables al vehículo (los de solo público se omiten en particulares).
+ * @param {{particular?: boolean}} [contexto]
+ * @returns {Array}
+ */
+export const pasosAplicables = (contexto = {}) =>
+    WIZARD_STEPS.filter((s) => !(contexto.particular && s.soloPublico));
 
 /**
  * Normaliza respuestas paginadas o planas a arreglo.
@@ -44,7 +61,8 @@ export function useDocumentWizard() {
         return { path: `/vehiculos-documentos/${stepKey}/crear`, query: { wizard: vehicleUuid } };
     };
 
-    const canRunStep = (step, permissionsStore) => {
+    const canRunStep = (step, permissionsStore, contexto = {}) => {
+        if (contexto.particular && step.soloPublico) return false;
         if (!step.permission) return true;
         try {
             return permissionsStore.can(step.permission);
@@ -58,16 +76,16 @@ export function useDocumentWizard() {
      * @param {Object} permissionsStore
      * @returns {Array}
      */
-    const availableSteps = (permissionsStore) =>
-        WIZARD_STEPS.filter((s) => canRunStep(s, permissionsStore));
+    const availableSteps = (permissionsStore, contexto = {}) =>
+        WIZARD_STEPS.filter((s) => canRunStep(s, permissionsStore, contexto));
 
     /**
      * Primer paso ejecutable tras crear el vehículo (null si no hay ninguno).
      * @param {Object} permissionsStore
      * @returns {Object|null} step
      */
-    const firstStep = (permissionsStore) =>
-        availableSteps(permissionsStore).find((s) => s.key !== 'vehiculo') ?? null;
+    const firstStep = (permissionsStore, contexto = {}) =>
+        availableSteps(permissionsStore, contexto).find((s) => s.key !== 'vehiculo') ?? null;
 
     /**
      * Ruta de salida del asistente: perfil del vehículo (las alertas cubren pendientes).
@@ -83,10 +101,10 @@ export function useDocumentWizard() {
      * @param {Object} permissionsStore
      * @returns {{path:string, query:Object}}
      */
-    const nextStepRoute = (currentKey, vehicleUuid, permissionsStore) => {
+    const nextStepRoute = (currentKey, vehicleUuid, permissionsStore, contexto = {}) => {
         const idx = WIZARD_STEPS.findIndex((s) => s.key === currentKey);
         for (let i = idx + 1; i < WIZARD_STEPS.length; i++) {
-            if (canRunStep(WIZARD_STEPS[i], permissionsStore)) {
+            if (canRunStep(WIZARD_STEPS[i], permissionsStore, contexto)) {
                 return stepRoute(WIZARD_STEPS[i].key, vehicleUuid);
             }
         }
@@ -101,11 +119,11 @@ export function useDocumentWizard() {
      * @param {Object} permissionsStore
      * @returns {{path:string, query:Object}}
      */
-    const prevStepRoute = (currentKey, vehicleUuid, permissionsStore) => {
+    const prevStepRoute = (currentKey, vehicleUuid, permissionsStore, contexto = {}) => {
         const idx = WIZARD_STEPS.findIndex((s) => s.key === currentKey);
         for (let i = idx - 1; i >= 0; i--) {
             if (WIZARD_STEPS[i].key === 'vehiculo') return exitRoute(vehicleUuid);
-            if (canRunStep(WIZARD_STEPS[i], permissionsStore)) {
+            if (canRunStep(WIZARD_STEPS[i], permissionsStore, contexto)) {
                 return stepRoute(WIZARD_STEPS[i].key, vehicleUuid);
             }
         }
@@ -214,5 +232,5 @@ export function useDocumentWizard() {
      */
     const toDateInput = (value) => (value ? String(value).slice(0, 10) : '');
 
-    return { WIZARD_STEPS, stepRoute, exitRoute, canRunStep, availableSteps, firstStep, nextStepRoute, prevStepRoute, fetchExistingDocs, getSessionDone, markStepDone, clearSessionDone, toDateInput };
+    return { WIZARD_STEPS, pasosAplicables, esVehiculoParticular, stepRoute, exitRoute, canRunStep, availableSteps, firstStep, nextStepRoute, prevStepRoute, fetchExistingDocs, getSessionDone, markStepDone, clearSessionDone, toDateInput };
 }

@@ -366,6 +366,7 @@
                         </div>
                     </div>
                     </template>
+                    <p v-else-if="vehicle.type_of_service === 'PARTICULAR'" class="text-muted small mb-0">No aplica: un vehículo particular no tiene tarjeta de operación</p>
                     <p v-else class="text-muted small mb-0">Sin tarjeta de operación registrada</p>
                 </div>
             </div>

@@ -10,6 +10,7 @@
                 :done-keys="wizardDoneKeys"
                 :incomplete-keys="wizardIncompleteKeys"
                 :disabled-keys="wizardDisabledKeys"
+                :hidden-keys="WIZARD_STEPS.filter((s) => wizardContexto.particular && s.soloPublico).map((s) => s.key)"
                 clickable
                 @navigate="onWizardNavigate"
             />
@@ -223,7 +224,7 @@ import PrimeSelect from '@/components/form/PrimeSelect.vue';
 import DateInput from '@/components/form/DateInput.vue';
 import BaseFormActions from '@/components/BaseFormActions.vue';
 import WizardProgress from '@/components/WizardProgress.vue';
-import { useDocumentWizard } from '@/hooks/useDocumentWizard.js';
+import { useDocumentWizard, esVehiculoParticular } from '@/hooks/useDocumentWizard.js';
 import { confirmUnsavedChanges } from '@/utils/confirm.js';
 
 const route = useRoute();
@@ -245,6 +246,9 @@ const returnTo = computed(() => (route.query.retorno ? String(route.query.retorn
 const isNuevo = computed(() => route.query.nuevo === '1');
 const { WIZARD_STEPS, availableSteps, stepRoute, nextStepRoute, prevStepRoute, exitRoute, fetchExistingDocs, getSessionDone, markStepDone, clearSessionDone, toDateInput } = useDocumentWizard();
 const wizardDoneKeys = ref([]);
+// Un vehículo particular no tiene tarjeta de operación.
+const wizardVehiculo = computed(() => (store.catalogs?.vehicles ?? []).find((v) => v.uuid === wizardUuid.value) ?? null);
+const wizardContexto = computed(() => ({ particular: esVehiculoParticular(wizardVehiculo.value) }));
 const wizardIncompleteKeys = ref([]);
 // UUID de la tarjeta precargada en el asistente para actualizar en vez de duplicar
 const editingCardUuid = ref(null);
@@ -344,7 +348,7 @@ const cancelLabel = computed(() => {
 
 /** Pasos que no se pueden abrir: vehículo (ya registrado) o sin permiso. */
 const wizardDisabledKeys = computed(() => {
-    const allowed = new Set(availableSteps(permissionsStore).map((s) => s.key));
+    const allowed = new Set(availableSteps(permissionsStore, wizardContexto.value).map((s) => s.key));
     return WIZARD_STEPS
         .filter((s) => s.key === 'vehiculo' || !allowed.has(s.key))
         .map((s) => s.key);
@@ -375,7 +379,7 @@ const navigateAfterSave = () => {
         return;
     }
     if (wizardUuid.value) {
-        const next = nextStepRoute('tarjeta', wizardUuid.value, permissionsStore);
+        const next = nextStepRoute('tarjeta', wizardUuid.value, permissionsStore, wizardContexto.value);
         if (next?.path?.includes('/vehiculos/perfil/')) {
             goExit();
             return;
@@ -419,6 +423,8 @@ const uniqueVehicles = computed(() => {
     return (store.catalogs?.vehicles || []).filter((v) => {
         const key = v?.uuid ?? v?.vehicle_license_plate;
         if (!key || seen.has(key)) return false;
+        // Sin particulares (no tienen tarjeta), salvo el vehículo ya seleccionado en un historial.
+        if (esVehiculoParticular(v) && v.uuid !== formData.vehicle_uuid) return false;
         seen.add(key);
         return true;
     });
@@ -479,7 +485,7 @@ const goBack = () => {
     if (returnTo.value) {
         router.push(returnTo.value);
     } else if (wizardUuid.value) {
-        router.push(prevStepRoute('tarjeta', wizardUuid.value, permissionsStore));
+        router.push(prevStepRoute('tarjeta', wizardUuid.value, permissionsStore, wizardContexto.value));
     } else {
         router.push('/tarjetas-de-operacion');
     }
@@ -597,6 +603,11 @@ onMounted(async () => {
     isViewLoading.value = true;
     try {
         await store.loadFormOptions();
+        if (wizardUuid.value && wizardContexto.value.particular) {
+            toast('Atención', 'Un vehículo particular no tiene tarjeta de operación.', 'info');
+            router.replace(exitRoute(wizardUuid.value));
+            return;
+        }
         if (!isSuperAdmin.value) {
             formData.company_uuid = userStore.company_uuid;
         }

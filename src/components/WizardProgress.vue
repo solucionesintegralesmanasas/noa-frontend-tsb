@@ -56,11 +56,13 @@ const props = defineProps({
   incompleteKeys: { type: Array, default: () => [] },
   disabledKeys: { type: Array, default: () => [] },
   clickable: { type: Boolean, default: false },
+  // Pasos que no aplican al vehículo (p. ej. pólizas y tarjeta en un particular): no se dibujan.
+  hiddenKeys: { type: Array, default: () => [] },
 });
 
 const emit = defineEmits(['navigate']);
 
-const steps = computed(() => WIZARD_STEPS);
+const steps = computed(() => WIZARD_STEPS.filter((s) => !props.hiddenKeys.includes(s.key)));
 
 const orderOf = (key) => steps.value.map((s) => s.key).indexOf(key);
 

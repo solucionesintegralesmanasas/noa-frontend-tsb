@@ -10,6 +10,7 @@
                 :done-keys="wizardDoneKeys"
                 :incomplete-keys="wizardIncompleteKeys"
                 :disabled-keys="wizardDisabledKeys"
+                :hidden-keys="wizardHiddenKeys"
                 clickable
                 @navigate="onWizardNavigate"
             />
@@ -122,7 +123,7 @@
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-vehicle_uuid">Vehículo</label>
                                 <PrimeSelect :input-id="'f-vehicle_uuid'" v-model="formData.vehicle_uuid"
-                                    :options="store.catalogs.vehicles" option-value="uuid" option-label="vehicle_license_plate"
+                                    :options="vehiculosConPolizas" option-value="uuid" option-label="vehicle_license_plate"
                                     placeholder="Seleccionar vehículo" showClear filter class="w-100" :disabled="!!wizardUuid"
                                     :invalid="!!validationErrors['vehicle_uuid']" />
                                 <div v-if="validationErrors.vehicle_uuid" class="invalid-feedback d-block" id="f-vehicle_uuid-error" role="alert">
@@ -262,7 +263,7 @@
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <label class="form-label required fw-medium" style="font-size: 0.9rem;" for="f-vehicle_uuid">Vehículo</label>
                                 <PrimeSelect :input-id="'f-vehicle_uuid'" v-model="formData.vehicle_uuid"
-                                    :options="store.catalogs.vehicles" option-value="uuid" option-label="vehicle_license_plate"
+                                    :options="vehiculosConPolizas" option-value="uuid" option-label="vehicle_license_plate"
                                     placeholder="Seleccionar vehículo" showClear filter class="w-100" :disabled="!!wizardUuid"
                                     :invalid="!!validationErrors['vehicle_uuid']" />
                                 <div v-if="validationErrors.vehicle_uuid" class="invalid-feedback d-block" id="f-vehicle_uuid-error" role="alert">
@@ -525,7 +526,7 @@ import PrimeSelect from '@/components/form/PrimeSelect.vue';
 import DateInput from '@/components/form/DateInput.vue';
 import BaseFormActions from '@/components/BaseFormActions.vue';
 import WizardProgress from '@/components/WizardProgress.vue';
-import { useDocumentWizard } from '@/hooks/useDocumentWizard.js';
+import { useDocumentWizard, esVehiculoParticular } from '@/hooks/useDocumentWizard.js';
 import { confirmUnsavedChanges } from '@/utils/confirm.js';
 import vehicleDocumentsService from '../services/vehicleDocuments.service.js';
 
@@ -547,6 +548,13 @@ const isNuevo = computed(() => route.query.nuevo === '1');
 const { WIZARD_STEPS, availableSteps, stepRoute, nextStepRoute, prevStepRoute, exitRoute, fetchExistingDocs, getSessionDone, markStepDone, clearSessionDone, toDateInput } = useDocumentWizard();
 const wizardDoneKeys = ref([]);
 const wizardIncompleteKeys = ref([]);
+// Un vehículo particular no tiene pólizas RCC/RCE ni tarjeta de operación: solo SOAT y tecnomecánica.
+const wizardVehiculo = computed(() => (store.catalogs?.vehicles ?? []).find((v) => v.uuid === wizardUuid.value) ?? null);
+const wizardContexto = computed(() => ({ particular: esVehiculoParticular(wizardVehiculo.value) }));
+const wizardHiddenKeys = computed(() => WIZARD_STEPS.filter((s) => wizardContexto.value.particular && s.soloPublico).map((s) => s.key));
+// Vehículos a los que se les pueden registrar pólizas (sin particulares, salvo el ya seleccionado en un historial).
+const vehiculosConPolizas = computed(() => (store.catalogs?.vehicles ?? [])
+    .filter((v) => !esVehiculoParticular(v) || v.uuid === formData.vehicle_uuid));
 // Token de carga por paso: evita que respuestas atrasadas sobrescriban el formulario.
 let stepLoadToken = 0;
 // UUID del documento precargado en el asistente (SOAT/RTM) para actualizar en vez de duplicar
@@ -610,7 +618,7 @@ const cancelLabel = computed(() => {
 
 /** Pasos que no se pueden abrir: vehículo (ya registrado) o sin permiso. */
 const wizardDisabledKeys = computed(() => {
-    const allowed = new Set(availableSteps(permissionsStore).map((s) => s.key));
+    const allowed = new Set(availableSteps(permissionsStore, wizardContexto.value).map((s) => s.key));
     return WIZARD_STEPS
         .filter((s) => s.key === 'vehiculo' || !allowed.has(s.key))
         .map((s) => s.key);
@@ -641,7 +649,7 @@ const navigateAfterSave = () => {
         return;
     }
     if (wizardUuid.value) {
-        const next = nextStepRoute(route.params.documentType, wizardUuid.value, permissionsStore);
+        const next = nextStepRoute(route.params.documentType, wizardUuid.value, permissionsStore, wizardContexto.value);
         if (next?.path?.includes('/vehiculos/perfil/')) {
             goExit();
             return;
@@ -888,7 +896,7 @@ const validateForm = () => {
 const getBackRoute = () => {
     // Desde el menú de documentos: volver al origen (perfil) en vez del listado
     if (returnTo.value) return returnTo.value;
-    if (wizardUuid.value) return prevStepRoute(route.params.documentType, wizardUuid.value, permissionsStore);
+    if (wizardUuid.value) return prevStepRoute(route.params.documentType, wizardUuid.value, permissionsStore, wizardContexto.value);
     const type = route.params.documentType;
     if (type) return `/vehiculos-documentos/${type}`;
     return '/vehiculos-documentos';
@@ -1033,6 +1041,12 @@ onMounted(async () => {
     try {
         await store.loadFormOptions();
         if (initToken !== stepLoadToken) return;
+
+        if (wizardUuid.value && wizardContexto.value.particular && route.params.documentType === 'poliza') {
+            toast('Atención', 'Un vehículo particular no tiene pólizas RCC/RCE: solo registra SOAT y tecnomecánica.', 'info');
+            router.replace(nextStepRoute('poliza', wizardUuid.value, permissionsStore, wizardContexto.value));
+            return;
+        }
 
         if (!isSuperAdmin.value) {
             formData.company_uuid = userStore.company_uuid;

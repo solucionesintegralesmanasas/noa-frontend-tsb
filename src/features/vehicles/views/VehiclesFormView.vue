@@ -685,7 +685,7 @@ const handleSubmit = async () => {
             // Tras crear, encadenar el asistente de documentos (si hay pasos permitidos)
             if (uuid) {
                 const { firstStep, stepRoute } = useDocumentWizard();
-                const step = firstStep(permissionsStore);
+                const step = firstStep(permissionsStore, { particular: String(formData.type_of_service ?? '').toUpperCase() === 'PARTICULAR' });
                 if (!step) {
                     goBack();
                 } else {
