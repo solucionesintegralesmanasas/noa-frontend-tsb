@@ -15,7 +15,6 @@ const modelo = defineModel();
 const emitir = defineEmits(['filter']);
 const attrs = useAttrs();
 const selectRef = ref(null);
-const consulta = ref('');
 
 const props = defineProps({
     options: { type: Array, default: () => [] },
@@ -40,58 +39,23 @@ const attrsLimpios = computed(() => {
     return resto;
 });
 
-/** Resuelve etiqueta o valor por clave con puntos o función (como PrimeVue). */
-function resolver(origen, opcion) {
-    if (typeof origen === 'function') return origen(opcion);
-    if (typeof origen === 'string') {
-        return origen.split('.').reduce((o, k) => (o === null || o === undefined ? o : o[k]), opcion);
-    }
-    return opcion;
-}
-
-const etiquetaDe = (opcion) => {
-    // Sin optionLabel, PrimeVue usa `label` por defecto para objetos.
-    const clave = props.optionLabel ?? 'label';
-    if (typeof opcion === 'object' && opcion !== null && clave in opcion) {
-        return String(resolver(clave, opcion) ?? '');
-    }
-    return typeof opcion === 'object' && opcion !== null ? '' : String(opcion ?? '');
-};
-
-const valorDe = (opcion) => {
-    if (props.optionValue === undefined) return opcion;
-    return resolver(props.optionValue, opcion);
-};
-
-/** Opciones que coinciden con el filtro actual (solo listas planas). */
-function opcionesFiltradas() {
-    const texto = consulta.value.trim().toLowerCase();
-    const lista = props.options ?? [];
-    // Agrupadas: no se intenta adivinar; se deja el comportamiento de PrimeVue.
-    if (!texto || props.optionGroupChildren) return null;
-    const campos = Array.isArray(props.filterFields) && props.filterFields.length ? props.filterFields : null;
-    return lista.filter((opcion) => {
-        const textos = campos
-            ? campos.map((c) => String(opcion?.[c] ?? ''))
-            : [etiquetaDe(opcion)];
-        return textos.some((t) => t.toLowerCase().includes(texto));
-    });
-}
-
 function alFiltrar(evento) {
-    consulta.value = evento?.value ?? '';
     emitir('filter', evento);
 }
 
 // El panel de PrimeVue se teletransporta fuera del wrapper, así que un keydown
 // sobre la raíz no lo alcanza: mientras el panel está abierto se escucha en
 // documento (fase de captura) para interceptar el Enter antes que PrimeVue.
+// Se usan las opciones visibles del propio Select (mismo filtro: sin tildes,
+// filterFields, optionLabel función o con puntos, grupos, deshabilitadas) y su
+// onOptionSelect, que actualiza el modelo, emite `change` y cierra el panel.
 function alTecla(evento) {
     if (evento.key !== 'Enter') return;
-    const filtradas = opcionesFiltradas();
-    if (!filtradas || filtradas.length !== 1) return;
-    modelo.value = valorDe(filtradas[0]);
-    selectRef.value?.hide?.();
+    const select = selectRef.value;
+    if (!select?.filterValue) return;
+    const validas = (select.visibleOptions ?? []).filter((opcion) => select.isValidOption(opcion));
+    if (validas.length !== 1) return;
+    select.onOptionSelect(evento, validas[0]);
     evento.preventDefault();
     evento.stopPropagation();
 }
@@ -102,7 +66,6 @@ function alMostrar() {
 
 function alOcultar() {
     document.removeEventListener('keydown', alTecla, true);
-    consulta.value = '';
 }
 
 onBeforeUnmount(() => document.removeEventListener('keydown', alTecla, true));

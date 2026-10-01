@@ -363,7 +363,7 @@ const clearAll = async () => {
  */
 const docEditLink = (row, tipo) => {
     const segmentos = { SOAT: 'soat', RCC: 'poliza', RCE: 'poliza', RTM: 'tecnomecanica' };
-    const porTipo = { SOAT: row?.soat_uuid, RCC: row?.rcc_uuid || row?.rce_uuid, RCE: row?.rce_uuid || row?.rcc_uuid, RTM: row?.rtm_uuid };
+    const porTipo = { SOAT: row?.soat_uuid, RCC: row?.rcc_uuid, RCE: row?.rce_uuid, RTM: row?.rtm_uuid };
     const seg = segmentos[tipo];
     if (!seg || !row?.uuid) return null;
     const docUuid = porTipo[tipo];
