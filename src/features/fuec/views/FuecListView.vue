@@ -91,21 +91,16 @@
                             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                             currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
                             emptyMessage="No se encontraron registros" @page="onPageChange">
-                            <Column field="number_fuec" header="N° FUEC" sortable>
+                            <Column field="vehicle_plate" header="Placa" sortable>
                                 <template #body="{ data }">
-                                    <span class="text-dark fw-medium">{{ data.number_fuec || '-' }}</span>
+                                    <span class="text-dark fw-medium">{{ data.vehicle?.vehicle_license_plate || data.vehicle_license_plate || '-' }}</span>
                                 </template>
                             </Column>
 
-                            <Column field="request_number" header="N° Solicitud" sortable>
+                            <Column field="contractor_display" header="Contratante">
                                 <template #body="{ data }">
-                                    <span class="text-dark">{{ data.request_number || '-' }}</span>
-                                </template>
-                            </Column>
-
-                            <Column field="contract_number_display" header="Contrato" sortable>
-                                <template #body="{ data }">
-                                    <span class="text-dark">{{ data.contract_number_display || '-' }}</span>
+                                    <span class="text-dark d-block fw-medium">{{ data.contractor?.company_name || '-' }}</span>
+                                    <small class="text-muted">Doc: {{ data.contractor?.document_number || '-' }}</small>
                                 </template>
                             </Column>
 
@@ -150,19 +145,19 @@
                                 <template #body="{ data }">
                                     <div class="btn-group btn-group-sm" role="group">
                                         <button v-if="can('fuec.profile')" class="btn btn-falcon-default" type="button"
-                                            title="Ver detalle" :aria-label="`Ver detalle de ${data.number_fuec}`" @click="goToDetail(data.uuid)">
+                                            title="Ver detalle" :aria-label="`Ver detalle de ${data.vehicle?.vehicle_license_plate || data.uuid}`" @click="goToDetail(data.uuid)">
                                             <i class="fad fa-eye text-primary" style="font-size:14px;" />
                                         </button>
                                         <button class="btn btn-falcon-default" type="button"
-                                            title="Descargar PDF (Servidor)" :aria-label="`Descargar PDF de ${data.number_fuec}`" @click="downloadPdfServer(data)">
+                                            title="Descargar PDF (Servidor)" :aria-label="`Descargar PDF de ${data.vehicle?.vehicle_license_plate || data.uuid}`" @click="downloadPdfServer(data)">
                                             <i class="fad fa-file-pdf text-danger" style="font-size:14px;" />
                                         </button>
                                         <button v-if="can('fuec.update')" class="btn btn-falcon-default" type="button"
-                                            title="Editar" :aria-label="`Editar ${data.number_fuec}`" @click="goToEdit(data.uuid)">
+                                            title="Editar" :aria-label="`Editar ${data.vehicle?.vehicle_license_plate || data.uuid}`" @click="goToEdit(data.uuid)">
                                             <i class="fad fa-edit text-warning" style="font-size:14px;" />
                                         </button>
                                         <button v-if="can('fuec.delete')" class="btn btn-falcon-default" type="button"
-                                            title="Eliminar" :aria-label="`Eliminar ${data.number_fuec}`" @click="handleDelete(data)">
+                                            title="Eliminar" :aria-label="`Eliminar ${data.vehicle?.vehicle_license_plate || data.uuid}`" @click="handleDelete(data)">
                                             <i class="fad fa-trash text-danger" style="font-size:14px;" />
                                         </button>
                                     </div>
@@ -200,8 +195,8 @@
                 v-for="item in store.items"
                 :key="item.uuid"
                 variant="green"
-                :title="item.number_fuec ? `FUEC: ${item.number_fuec}` : 'FUEC PENDIENTE'"
-                :subtitle="item.contract_number_display ? `Contrato: ${item.contract_number_display}` : 'Extracto Único de Contrato'"
+                :title="item.vehicle?.vehicle_license_plate ? `Placa: ${item.vehicle.vehicle_license_plate}` : 'FUEC PENDIENTE'"
+                :subtitle="item.contractor ? `${item.contractor.company_name || ''} - Doc: ${item.contractor.document_number || '-'}` : 'Extracto Único de Contrato'"
                 :badge="item.status"
                 icon-class="fas fa-file-contract"
             >
@@ -302,7 +297,7 @@ const goToDetail = (uuid) => router.push(`/extracto-de-contrato/perfil/${uuid}`)
 
 const handleDelete = (item) => confirmDelete(item, {
     title: '¿Eliminar FUEC?',
-    nameField: 'number_fuec',
+    nameField: 'uuid',
 });
 
 const downloadPdfServer = async (item) => {

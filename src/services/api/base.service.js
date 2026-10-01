@@ -138,6 +138,19 @@ export class BaseService {
     // ─── Helpers PDF ──────────────────────────────────────────────────────
 
     /**
+     * Extrae el nombre de archivo del encabezado Content-Disposition.
+     */
+    _fileNameFromDisposition(disposition) {
+        if (!disposition) return null;
+        const starMatch = /filename\*\s*=\s*UTF-8''([^;]+)/i.exec(disposition);
+        if (starMatch?.[1]) {
+            try { return decodeURIComponent(starMatch[1].trim().replace(/^"|"$/g, '')); } catch { /* usa respaldo */ }
+        }
+        const match = /filename\s*=\s*"?([^";]+)"?/i.exec(disposition);
+        return match?.[1]?.trim() || null;
+    }
+
+    /**
      * Convierte un Blob a base64 (sin el prefijo data:...).
      */
     _blobToBase64(blob) {
@@ -160,10 +173,9 @@ export class BaseService {
      * - Web: abre el PDF en una nueva pestaña.
      * - Android/iOS: guarda en caché y abre con el visor/app nativa mediante Share API.
      */
-    async _downloadPdf(url, filename = 'documento.pdf') {
+    async _downloadPdf(url, filename = null) {
         const instance = this._getInstance();
         const fullUrl = url.startsWith('http') ? url : `${this.resourcePath}${url}`;
-        const cleanFileName = filename.endsWith('.pdf') ? filename : `${filename}.pdf`;
 
         let response;
         try {
@@ -171,6 +183,9 @@ export class BaseService {
         } catch (err) {
             throw await this._blobErrorToMessage(err);
         }
+        const serverName = this._fileNameFromDisposition(response?.headers?.['content-disposition']);
+        const resolvedName = filename || serverName || 'documento.pdf';
+        const cleanFileName = resolvedName.endsWith('.pdf') ? resolvedName : `${resolvedName}.pdf`;
         const blob = new Blob([response.data], { type: 'application/pdf' });
 
         // ─── PLATAFORMA NATIVA (Android + iOS) ────────────────────────────
