@@ -1,0 +1,32 @@
+export const objectsContractsRoutes = [
+    {
+        path: '/configuracion/objetos-contrato',
+        name: 'objectsContracts.list',
+        component: () => import('./views/ObjectsContractsListView.vue'),
+        meta: {
+            title: 'Listado',
+            auth: true,
+            layout: 'dashboard',
+        },
+    },
+    {
+        path: '/configuracion/objetos-contrato/crear',
+        name: 'objectsContracts.create',
+        component: () => import('./views/ObjectsContractsFormView.vue'),
+        meta: {
+            title: 'Crear',
+            auth: true,
+            layout: 'dashboard',
+        },
+    },
+    {
+        path: '/configuracion/objetos-contrato/editar/:id',
+        name: 'objectsContracts.edit',
+        component: () => import('./views/ObjectsContractsFormView.vue'),
+        meta: {
+            title: 'Editar',
+            auth: true,
+            layout: 'dashboard',
+        },
+    },
+];

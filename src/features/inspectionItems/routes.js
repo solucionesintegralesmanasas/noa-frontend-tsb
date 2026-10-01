@@ -1,0 +1,32 @@
+export const inspectionItemsRoutes = [
+    {
+        path: '/configuracion/items-inspeccion',
+        name: 'inspectionItems.list',
+        component: () => import('./views/InspectionItemsListView.vue'),
+        meta: {
+            title: 'Listado',
+            auth: true,
+            layout: 'dashboard',
+        },
+    },
+    {
+        path: '/configuracion/items-inspeccion/crear',
+        name: 'inspectionItems.create',
+        component: () => import('./views/InspectionItemsFormView.vue'),
+        meta: {
+            title: 'Crear',
+            auth: true,
+            layout: 'dashboard',
+        },
+    },
+    {
+        path: '/configuracion/items-inspeccion/editar/:id',
+        name: 'inspectionItems.edit',
+        component: () => import('./views/InspectionItemsFormView.vue'),
+        meta: {
+            title: 'Editar',
+            auth: true,
+            layout: 'dashboard',
+        },
+    },
+];
