@@ -10,6 +10,9 @@ import { permissionsGuard } from "@router/guards/permissions.js";
 import { twoFAGuard } from "@router/guards/2fa.js";
 import { useConfigStore } from "@store/modules/config.js";
 import { authRoutes } from "@features/auth/routes.js";
+// El login es la vista de entrada (VITE_INITIAL_VIEW=login): va en el grafo estático del entry
+// para que Vite la precargue en paralelo en vez de pedirla tras ejecutar el bootstrap.
+import LoginView from "@features/auth/views/LoginView.vue";
 import { dashboardRoutes } from "@features/dashboard/routes.js";
 import { companyRoutes } from "@features/companies/routes.js";
 import { branchesRoutes } from "@features/branches/routes.js";
@@ -57,9 +60,9 @@ const initialView = import.meta.env.VITE_INITIAL_VIEW || "home";
 const routes = [
     createRoute(
         "/",
-        () => initialView === "login"
-            ? import("@features/auth/views/LoginView.vue")
-            : import("@pages/HomeView.vue"),
+        initialView === "login"
+            ? LoginView
+            : () => import("@pages/HomeView.vue"),
         {
             name: "home",
             layout: initialView === "login" ? "auth" : "default",

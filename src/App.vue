@@ -1,7 +1,11 @@
 <script setup>
-import { computed, onMounted, onUnmounted, watch } from 'vue';
+import { computed, defineAsyncComponent, onMounted, onUnmounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import DashboardLayout from '@/components/DashboardLayout.vue';
+// Layout del dashboard (Navbar, Sidebar, tracking...) fuera del arranque: el login no lo usa.
+const cargarDashboardLayout = () => import('@/components/DashboardLayout.vue');
+const DashboardLayout = defineAsyncComponent(cargarDashboardLayout);
+// Con sesión o fuera del login se va a necesitar ya: se pide en paralelo al resto del arranque
+if (!window.__noaLogin) cargarDashboardLayout();
 import { useNotificationsStore } from '@/features/notifications/store/notifications.store.js';
 import { useConfigStore } from '@/store/modules/config.js';
 import Noatspinner from '@/components/Noatspinner.vue';
@@ -21,6 +25,11 @@ const layoutComponent = computed(() => {
 
 onMounted(() => {
   notificationsStore.startExpiryAlertInterval();
+  // Precarga el layout con el navegador libre para que entrar al dashboard no espere la descarga
+  if (route.meta?.layout !== 'dashboard') {
+    if (window.requestIdleCallback) window.requestIdleCallback(cargarDashboardLayout, { timeout: 5000 });
+    else setTimeout(cargarDashboardLayout, 2000);
+  }
 });
 
 onUnmounted(() => {

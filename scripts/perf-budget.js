@@ -102,7 +102,9 @@ function resumen(chunks, publicos) {
   };
 }
 
-function chequearHtml(html) {
+function chequearHtml(htmlCompleto) {
+  // Los <noscript> son respaldo sin JS (duplican scripts y hojas a propósito): no cuentan.
+  const html = htmlCompleto.replace(/<noscript>[\s\S]*?<\/noscript>/g, '');
   const classicScripts = [...html.matchAll(/<script\s+src="([^"]+)"([^>]*)>/g)];
   const sinDefer = classicScripts.filter((m) => !/defer|async/.test(m[2])).map((m) => m[1]);
   const fontSheets = (html.match(/fonts\.googleapis\.com\/css2/g) || []).length;

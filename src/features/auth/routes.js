@@ -3,11 +3,14 @@
  * Ubicación: src/features/auth/routes.js
  */
 
+// Mismo módulo que el router importa estáticamente (vista de entrada): evita el import dinámico ineficaz.
+import LoginView from "./views/LoginView.vue";
+
 export const authRoutes = [
     {
         path: "/login",
         name: "login",
-        component: () => import("./views/LoginView.vue"),
+        component: LoginView,
         meta: { layout: "auth", public: true, guestOnly: true, title: "Iniciar Sesión" }
     },
     {
