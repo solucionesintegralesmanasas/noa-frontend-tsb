@@ -91,6 +91,12 @@
                             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                             currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
                             emptyMessage="No se encontraron registros" @page="onPageChange">
+                            <Column field="number_fuec" header="N° FUEC" sortable>
+                                <template #body="{ data }">
+                                    <span class="text-dark fw-medium">{{ data.number_fuec || '-' }}</span>
+                                </template>
+                            </Column>
+
                             <Column field="vehicle_plate" header="Placa" sortable>
                                 <template #body="{ data }">
                                     <span class="text-dark fw-medium">{{ data.vehicle?.vehicle_license_plate || data.vehicle_license_plate || '-' }}</span>
@@ -297,7 +303,7 @@ const goToDetail = (uuid) => router.push(`/extracto-de-contrato/perfil/${uuid}`)
 
 const handleDelete = (item) => confirmDelete(item, {
     title: '¿Eliminar FUEC?',
-    nameField: 'uuid',
+    nameField: 'number_fuec',
 });
 
 const downloadPdfServer = async (item) => {
