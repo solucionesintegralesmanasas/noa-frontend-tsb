@@ -29,7 +29,7 @@ export const authRoutes = [
         path: '/roles-permissions',
         name: 'roles-permissions',
         component: () => import('./views/Rolepermissionsform.vue'),
-        meta: { layout: 'dashboard', title: 'Permisos', requiresAuth: true }
+        meta: { layout: 'dashboard', title: 'Permisos', requiresAuth: true, roles: ['SUPERADMIN', 'ADMINISTRADOR', 'ADMIN_EMPRESA'], any: true }
     },
     {
         path: '/usuarios',

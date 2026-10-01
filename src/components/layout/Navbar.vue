@@ -161,14 +161,14 @@
                         <router-link class="dropdown-item" to="/profile">
                             <span class="fas fa-user me-1" aria-hidden="true"></span> Perfil y cuenta
                         </router-link>
-                        <router-link v-if="permissionsStore.can('system_configurations.index')" class="dropdown-item"
+                        <router-link v-if="permissionsStore.hasRole('superadmin') || permissionsStore.hasRole('administrador') || permissionsStore.hasRole('admin_empresa')" class="dropdown-item"
                             to="/settings/system-configuration">
                             <span class="fas fa-cog me-1" aria-hidden="true"></span> Configuración
                         </router-link>
                         <router-link class="dropdown-item" :to="{ path: '/profile', query: { tab: 'security' } }">
                             <span class="fas fa-shield-alt me-1" aria-hidden="true"></span> Seguridad 2FA
                         </router-link>
-                        <router-link class="dropdown-item" to="/roles-permissions">
+                        <router-link v-if="permissionsStore.hasRole('superadmin') || permissionsStore.hasRole('administrador') || permissionsStore.hasRole('admin_empresa')" class="dropdown-item" to="/roles-permissions">
                             <span class="fas fa-user-shield me-1" aria-hidden="true"></span> Roles y permisos
                         </router-link>
                         <div class="dropdown-divider"></div>
