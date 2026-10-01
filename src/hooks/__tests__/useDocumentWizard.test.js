@@ -1,7 +1,7 @@
 // Un vehículo particular no tiene pólizas RCC/RCE ni tarjeta de operación: el asistente
 // solo le ofrece SOAT y tecnomecánica.
 import { describe, expect, it } from 'vitest';
-import { esVehiculoParticular, pasosAplicables, useDocumentWizard } from '../useDocumentWizard.js';
+import { esVehiculoParticular, masReciente, pasosAplicables, useDocumentWizard } from '../useDocumentWizard.js';
 
 const permisos = { can: () => true };
 
@@ -57,5 +57,32 @@ describe('asistente de documentos por tipo de vehículo', () => {
         const { availableSteps } = useDocumentWizard();
 
         expect(availableSteps(permisos).map((s) => s.key)).toContain('tarjeta');
+    });
+});
+
+describe('masReciente (documento más reciente por tipo)', () => {
+    const docs = [
+        { uuid: 'viejo', document_type: 'RTM', expiry_date: '2025-11-27', created_at: '2025-01-01' },
+        { uuid: 'nuevo', document_type: 'RTM', expiry_date: '2027-09-30', created_at: '2026-10-01' },
+        { uuid: 'soat', document_type: 'SOAT', expiry_date: '2026-06-01', created_at: '2025-06-01' },
+    ];
+
+    it('toma la RTM nueva aunque la vencida venga primero', () => {
+        expect(masReciente(docs, (d) => d.document_type === 'RTM').uuid).toBe('nuevo');
+    });
+
+    it('con la misma fecha de vencimiento gana el registrado después', () => {
+        const iguales = [
+            { uuid: 'a', expiry_date: '2027-01-01', created_at: '2026-01-01' },
+            { uuid: 'b', expiry_date: '2027-01-01', created_at: '2026-02-01' },
+        ];
+        expect(masReciente(iguales, () => true).uuid).toBe('b');
+    });
+
+    it('usa otro campo de vencimiento (tarjetas) y tolera vacío', () => {
+        const tarjetas = [{ uuid: 't1', expiration_date: '2026-01-01' }, { uuid: 't2', expiration_date: '2028-01-01' }];
+        expect(masReciente(tarjetas, () => true, 'expiration_date').uuid).toBe('t2');
+        expect(masReciente([], () => true)).toBeNull();
+        expect(masReciente(undefined, () => true)).toBeNull();
     });
 });

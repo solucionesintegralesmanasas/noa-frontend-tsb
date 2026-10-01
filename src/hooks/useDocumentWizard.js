@@ -36,6 +36,23 @@ export const pasosAplicables = (contexto = {}) =>
     WIZARD_STEPS.filter((s) => !(contexto.particular && s.soloPublico));
 
 /**
+ * Documento más reciente de un tipo: mayor fecha de vencimiento y, a igual fecha, el último
+ * registrado. La API devuelve todos los documentos del vehículo (incluidos los reemplazados) en
+ * cualquier orden, así que tomar el primero mostraba, p. ej., una RTM vencida habiendo una nueva.
+ * @param {Array} docs
+ * @param {(d: Object) => boolean} coincide
+ * @param {string} [campoVence]
+ * @returns {Object|null}
+ */
+export const masReciente = (docs, coincide, campoVence = 'expiry_date') => {
+    const marca = (d) => new Date(d?.[campoVence] ?? 0).getTime() || 0;
+    const creado = (d) => new Date(d?.created_at ?? 0).getTime() || 0;
+    return (docs ?? [])
+        .filter(coincide)
+        .sort((a, b) => marca(b) - marca(a) || creado(b) - creado(a))[0] ?? null;
+};
+
+/**
  * Normaliza respuestas paginadas o planas a arreglo.
  * @param {*} resp
  * @returns {Array}
@@ -174,10 +191,11 @@ export function useDocumentWizard() {
 
         try {
             const docs = toList(await vehicleDocumentsService.getByVehicle(vehicleUuid));
-            found.soat = docs.find((d) => d.document_type === 'SOAT') ?? null;
-            found.rce = docs.find((d) => d.document_type === 'RCE') ?? null;
-            found.rcc = docs.find((d) => d.document_type === 'RCC') ?? null;
-            found.rtm = docs.find((d) => d.document_type === 'RTM') ?? null;
+            const deTipo = (tipo) => masReciente(docs, (d) => d.document_type === tipo);
+            found.soat = deTipo('SOAT');
+            found.rce = deTipo('RCE');
+            found.rcc = deTipo('RCC');
+            found.rtm = deTipo('RTM');
         } catch (error) {
             // Un fallo real no debe interpretarse como "documento inexistente".
             if (strict) throw error;
@@ -186,7 +204,7 @@ export function useDocumentWizard() {
         try {
             // El endpoint de tarjetas ignora el filtro vehicle_uuid: verificar en cliente
             const cards = toList(await operationCardsService.list({ vehicle_uuid: vehicleUuid }));
-            found.tarjeta = cards.find((c) => c.vehicle_uuid === vehicleUuid || c.vehicle?.uuid === vehicleUuid) ?? null;
+            found.tarjeta = masReciente(cards, (c) => c.vehicle_uuid === vehicleUuid || c.vehicle?.uuid === vehicleUuid, 'expiration_date');
         } catch {
             // Sin tarjeta aún
         }
