@@ -6,6 +6,8 @@ export const brandsRoutes = [
         meta: {
             title: 'Marcas',
             auth: true,
+            roles: ['SUPERADMIN', 'ADMINISTRADOR', 'ADMIN_EMPRESA'],
+            any: true,
             layout: 'dashboard',
         },
     },
@@ -16,6 +18,8 @@ export const brandsRoutes = [
         meta: {
             title: 'Crear marca',
             auth: true,
+            roles: ['SUPERADMIN', 'ADMINISTRADOR', 'ADMIN_EMPRESA'],
+            any: true,
             layout: 'dashboard',
         },
     },
@@ -26,6 +30,8 @@ export const brandsRoutes = [
         meta: {
             title: 'Editar marca',
             auth: true,
+            roles: ['SUPERADMIN', 'ADMINISTRADOR', 'ADMIN_EMPRESA'],
+            any: true,
             layout: 'dashboard',
         },
     },

@@ -6,6 +6,8 @@ export const vehicleClassesRoutes = [
         meta: {
             title: 'Clases de Vehículos',
             auth: true,
+            roles: ['SUPERADMIN', 'ADMINISTRADOR', 'ADMIN_EMPRESA'],
+            any: true,
             layout: 'dashboard',
         },
     },
@@ -16,6 +18,8 @@ export const vehicleClassesRoutes = [
         meta: {
             title: 'Crear',
             auth: true,
+            roles: ['SUPERADMIN', 'ADMINISTRADOR', 'ADMIN_EMPRESA'],
+            any: true,
             layout: 'dashboard',
         },
     },
@@ -26,6 +30,8 @@ export const vehicleClassesRoutes = [
         meta: {
             title: 'Editar',
             auth: true,
+            roles: ['SUPERADMIN', 'ADMINISTRADOR', 'ADMIN_EMPRESA'],
+            any: true,
             layout: 'dashboard',
         },
     },

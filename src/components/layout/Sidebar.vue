@@ -452,7 +452,7 @@
                     </li>
 
                     <!-- SECCIÓN 9: CONFIGURACIÓN / CATÁLOGOS -->
-                    <li class="nav-item">
+                    <li v-if="permissionsStore.hasRole('superadmin') || permissionsStore.hasRole('administrador') || permissionsStore.hasRole('admin_empresa')" class="nav-item">
                         <div class="row navbar-vertical-label-wrapper mt-3 mb-2">
                             <div class="col-auto navbar-vertical-label">Configuración</div>
                             <div class="col ps-0"><hr class="mb-0 navbar-vertical-divider" /></div>
