@@ -184,7 +184,7 @@ Listado de submódulos de negocio disponibles y activos en la aplicación:
 - **`vehicleDocuments`**: Control de documentos vehiculares (SOAT, Tecnicomecánica, Pólizas).
 - **`vehicleInspections`**: Bitácora de inspecciones preoperacionales diarias de vehículos.
 - **`vehicles`**: Registro principal del parque automotor (placas, marcas, modelos, etc.).
-- **`assistant`**: Asistente de chat con IA (`ChatView`, `BubbleChat`). Las rutas del backend están comentadas.
+- **`radicacionTO`**: Expedientes de radicación de tarjeta de operación (listado, wizard de pasos, firma por enlace y TXT RUNT).
 - **`controlSheets`**: Planillas de control con PDFs subidos.
 - **`humanResources`**: Contratos laborales y recursos humanos.
 - **`projects`**: Proyectos con vehículos, conductores y terceros asignados.
@@ -205,7 +205,7 @@ Abstracciones de lógica reutilizable para mantener los componentes `.vue` dedic
 - **`useTableActions.js`**: Manejo de eventos comunes en tablas como confirmación de eliminación con SweetAlert2.
 - **`useRealtimeChannel.js`**: Canal realtime unificado (SSE con polling de recuperación): ciclo `setTimeout`, `AbortController`, pausa con la pestaña oculta y backoff. Las vistas no deben crear temporizadores ni conexiones SSE propias.
 - **`usePlatform.js`**: Detección de plataforma (web / Android / iOS).
-- Otros: `useDocumentWizard.js`, `useChatPolling.js`, `useGeolocation.js`, `useNitLookup.js`, `useNoAutocomplete.js`.
+- Otros: `useDocumentWizard.js`, `useGeolocation.js`, `useNitLookup.js`, `useNoAutocomplete.js`.
 
 ## Utilidades del Sistema (`src/utils/`)
 

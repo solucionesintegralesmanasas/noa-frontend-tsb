@@ -38,7 +38,6 @@ import { notificationsRoutes } from "@features/notifications/routes.js";
 import { systemConfigurationRoutes } from "@features/systemConfiguration/routes.js";
 import { serviceDeliveryControlSheetRoutes } from "@features/serviceDeliveryControlSheet/routes.js";
 import { controlSheetsRoutes } from "@features/controlSheets/routes.js";
-import { assistantRoutes } from "@features/assistant/routes.js";
 import { employmentContractsRoutes } from "@features/humanResources/routes.js";
 import { projectsRoutes } from "@features/projects/routes.js";
 import { trackingRoutes } from "@features/tracking/routes.js";
@@ -107,7 +106,6 @@ const routes = [
     ...systemConfigurationRoutes,
     ...serviceDeliveryControlSheetRoutes,
     ...controlSheetsRoutes,
-    ...assistantRoutes,
     ...employmentContractsRoutes,
     ...projectsRoutes,
     ...trackingRoutes,

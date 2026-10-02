@@ -327,7 +327,7 @@ const fmt = v => String(v || '').replace(/([a-z])([A-Z])/g, '$1 $2').replace(/[_
 
 const MODULE_LABELS = {
     adjustment_notes: 'Notas de Ajuste', affiliate: 'Afiliados', affiliate_admin_charges: 'Cobros de Administración',
-    assistant: 'Asistente', assistant_configuration: 'Config. asistente', bank_accounts: 'Cuentas bancarias',
+    bank_accounts: 'Cuentas bancarias',
     bank_details: 'Datos bancarios', billing_providers: 'Proveedores facturación', billing_resolutions: 'Resoluciones facturación',
     branches: 'Sucursales', budgets: 'Presupuestos', business_collaboration_agreements: 'Acuerdos colaboración',
     capacity_inventory: 'Inventario capacidad', categories: 'Categorías', chart_of_accounts: 'Plan de cuentas',
@@ -372,7 +372,7 @@ const MODULE_ICONS = {
     security_contributions: '🛡️', territorial_directors: '🧭', procedures: '📝',
     fleet_service_contracts: '📄', capacity_inventory: '📦', objects_contracts: '📦',
     contractors: '👷', fuec: '📊', system_configurations: '⚙️', control_sheets: '📋',
-    service_delivery_control_sheets: '📋', assistant_configuration: '🤖', assistant: '💬', projects: '📈', locations: '📍',
+    service_delivery_control_sheets: '📋', projects: '📈', locations: '📍',
 }
 
 const ACTION_LABELS = {
