@@ -344,6 +344,17 @@
                         </router-link>
                     </li>
 
+                    <!-- RADICACIÓN TO - expedientes y ruta de trámite (incluye Tarjeta de operación) -->
+                    <li class="nav-item" v-if="can('radicacion_to.index')">
+                        <router-link class="nav-link" :class="{ 'active': isActiveLink('/radicacion') }"
+                            to="/radicacion">
+                            <div class="d-flex align-items-center">
+                                <span class="nav-link-icon"><span class="fad fa-file-signature" aria-hidden="true"></span></span>
+                                <span class="nav-link-text ps-1">Radicación TO</span>
+                            </div>
+                        </router-link>
+                    </li>
+
                     <!-- ═══════════════════════════════════════════════════ -->
                     <!-- SECCIÓN 5: FINANZAS                               -->
                     <!-- (era "Operaciones y Finanzas" — solo Cuotas Adm.) -->
