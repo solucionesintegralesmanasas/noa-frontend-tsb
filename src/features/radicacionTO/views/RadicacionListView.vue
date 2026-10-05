@@ -312,6 +312,7 @@ import vehiclesService from '@/features/vehicles/services/vehicles.service.js';
 import systemConfigurationService from '@/features/systemConfiguration/services/systemConfiguration.service.js';
 import { useUserStore } from '@store';
 import { toast } from '@/utils/toast.js';
+import { dateUtils } from '@/utils/date.js';
 import { logger } from '@/utils/logger.js';
 import {
   etiquetaPaso,
@@ -332,7 +333,7 @@ const textoActual = (e) => {
   return actual ? `Va en: ${etiquetaPaso(actual.paso)} (${actual.estado})` : 'Trámite completado';
 };
 const formRef = ref(null);
-const form = reactive({ link_type: 'CAMBIO_DE_EMPRESA', vehicle_uuid: '', procedure_code: '', date_of_creation: new Date().toISOString().slice(0, 10), subject: 'Radicación de tarjeta de operación', city_uuid: '', territorial_director_uuid: '' });
+const form = reactive({ link_type: 'CAMBIO_DE_EMPRESA', vehicle_uuid: '', procedure_code: '', date_of_creation: dateUtils.now('YYYY-MM-DD'), subject: 'Radicación de tarjeta de operación', city_uuid: '', territorial_director_uuid: '' });
 const errores = reactive({});
 const cargando = ref(false);
 const cargandoListas = ref(true);
@@ -381,7 +382,7 @@ async function cargarListas() {
   finally { cargandoListas.value = false; }
 }
 function limpiar() {
-  Object.assign(form, { link_type: 'CAMBIO_DE_EMPRESA', vehicle_uuid: '', procedure_code: '', date_of_creation: new Date().toISOString().slice(0, 10), subject: 'Radicación de tarjeta de operación', city_uuid: '', territorial_director_uuid: '' });
+  Object.assign(form, { link_type: 'CAMBIO_DE_EMPRESA', vehicle_uuid: '', procedure_code: '', date_of_creation: dateUtils.now('YYYY-MM-DD'), subject: 'Radicación de tarjeta de operación', city_uuid: '', territorial_director_uuid: '' });
   Object.keys(errores).forEach((k) => delete errores[k]);
   creado.value = null;
 }
