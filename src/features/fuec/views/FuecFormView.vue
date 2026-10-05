@@ -1523,6 +1523,14 @@ watch(
     { immediate: true }
 );
 
+// El consecutivo llega después del primer pintado (SPEC-006: sale del camino crítico del paso 1).
+watch(() => store.catalogs.nextContractNumber, (siguiente) => {
+    if (isEditMode.value || !siguiente || formData.contractor.contract_number) return;
+    const formatted = siguiente.formatted || '';
+    formData.contractor.contract_number = formatted;
+    formData.contract_number_display = formatted;
+});
+
 onMounted(async () => {
     isViewLoading.value = true;
     try {
@@ -1603,18 +1611,21 @@ onMounted(async () => {
 
         // Cargar configuración de sistema para la empresa activa
         if (formData.company_uuid) {
-            try {
-                await systemConfigStore.fetchByCompany(formData.company_uuid);
-            } catch (err) {
+            // Sin await (SPEC-006): una configuración lenta o fallida no debe bloquear el paso 1;
+            // la validación local la usa en cuanto llega (es un computed sobre el store).
+            systemConfigStore.fetchByCompany(formData.company_uuid).catch((err) => {
                 logger.warn('No se pudo cargar la configuración de sistema para la validación local.', err?.message);
-            }
+            });
         }
 
     } finally {
+        // En edición se conserva la espera: `isLoaded` evita que las validaciones asíncronas de licencia y
+        // seguridad social borren conductores ya guardados mientras se asignan los datos. En creación no hay
+        // nada que proteger y la espera de 400 ms solo retrasaba el paso 1.
         setTimeout(() => {
             isViewLoading.value = false;
             isLoaded.value = true;
-        }, 400);
+        }, isEditMode.value ? 400 : 0);
     }
 });
 </script>

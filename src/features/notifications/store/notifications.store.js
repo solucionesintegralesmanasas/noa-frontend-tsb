@@ -134,8 +134,8 @@ export const useNotificationsStore = defineStore('notifications', {
                 const tenantId = userStore.company_uuid;
                 const client = tenantId ? apiClient.forTenant(tenantId) : apiClient.global;
                 await client.post('/notifications/sync');
-                await this.fetchLatestNotifications();
-                await this.fetchNotifications();
+                // Las dos lecturas no dependen entre sí: en paralelo (antes iban en cadena, una ida y vuelta más).
+                await Promise.all([this.fetchLatestNotifications(), this.fetchNotifications()]);
             } catch (error) {
                 console.error('Error in silent notification sync:', error);
             }
