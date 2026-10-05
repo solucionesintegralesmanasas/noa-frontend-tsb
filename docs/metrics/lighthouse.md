@@ -99,6 +99,17 @@ tiles y red, no JS.
 Ninguna página cumple aún el objetivo (Perf ≥ 85); accesibilidad al 100 solo en
 dashboard y mapa en vivo.
 
+### Tercera jornada (2026-10-05, mañana local UTC-5, parcial sin sesión)
+
+Script `lighthouse.js` (Lighthouse 12.8.2, desktop, 3 corridas, mediana) + página `fuec` agregada al mapa del script. Solo páginas sin auth; las privadas (dashboard, mapa, historial, geocercas, fuec) quedan pendientes de un `--profile` con sesión iniciada.
+
+| Página | Perf (mediana 3x) | A11y | LCP | TBT | CLS | Notas |
+|---|---|---|---|---|---|---|
+| Login | 91 | 95 | 1,3 s | 0 ms | 0 | vs 81→85 del 23-09; objetivo Perf ≥ 85 cumplido |
+| Conductor (`/?view=conductor`) | 89 | 95 | 1,5 s | 0 ms | 0 | Pública (sin redirect a login) |
+
+Reportes fuente: `docs/metrics/lighthouse-apptransportessinbarreras-transportessinbarreras-com-desktop-2026-10-05.json`, `perf-2026-10-05.json`, `perf-apptransportessinbarreras-transportessinbarreras-com-2026-10-05.json`.
+
 ### Diagnóstico de la baseline (corrida mediana por página)
 
 | Página | Peso total | Peticiones | JS sin usar | Respuesta servidor | Lectura |

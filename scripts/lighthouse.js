@@ -23,6 +23,7 @@ const PAGINAS = {
   mapa: '/#/rastreo/mapa-en-vivo',
   historial: (uuid) => `/#/rastreo/historial/${uuid}`,
   geocercas: '/#/rastreo/geocercas',
+  fuec: '/#/extracto-de-contrato/crear',
   conductor: '/?view=conductor',
 };
 
