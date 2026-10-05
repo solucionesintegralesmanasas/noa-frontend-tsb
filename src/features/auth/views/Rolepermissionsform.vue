@@ -165,6 +165,19 @@
                 </div>
             </div>
 
+            <!-- Barra de ayuda: dice qué permiso está bajo el mouse sin tener que subir al encabezado -->
+            <div class="matrix-hint" :class="{ 'matrix-hint-edit': editMode }" role="status" aria-live="polite">
+                <i class="fas" :class="editMode ? 'fa-pen' : 'fa-info-circle'" aria-hidden="true"></i>
+                <span v-if="hoverInfo" class="matrix-hint-text">
+                    <strong>{{ hoverInfo.modulo }}</strong> › {{ hoverInfo.accion }}
+                    <code>{{ hoverInfo.permiso }}</code>
+                    <span class="matrix-hint-state" :class="hoverInfo.activo ? 'on' : 'off'">{{ hoverInfo.activo ? 'Concedido' : 'No concedido' }}</span>
+                </span>
+                <span v-else class="matrix-hint-text">
+                    {{ editMode ? 'Modo edición: haz clic en una celda para conceder o revocar el permiso. Los cambios se aplican al guardar.' : 'Pasa el mouse sobre una celda para ver qué permiso representa.' }}
+                </span>
+            </div>
+
             <!-- Tabla -->
             <div v-if="!isReady" class="rp-loading" style="padding:1.5rem">
                 <i class="fas fa-spinner fa-spin"></i>
@@ -175,8 +188,9 @@
                 <!-- Encabezado columnas -->
                 <div class="matrix-col-head" :style="gridStyle">
                     <div class="col-mod-label">Módulo del sistema</div>
-                    <div v-for="ac in actions" :key="ac" class="col-ac-label" :class="`col-ac-${ac}`">
-                        <span class="ac-icon-box"><i class="fas" :class="getActionIcon(ac)"></i></span>
+                    <div v-for="ac in actions" :key="ac" class="col-ac-label" :class="[`col-ac-${ac}`, { 'col-hover': hoverCol === ac }]"
+                        :title="getActionLabel(ac)">
+                        <span class="ac-icon-box"><i class="fas" :class="getActionIcon(ac)" aria-hidden="true"></i></span>
                         <span class="ac-text">{{ getActionLabel(ac) }}</span>
                     </div>
                     <div v-if="editMode" class="col-ac-label text-muted">
@@ -197,23 +211,33 @@
                             </div>
                         </div>
 
-                        <div v-for="ac in actions" :key="ac" class="row-ac-cell">
+                        <div v-for="ac in actions" :key="ac" class="row-ac-cell" :class="{ 'col-hover': hoverCol === ac }"
+                            @mouseenter="mostrarInfo(mod, ac)" @mouseleave="ocultarInfo">
                             <div class="perm-cell" :class="[
                                 isValidPerm(mod.id, ac)
                                     ? (hasPermission(mod.id, ac) ? `cell-on cell-on-${ac}` : 'cell-off')
                                     : 'perm-cell-empty',
                                 { editable: editMode && isValidPerm(mod.id, ac) }
-                            ]" @click="isValidPerm(mod.id, ac) && togglePerm(mod.id, ac)">
+                            ]" :title="isValidPerm(mod.id, ac) ? celdaTitulo(mod, ac) : null"
+                                :role="editMode && isValidPerm(mod.id, ac) ? 'switch' : null"
+                                :aria-checked="editMode && isValidPerm(mod.id, ac) ? String(hasPermission(mod.id, ac)) : null"
+                                :aria-label="isValidPerm(mod.id, ac) ? celdaTitulo(mod, ac) : null"
+                                :tabindex="editMode && isValidPerm(mod.id, ac) ? 0 : null"
+                                @click="isValidPerm(mod.id, ac) && togglePerm(mod.id, ac)"
+                                @keydown.enter.prevent="isValidPerm(mod.id, ac) && togglePerm(mod.id, ac)"
+                                @keydown.space.prevent="isValidPerm(mod.id, ac) && togglePerm(mod.id, ac)"
+                                @focus="mostrarInfo(mod, ac)" @blur="ocultarInfo">
                                 <i class="fas" :class="isValidPerm(mod.id, ac)
                                     ? (hasPermission(mod.id, ac)
                                         ? getActionIcon(ac)
                                         : (editMode ? getActionIcon(ac) + ' cell-ghost-icon' : 'fa-lock'))
-                                    : 'fa-minus'"></i>
+                                    : 'fa-minus'" aria-hidden="true"></i>
                             </div>
                         </div>
 
                         <div v-if="editMode" class="row-ac-cell">
-                            <button class="btn-all-row" @click="toggleAll(mod.id)" title="Marcar/desmarcar todos">
+                            <button class="btn-all-row" @click="toggleAll(mod.id)" :title="`Marcar o desmarcar todos los permisos de ${mod.label}`"
+                                :aria-label="`Marcar o desmarcar todos los permisos de ${mod.label}`">
                                 <i class="fal fa-check-double"></i>
                             </button>
                         </div>
@@ -299,9 +323,32 @@ const isReady = ref(false)
 const newRole = reactive({ name: '', description: '', color: 'blue', perms: {} })
 
 // ── Grid CSS ───────────────────────────────────────────────────────────────────
-const gridStyle = computed(() => ({
-    gridTemplateColumns: `1.5fr repeat(${actions.value.length}, minmax(38px,46px))${editMode.value ? ' minmax(38px,46px)' : ''}`
-}))
+const COL_ACCION_MIN = 76
+const COL_MODULO_MIN = 200
+const gridStyle = computed(() => {
+    const extra = editMode.value ? 1 : 0
+    return {
+        gridTemplateColumns: `minmax(${COL_MODULO_MIN}px, 1.6fr) repeat(${actions.value.length + extra}, minmax(${COL_ACCION_MIN}px, 1fr))`,
+        minWidth: `${COL_MODULO_MIN + (actions.value.length + extra) * COL_ACCION_MIN}px`,
+    }
+})
+
+// ── Ayuda al pasar el mouse (columna resaltada + barra con el permiso exacto) ─────
+const hoverCol = ref(null)
+const hoverInfo = ref(null)
+function celdaTitulo(mod, ac) {
+    return `${mod.label} › ${getActionLabel(ac)}: ${hasPermission(mod.id, ac) ? 'concedido' : 'no concedido'} (${mod.id}.${ac})`
+}
+function mostrarInfo(mod, ac) {
+    hoverCol.value = ac
+    hoverInfo.value = isValidPerm(mod.id, ac)
+        ? { modulo: mod.label, accion: getActionLabel(ac), permiso: `${mod.id}.${ac}`, activo: hasPermission(mod.id, ac) }
+        : null
+}
+function ocultarInfo() {
+    hoverCol.value = null
+    hoverInfo.value = null
+}
 
 // ── Módulos filtrados ──────────────────────────────────────────────────────────
 const filteredModules = computed(() => {
@@ -380,7 +427,8 @@ const ACTION_LABELS = {
     profile: 'Perfil', show: 'Detalle', view: 'Ver', edit: 'Editar',
     'toggle-status': 'Estado', 'toggle_status': 'Estado',
     change_branch: 'Cambiar sede', history_pdf: 'Historial PDF',
-    technical_sheet_pdf: 'Ficha técnica', cold_chain_pdf: 'Cadena frío', forecast: 'Pronóstico',
+    technical_sheet_pdf: 'Ficha técnica', cold_chain_pdf: 'PDF cadena de frío', close_exception: 'Cerrar con excepción', forecast: 'Pronóstico',
+    'export-excel': 'Exportar Excel', 'export-pdf': 'Exportar PDF',
     track: 'Rastrear', history: 'Historial', geofences: 'Geocercas', alerts: 'Alertas',
 }
 
@@ -389,7 +437,8 @@ const ACTION_ICONS = {
     delete: 'fa-trash-alt', destroy: 'fa-trash-alt', profile: 'fa-user', show: 'fa-eye',
     view: 'fa-eye', 'toggle-status': 'fa-toggle-on', toggle_status: 'fa-toggle-on',
     change_branch: 'fa-exchange-alt', history_pdf: 'fa-file-pdf',
-    technical_sheet_pdf: 'fa-file-alt', cold_chain_pdf: 'fa-snowflake', forecast: 'fa-chart-line',
+    technical_sheet_pdf: 'fa-file-alt', cold_chain_pdf: 'fa-snowflake', close_exception: 'fa-lock', forecast: 'fa-chart-line',
+    'export-excel': 'fa-file-excel', 'export-pdf': 'fa-file-pdf',
     track: 'fa-location-arrow', history: 'fa-history', geofences: 'fa-draw-polygon', alerts: 'fa-bell',
 }
 
@@ -428,7 +477,7 @@ function getRoleDesc(desc, name) {
 }
 
 // ── Procesado de permisos de la API ───────────────────────────────────────────
-const ACTION_ORDER = ['index', 'create', 'update', 'delete', 'destroy', 'profile', 'show', 'view', 'edit', 'change_branch', 'history_pdf', 'technical_sheet_pdf', 'cold_chain_pdf', 'forecast', 'toggle-status', 'track', 'history', 'geofences', 'alerts']
+const ACTION_ORDER = ['index', 'create', 'update', 'delete', 'destroy', 'profile', 'show', 'view', 'edit', 'change_branch', 'history_pdf', 'technical_sheet_pdf', 'cold_chain_pdf', 'forecast', 'close_exception', 'toggle-status', 'track', 'history', 'geofences', 'alerts']
 
 function processPermissions(apiPerms) {
     if (!Array.isArray(apiPerms) || apiPerms.length === 0) {
@@ -1282,10 +1331,48 @@ function showToast(message, type = 'success') {
 
 /* Tabla matrix */
 .matrix-table-wrap {
-    overflow-x: auto;
+    overflow: auto;
+    max-height: 68vh;
     -webkit-overflow-scrolling: touch;
-    padding: .75rem 1rem;
+    padding: 0 1rem .75rem;
 }
+
+/* Barra de ayuda sobre la tabla */
+.matrix-hint {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: .75rem 1rem;
+    padding: 7px 12px;
+    border-radius: 8px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+    font-size: .78rem;
+    min-height: 34px;
+}
+
+.matrix-hint-edit {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #1d4ed8;
+}
+
+.matrix-hint-text code {
+    margin: 0 6px;
+    padding: 1px 6px;
+    border-radius: 5px;
+    background: rgba(15, 23, 42, .06);
+    color: inherit;
+    font-size: .74rem;
+}
+
+.matrix-hint-state {
+    font-weight: 700;
+}
+
+.matrix-hint-state.on { color: #15803d; }
+.matrix-hint-state.off { color: #b45309; }
 
 .matrix-col-head {
     display: grid;
@@ -1294,7 +1381,10 @@ function showToast(message, type = 'success') {
     background: #f8fafc;
     border-radius: 10px;
     margin-bottom: 6px;
-    min-width: 620px;
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    box-shadow: 0 6px 6px -6px rgba(15, 23, 42, .15);
 }
 
 .col-mod-label {
@@ -1307,7 +1397,17 @@ function showToast(message, type = 'success') {
     display: flex;
     flex-direction: column;
     align-items: center;
+    align-self: start;
     gap: 4px;
+    padding: 2px 3px;
+    border-radius: 6px;
+    text-align: center;
+    transition: background .12s;
+}
+
+.col-ac-label.col-hover,
+.row-ac-cell.col-hover {
+    background: rgba(59, 130, 246, .07);
 }
 
 .col-ac-label.col-ac-index {
@@ -1380,10 +1480,13 @@ function showToast(message, type = 'success') {
     font-size: .6rem;
     font-weight: 800;
     text-transform: uppercase;
+    line-height: 1.15;
+    max-width: 100%;
+    overflow-wrap: normal;
 }
 
 .matrix-rows {
-    min-width: 620px;
+    min-width: 0;
 }
 
 .matrix-row {
@@ -1399,6 +1502,7 @@ function showToast(message, type = 'success') {
 
 .matrix-row:hover {
     box-shadow: 0 4px 12px -2px rgba(0, 0, 0, .05);
+    border-color: #bfdbfe;
 }
 
 .row-mod-info {
@@ -1458,6 +1562,18 @@ function showToast(message, type = 'success') {
 
 .perm-cell.editable:hover {
     transform: scale(1.12);
+}
+
+.perm-cell.editable:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+
+/* En edición, lo no concedido se ve vacío (borde punteado) y el icono aparece solo al pasar el mouse */
+.perm-cell.cell-off.editable {
+    background: #fff;
+    border-style: dashed;
+    border-color: #cbd5e1;
 }
 
 .perm-cell.cell-on {
@@ -1521,7 +1637,13 @@ function showToast(message, type = 'success') {
 }
 
 .cell-ghost-icon {
-    opacity: .35;
+    opacity: 0;
+    transition: opacity .12s;
+}
+
+.perm-cell.editable:hover .cell-ghost-icon,
+.perm-cell.editable:focus-visible .cell-ghost-icon {
+    opacity: .55;
 }
 
 .perm-cell-empty {
