@@ -593,6 +593,9 @@ import ThirdPartiesService from '../services/thirdParties.service.js';
 import { usePermissionsStore, useUserStore } from '@store';
 import { useTable } from '@/hooks/useTable.js';
 import { useTableActions } from '@/hooks/useTableActions.js';
+import { toast } from '@/utils/toast.js';
+import { logger } from '@/utils/logger.js';
+import { mensajeErrorValidacion } from '../utils/mensajeError.js';
 import Swal from 'sweetalert2';
 import BasePageHeader from '@/components/BasePageHeader.vue';
 import DateInput from '@/components/form/DateInput.vue';
@@ -852,7 +855,8 @@ const submitNewLicense = async () => {
         await store.createDriverLicense(newLicense.value);
         await loadLicensesForModal(currentDriverUuid.value);
     } catch (err) {
-        console.error('Error guardando licencia', err);
+        logger.error('Error guardando licencia', err?.message);
+        await toast('No se pudo guardar la licencia', mensajeErrorValidacion(err), 'error');
     } finally {
         isSubmittingLicense.value = false;
     }
@@ -894,7 +898,8 @@ const submitEditLicense = async () => {
         await loadLicensesForModal(currentDriverUuid.value);
         cancelEditLicense();
     } catch (err) {
-        console.error('Error actualizando licencia', err);
+        logger.error('Error actualizando licencia', err?.message);
+        await toast('No se pudo actualizar la licencia', mensajeErrorValidacion(err), 'error');
     } finally {
         isSubmittingLicense.value = false;
     }
