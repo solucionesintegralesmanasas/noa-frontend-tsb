@@ -20,6 +20,28 @@ describe('DateInput', () => {
         expect(wrapper.emitted('update:modelValue').at(-1)[0]).toBe('2026-09-14');
     });
 
+    it('pega año/mes/día del RUNT como ISO', async () => {
+        const wrapper = mount(DateInput, { props: { modelValue: null, id: 'f-fecha' } });
+        const evento = pegar(wrapper, '2026/09/14');
+        expect(evento.defaultPrevented).toBe(true);
+        expect(wrapper.emitted('update:modelValue').at(-1)[0]).toBe('2026-09-14');
+    });
+
+    it('sugiere pegar la fecha cuando el padre no da placeholder', async () => {
+        const wrapper = mount(DateInput, { props: { modelValue: null, id: 'f-fecha' } });
+        const input = wrapper.find('input');
+        expect(input.attributes('placeholder')).toContain('Pega');
+        expect(input.attributes('title')).toContain('dd/mm/aaaa');
+    });
+
+    it('respeta el placeholder del padre si lo trae', async () => {
+        const wrapper = mount(DateInput, {
+            props: { modelValue: null, id: 'f-fecha' },
+            attrs: { placeholder: 'YYYY-MM-DD' },
+        });
+        expect(wrapper.find('input').attributes('placeholder')).toBe('YYYY-MM-DD');
+    });
+
     it('ignora un pegado inválido sin tocar el modelo', async () => {
         const wrapper = mount(DateInput, { props: { modelValue: '2026-01-01', id: 'f-fecha' } });
         const evento = pegar(wrapper, 'no-fecha');
