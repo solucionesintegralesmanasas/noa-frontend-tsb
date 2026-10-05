@@ -144,9 +144,14 @@
                         <div class="col-12 col-sm-6 col-md-3 col-lg-3">
                             <label class="form-label required" for="email">Correo Electrónico</label>
                             <input id="email" v-model="formData.email" class="form-control"
-                                :class="{ 'is-invalid': validationErrors.email }" type="email" placeholder="correo@ejemplo.com" />
+                                :class="{ 'is-invalid': validationErrors.email }" type="email" placeholder="correo@ejemplo.com"
+                                :aria-describedby="avisoCorreo ? 'f-email-aviso' : undefined"
+                                @input="avisoCorreo = ''" @blur="verificarCorreo" />
                             <div v-if="validationErrors.email" class="invalid-feedback d-block" id="f-email-error" role="alert">
                                 {{ validationErrors.email }}
+                            </div>
+                            <div v-if="avisoCorreo" id="f-email-aviso" class="form-text text-danger" role="alert">
+                                <i class="fas fa-exclamation-triangle me-1" aria-hidden="true"></i>{{ avisoCorreo }}
                             </div>
                         </div>
 
@@ -443,6 +448,7 @@ import { toast } from '@/utils/toast.js';
 import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useThirdPartiesStore } from '../store/thirdParties.store.js';
+import thirdPartiesService from '../services/thirdParties.service.js';
 import { usePermissionsStore, useUserStore } from '@store';
 import Swal from 'sweetalert2';
 import BasePageHeader from '@/components/BasePageHeader.vue';
@@ -465,6 +471,27 @@ const isEditMode = computed(() => route.params.id !== undefined);
 /** Computed para BasePageHeader (evita expresiones complejas en el template) */
 const pageTitle = computed(() => isEditMode.value ? 'Actualizar Tercero' : 'Registrar Tercero');
 const pageSubtitle = computed(() => isEditMode.value ? 'Modifica los datos del registro en el sistema' : 'Completa los datos para crear un nuevo registro');
+// Aviso previo: el usuario es único por correo y el backend rechaza (422) guardar un tercero con el correo de otro.
+const avisoCorreo = ref('');
+async function verificarCorreo() {
+    avisoCorreo.value = '';
+    const correo = String(formData.email || '').trim();
+    if (!correo || !EMAIL_RE.test(correo)) return;
+    try {
+        const res = await thirdPartiesService.checkEmail(correo, isEditMode.value ? route.params.id : null);
+        const info = res?.data ?? res;
+        if (info?.en_uso) {
+            // El nombre y los roles solo llegan a los administradores; el resto ve el aviso sin detalle.
+            const duenio = info.tercero
+                ? `«${info.tercero.nombre}» (${(info.tercero.roles || []).join(', ') || 'sin rol'})`
+                : 'otro tercero';
+            avisoCorreo.value = `Este correo ya es el usuario de ${duenio}. No se podrá guardar este tercero con ese correo: use otro.`;
+        }
+    } catch {
+        // El aviso es informativo: si la consulta falla, el formulario sigue sin él.
+    }
+}
+
 const breadcrumbs = computed(() => [ dynamicBreadcrumb.value, { label: isEditMode.value ? 'Editar' : 'Nuevo' }, ]);
 
 const routeType = computed(() => {
