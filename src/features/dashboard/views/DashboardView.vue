@@ -188,7 +188,7 @@
     <!-- ROW 3: Map & Activity -->
     <div class="row g-3">
         <!-- LIVE GPS (Mapa de conductores en tiempo real) -->
-        <div :class="canViewRestrictedSections ? 'col-xxl-8 col-lg-7' : 'col-12'">
+        <div v-if="puedeVerFlotaEnVivo" :class="canViewRestrictedSections ? 'col-xxl-8 col-lg-7' : 'col-12'">
             <div class="card h-100 border-0 shadow-sm overflow-hidden">
                 <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
                     <div class="d-flex align-items-center gap-2">
@@ -204,7 +204,7 @@
                     </span>
                 </div>
                 <div class="card-body p-0 position-relative" style="min-height: 350px;">
-                    <DriverMap :show-geofences="true" :interactive="true" @driver-selected="onDriverSelected" />
+                    <DriverMap :show-geofences="puedeVerGeocercas" :interactive="true" @driver-selected="onDriverSelected" />
                 </div>
                 <div v-if="trackingStore.activeDrivers.length === 0 && !trackingStore.error" class="position-absolute top-50 start-50 translate-middle text-center z-1 w-100" style="pointer-events: none;">
                     <div class="d-inline-flex flex-column align-items-center bg-white rounded-3 shadow-sm px-4 py-3">
@@ -339,6 +339,11 @@ const canViewRestrictedSections = computed(() => {
            permissionsStore.hasRole('SUPERADMIN');
 });
 
+// El mapa y las geocercas exigen permisos propios en el backend (locations.view / locations.geofences);
+// sin ellos no se muestra la tarjeta ni se consultan los endpoints (evita 403 en la consola del afiliado).
+const puedeVerFlotaEnVivo = computed(() => permissionsStore.can('locations.view'));
+const puedeVerGeocercas = computed(() => permissionsStore.can('locations.geofences'));
+
 const isConductorMode = computed(() => {
     if (route.query.view === 'conductor') return true;
     if (route.query.view === 'admin') return false;
@@ -389,8 +394,9 @@ const activities = computed(() => dashboardStore.activities);
 let refreshInterval = null;
 
 function startDriverTracking() {
+    if (!puedeVerFlotaEnVivo.value) return;
     trackingStore.fetchActiveDrivers();
-    trackingStore.fetchGeofences();
+    if (puedeVerGeocercas.value) trackingStore.fetchGeofences();
     refreshInterval = setInterval(() => {
         trackingStore.fetchActiveDrivers();
     }, 10000);
