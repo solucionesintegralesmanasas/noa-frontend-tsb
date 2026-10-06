@@ -91,7 +91,7 @@
                             <div class="row g-2 g-md-3">
                                 <div class="col-12 col-sm-6 col-md-4 col-lg-4">
                                     <label class="form-label required" for="first_name">Nombres</label>
-                                    <input id="first_name" v-model="formData.first_name" class="form-control"
+                                    <input id="first_name" v-model="formData.first_name" class="form-control text-uppercase"
                                         :class="{ 'is-invalid': validationErrors.first_name }" type="text" autocomplete="off"
                                         placeholder="Nombres propios (personas naturales)" />
                                     <div v-if="validationErrors.first_name" class="invalid-feedback d-block" id="f-first_name-error" role="alert">
@@ -100,7 +100,7 @@
                                 </div>
                                 <div class="col-12 col-sm-6 col-md-4 col-lg-4">
                                     <label class="form-label required" for="last_name">Apellidos</label>
-                                    <input id="last_name" v-model="formData.last_name" class="form-control"
+                                    <input id="last_name" v-model="formData.last_name" class="form-control text-uppercase"
                                         :class="{ 'is-invalid': validationErrors.last_name }" type="text" autocomplete="off"
                                         placeholder="Apellidos (personas naturales)" />
                                     <div v-if="validationErrors.last_name" class="invalid-feedback d-block" id="f-last_name-error" role="alert">
@@ -109,7 +109,7 @@
                                 </div>
                                 <div class="col-12 col-sm-12 col-md-4 col-lg-4">
                                     <label class="form-label" for="trade_name">Nombre Comercial</label>
-                                    <input id="trade_name" v-model="formData.trade_name" class="form-control"
+                                    <input id="trade_name" v-model="formData.trade_name" class="form-control text-uppercase"
                                         :class="{ 'is-invalid': validationErrors.trade_name }" type="text" autocomplete="off"
                                         placeholder="Nombre comercial o razón social" />
                                     <div v-if="validationErrors.trade_name" class="invalid-feedback d-block" id="f-trade_name-error" role="alert">
@@ -123,7 +123,7 @@
                             <div class="row g-2 g-md-3">
                                 <div class="col-12">
                                     <label class="form-label required" for="company_name">Razón Social</label>
-                                    <input id="company_name" v-model="formData.company_name" class="form-control"
+                                    <input id="company_name" v-model="formData.company_name" class="form-control text-uppercase"
                                         :class="{ 'is-invalid': validationErrors.company_name }" type="text" autocomplete="off"
                                         placeholder="Razón social legal completa" />
                                     <div v-if="validationErrors.company_name" class="invalid-feedback d-block" id="f-company_name-error" role="alert">
