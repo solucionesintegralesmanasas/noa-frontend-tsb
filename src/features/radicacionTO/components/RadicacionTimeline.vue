@@ -124,8 +124,6 @@ defineExpose({ indiceActual, oculta });
   font-size: 0.8rem;
   font-weight: 700;
   color: #6b7686;
-  text-transform: uppercase;
-  letter-spacing: .05em;
   margin: 0 0 18px;
 }
 
@@ -155,7 +153,7 @@ defineExpose({ indiceActual, oculta });
   background: #e3e8ef;
 }
 .timeline-item.is-completed .timeline-rail { background: #0fa968; }
-.timeline-item.is-active    .timeline-rail { background: linear-gradient(180deg, #f07a2e 0%, #e3e8ef 100%); }
+.timeline-item.is-active    .timeline-rail { background: linear-gradient(180deg, #2563eb 0%, #e3e8ef 100%); }
 
 /* ── Nodo ── */
 .timeline-node {
@@ -179,10 +177,10 @@ defineExpose({ indiceActual, oculta });
   color: #fff;
 }
 .timeline-item.is-active .timeline-node {
-  background: #f07a2e;
-  border-color: #f07a2e;
+  background: #2563eb;
+  border-color: #2563eb;
   color: #fff;
-  box-shadow: 0 0 0 5px #fff0e4;
+  box-shadow: 0 0 0 5px #e8f0fe;
 }
 .node-number { color: #adb5bd; }
 
@@ -196,9 +194,9 @@ defineExpose({ indiceActual, oculta });
 .active-card {
   margin-top: -6px;
   padding: 9px 14px 14px;
-  border: 1px solid #fbd9bd;
+  border: 1px solid #bfd3fb;
   border-radius: 12px;
-  background: #fffaf5;
+  background: #f5f9ff;
 }
 
 /* ── Fila título + badge ── */
@@ -229,7 +227,7 @@ defineExpose({ indiceActual, oculta });
   white-space: nowrap;
 }
 .status-completado   { background: #e4f7ee; color: #0b7a4b; }
-.status-en-proceso   { background: #fff0e4; color: #b4540f; }
+.status-en-proceso   { background: #e8f0fe; color: #1d4ed8; }
 .status-pendiente    { background: #f1f3f5; color: #6b7686; }
 
 /* ── Grid de documentos 1fr 1fr ── */

@@ -1,436 +1,354 @@
 <template>
-  <div class="row gx-3">
-    <div class="col-12 col-xxl-10 offset-xxl-1 col-xl-12">
-      <BasePageHeader
-        title="Radicación de tarjeta de operación"
-        subtitle="Gestione y consulte los trámites de vinculación vehicular con su línea de tiempo"
-        icon="fad fa-id-card text-primary"
-        :breadcrumbs="[{ label: 'Radicación' }]"
-        :show-back="false"
-      />
+    <BasePageHeader title="Radicación de tarjeta de operación"
+        description="Gestione y consulte los trámites de vinculación vehicular con su línea de tiempo"
+        icon="fad fa-id-card text-primary" :show-refresh="true" :show-create="puedeCrear" :show-bg="true"
+        :loading="isViewLoading || store.loading" :compact="true"
+        :breadcrumbs="[{ label: 'Radicación de tarjeta de operación' }, { label: 'Listado' }]"
+        @refresh="store.fetchItems()" @create="irANuevo" />
 
-      <!-- ══════════════ Listado de expedientes ══════════════ -->
-      <div class="card border-0 shadow-sm mt-3">
-        <div class="card-header bg-white py-3 px-4 border-bottom d-flex align-items-center gap-2">
-          <span class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center" style="width:32px;height:32px;" aria-hidden="true">
-            <i class="fad fa-list text-primary"></i>
-          </span>
-          <h2 class="h6 mb-0 fw-semibold">Trámites por vehículo</h2>
-          <button
-            class="btn btn-sm btn-outline-primary ms-auto d-inline-flex align-items-center gap-1"
-            :disabled="cargandoExp"
-            @click="cargarExpedientes"
-            aria-label="Actualizar listado de trámites"
-          >
-            <i class="fas" :class="cargandoExp ? 'fa-spinner fa-spin' : 'fa-rotate-right'" aria-hidden="true"></i>
-            Actualizar
-          </button>
-        </div>
-
-        <div class="card-body p-0">
-          <!-- Cargando -->
-          <div v-if="cargandoExp" class="p-4 text-center text-muted">
-            <i class="fas fa-spinner fa-spin me-2" aria-hidden="true"></i>
-            <span role="status">Cargando trámites…</span>
-          </div>
-
-          <!-- Vacío -->
-          <div v-else-if="expedientes.length === 0" class="p-5 text-center text-muted">
-            <i class="fad fa-folder-open fa-2x mb-3 d-block text-secondary" aria-hidden="true"></i>
-            <p class="mb-1 fw-medium">Aún no hay trámites registrados</p>
-            <p class="noa-helper mb-0">Complete el formulario de abajo para crear el primero.</p>
-          </div>
-
-          <!-- Tabla -->
-          <div v-else class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th scope="col" class="ps-4">Código</th>
-                  <th scope="col">Vehículo</th>
-                  <th scope="col">Tipo</th>
-                  <th scope="col">Avance</th>
-                  <th scope="col">Estado de pasos</th>
-                  <th scope="col" class="text-end pe-4">Acción</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="e in expedientes" :key="e.uuid">
-                  <td class="ps-4">
-                    <span class="fw-medium text-dark">{{ e.procedure_code }}</span>
-                  </td>
-                  <td>
-                    <span class="badge bg-light text-dark border fw-normal px-2">
-                      <i class="fas fa-car-side me-1 text-muted" aria-hidden="true"></i>
-                      {{ e.vehicle?.vehicle_license_plate ?? '—' }}
-                    </span>
-                  </td>
-                  <td>
-                    <span class="text-muted small">{{ etiquetaTipo(e.link_type) }}</span>
-                  </td>
-                  <td>
-                    <span class="badge bg-primary rounded-pill px-2">{{ e.avance }}</span>
-                  </td>
-                  <td>
-                    <template v-if="expedienteCompletado(e)">
-                      <span class="badge bg-success rounded-pill px-3">
-                        <i class="fas fa-check me-1" aria-hidden="true"></i>Completado
-                      </span>
-                    </template>
-                    <template v-else>
-                      <div class="d-flex flex-wrap gap-1 mb-1">
-                        <span
-                          v-for="p in e.linea_tiempo"
-                          :key="p.paso"
-                          class="badge rounded-pill"
-                          :class="{
-                            'bg-success': p.estado === 'COMPLETADO',
-                            'bg-warning text-dark': p.estado === 'EN_PROCESO',
-                            'bg-secondary bg-opacity-50 text-secondary-emphasis': !['COMPLETADO','EN_PROCESO'].includes(p.estado),
-                          }"
-                          :title="etiquetaPaso(p.paso) + ': ' + p.estado"
-                        >{{ etiquetaPasoCorta(p.paso) }}</span>
-                      </div>
-                      <span class="noa-meta text-muted">{{ textoActual(e) }}</span>
-                    </template>
-                  </td>
-                  <td class="text-end pe-4">
-                    <router-link
-                      class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
-                      :to="`/radicacion/${e.uuid}`"
-                    >
-                      <i class="fas fa-eye" aria-hidden="true"></i>
-                      Ver expediente
-                    </router-link>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- ══════════════ Formulario: Nuevo trámite ══════════════ -->
-      <div class="card border-0 shadow-sm mt-4">
-        <div class="card-header bg-white py-3 px-4 border-bottom">
-          <div class="d-flex align-items-center gap-2">
-            <span class="rounded-circle bg-success bg-opacity-10 d-flex align-items-center justify-content-center" style="width:32px;height:32px;" aria-hidden="true">
-              <i class="fad fa-plus text-success"></i>
-            </span>
-            <h2 class="h6 mb-0 fw-semibold">Nuevo trámite</h2>
-            <span class="badge bg-secondary bg-opacity-10 text-secondary ms-2 fw-normal rounded-pill">
-              <i class="fas fa-asterisk me-1 obligatorio-icon" aria-hidden="true"></i>
-              Campos obligatorios
-            </span>
-          </div>
-        </div>
-
-        <div class="card-body px-4 py-4">
-          <form ref="formRef" @submit.prevent="crear" novalidate>
-            <!-- Sección 1: Identificación -->
-            <div class="mb-4">
-              <p class="noa-section-label text-muted mb-3 border-bottom pb-2">
-                <i class="fas fa-tag me-1" aria-hidden="true"></i>Identificación del trámite
-              </p>
-              <div class="row g-3">
-                <div class="col-12 col-sm-6 col-md-4">
-                  <label class="form-label required noa-label" for="f-tipo">Tipo de trámite</label>
-                  <PrimeSelect
-                    :input-id="'f-tipo'"
-                    v-model="form.link_type"
-                    :options="tipos"
-                    option-label="label"
-                    option-value="value"
-                    placeholder="Seleccione el tipo"
-                    class="w-100"
-                    :invalid="!!errores.link_type"
-                  />
-                  <div v-if="errores.link_type" class="invalid-feedback d-block" id="f-tipo-error" role="alert">
-                    {{ errores.link_type }}
-                  </div>
+    <!-- BARRA DE BÚSQUEDA -->
+    <div class="card border-0 shadow-sm mb-3 fade-in-up" style="animation-delay: 0.1s;">
+        <div class="bg-holder d-none d-lg-block bg-card"
+            style="background-image:url(/assets/img/icons/spot-illustrations/corner-4.png);" />
+        <div class="card-body position-relative py-2">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-3 g-2 g-md-3">
+                <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-2 flex-grow-1 g-2 g-md-3">
+                    <h6 class="mb-0 fw-medium text-nowrap">Búsqueda</h6>
+                    <div class="input-group input-group-sm w-100" style="max-width: 420px;">
+                        <span class="input-group-text bg-light border-end-0">
+                            <i class="fad fa-search text-muted" />
+                        </span>
+                        <input v-model="busqueda" class="form-control form-control-sm border-start-0 shadow-none"
+                            type="search" placeholder="Buscar por código o asunto..." aria-label="Buscar expediente de radicación"
+                            @input="debouncedSearch" />
+                        <button v-if="busqueda" class="btn btn-outline-secondary border-start-0" type="button"
+                            title="Limpiar búsqueda" aria-label="Limpiar búsqueda" @click="limpiarBusqueda">
+                            <i class="fad fa-times" />
+                        </button>
+                    </div>
                 </div>
 
-                <div class="col-12 col-sm-6 col-md-4">
-                  <label class="form-label required noa-label" for="f-codigo">Código del trámite</label>
-                  <input
-                    id="f-codigo"
-                    type="text"
-                    autocomplete="off"
-                    class="form-control"
-                    v-model="form.procedure_code"
-                    placeholder="Ej. TO-2026-001"
-                    :class="{ 'is-invalid': errores.procedure_code }"
-                    :aria-invalid="!!errores.procedure_code"
-                    :aria-describedby="errores.procedure_code ? 'f-codigo-error' : undefined"
-                  />
-                  <div v-if="errores.procedure_code" class="invalid-feedback d-block" id="f-codigo-error" role="alert">
-                    {{ errores.procedure_code }}
-                  </div>
+                <div v-if="!isViewLoading && !store.loading" class="text-muted text-lg-end text-nowrap">
+                    <small>
+                        <i class="fad fa-filter me-1" />
+                        {{ store.pagination.totalItems }} resultado{{ store.pagination.totalItems !== 1 ? 's' : '' }}
+                        <span v-if="store.search"> para "{{ store.search }}"</span>
+                    </small>
                 </div>
-
-                <div class="col-12 col-sm-6 col-md-4">
-                  <label class="form-label required noa-label" for="f-fecha">Fecha de creación</label>
-                  <DateInput
-                    id="f-fecha"
-                    v-model="form.date_of_creation"
-                    class="form-control"
-                    placeholder="dd/mm/aaaa"
-                    autocomplete="off"
-                    :class="{ 'is-invalid': errores.date_of_creation }"
-                    :aria-invalid="!!errores.date_of_creation"
-                    :aria-describedby="errores.date_of_creation ? 'f-fecha-error' : undefined"
-                  />
-                  <div v-if="errores.date_of_creation" class="invalid-feedback d-block" id="f-fecha-error" role="alert">
-                    {{ errores.date_of_creation }}
-                  </div>
-                </div>
-
-                <div class="col-12 col-sm-6">
-                  <label class="form-label noa-label" for="f-asunto">Asunto</label>
-                  <input
-                    id="f-asunto"
-                    type="text"
-                    autocomplete="off"
-                    class="form-control"
-                    v-model="form.subject"
-                    placeholder="Radicación de tarjeta de operación"
-                  />
-                  <div class="form-text">Opcional. Se usa como referencia interna del expediente.</div>
-                </div>
-              </div>
             </div>
-
-            <!-- Sección 2: Vehículo y ubicación -->
-            <div class="mb-4">
-              <p class="noa-section-label text-muted mb-3 border-bottom pb-2">
-                <i class="fas fa-truck me-1" aria-hidden="true"></i>Vehículo y ubicación
-              </p>
-              <div class="row g-3">
-                <div class="col-12 col-sm-6">
-                  <label class="form-label required noa-label" for="f-vehiculo">Vehículo</label>
-                  <PrimeSelect
-                    :input-id="'f-vehiculo'"
-                    v-model="form.vehicle_uuid"
-                    :options="vehiculos"
-                    option-label="label"
-                    option-value="value"
-                    placeholder="Buscar por placa"
-                    showClear
-                    filter
-                    :loading="cargandoListas"
-                    class="w-100"
-                    :invalid="!!errores.vehicle_uuid"
-                  />
-                  <div v-if="errores.vehicle_uuid" class="invalid-feedback d-block" id="f-vehiculo-error" role="alert">
-                    {{ errores.vehicle_uuid }}
-                  </div>
-                </div>
-
-                <div class="col-12 col-sm-6">
-                  <label class="form-label required noa-label" for="f-ciudad">Ciudad de radicación</label>
-                  <PrimeSelect
-                    :input-id="'f-ciudad'"
-                    v-model="form.city_uuid"
-                    :options="ciudades"
-                    option-label="label"
-                    option-value="value"
-                    placeholder="Seleccione la ciudad"
-                    showClear
-                    filter
-                    :loading="cargandoListas"
-                    class="w-100"
-                    :invalid="!!errores.city_uuid"
-                  />
-                  <div v-if="errores.city_uuid" class="invalid-feedback d-block" id="f-ciudad-error" role="alert">
-                    {{ errores.city_uuid }}
-                  </div>
-                </div>
-
-                <div class="col-12">
-                  <label class="form-label required noa-label" for="f-director">Dirección territorial</label>
-                  <PrimeSelect
-                    :input-id="'f-director'"
-                    v-model="form.territorial_director_uuid"
-                    :options="directores"
-                    option-label="label"
-                    option-value="value"
-                    placeholder="Seleccione la dirección territorial"
-                    showClear
-                    filter
-                    :loading="cargandoListas"
-                    class="w-100"
-                    :invalid="!!errores.territorial_director_uuid"
-                  />
-                  <div v-if="errores.territorial_director_uuid" class="invalid-feedback d-block" id="f-director-error" role="alert">
-                    {{ errores.territorial_director_uuid }}
-                  </div>
-                  <div v-if="directorSugerido" class="form-text">
-                    <i class="fas fa-circle-info me-1" aria-hidden="true"></i>
-                    Dirección por defecto de la empresa: <strong>{{ directorSugerido }}</strong>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Acciones -->
-            <div class="pt-3 border-top">
-              <BaseFormActions
-                :submitting="cargando"
-                :is-edit-mode="false"
-                submit-label="Crear expediente e iniciar trámite"
-                cancel-label="Limpiar formulario"
-                cancel-icon="fas fa-eraser"
-                @cancel="limpiar"
-              />
-            </div>
-          </form>
-
-          <!-- Confirmación de creación -->
-          <div v-if="creado" class="alert alert-success mt-4 d-flex align-items-center gap-2" role="alert">
-            <i class="fas fa-circle-check fa-lg" aria-hidden="true"></i>
-            <div>
-              Expediente <strong>{{ creado.expediente.procedure_code }}</strong> creado correctamente.
-              <router-link :to="`/radicacion/${creado.expediente.uuid}`" class="alert-link ms-1">
-                Ir al expediente →
-              </router-link>
-            </div>
-          </div>
         </div>
-      </div>
     </div>
-  </div>
+
+    <!-- TABLA -->
+    <div class="row gx-3 fade-in-up" style="animation-delay: 0.2s;">
+        <div class="col-12 col-xxl-12">
+            <div class="card border-0 shadow-sm">
+                <div class="bg-holder d-none d-lg-block bg-card"
+                    style="background-image:url(/assets/img/icons/spot-illustrations/corner-4.png);" />
+                <div class="card-body p-0">
+                    <div class="table-responsive scrollbar">
+                        <DataTable :value="store.items" lazy :paginator="true" :rows="store.pagination.itemsPerPage"
+                            :totalRecords="store.pagination.totalItems"
+                            :first="(store.pagination.currentPage - 1) * store.pagination.itemsPerPage"
+                            :loading="isViewLoading || store.loading" :rowsPerPageOptions="[10, 25, 50, 100]"
+                            responsiveLayout="scroll" tableStyle="min-width: 50rem"
+                            class="table table-sm mb-0 professional-table"
+                            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+                            emptyMessage="No se encontraron registros" @page="onPageChange">
+                            <Column field="procedure_code" header="Código" style="min-width: 110px;">
+                                <template #body="{ data }">
+                                    <span class="text-dark fw-semibold">{{ data.procedure_code || '-' }}</span>
+                                </template>
+                            </Column>
+
+                            <Column header="Placa" style="min-width: 110px;">
+                                <template #body="{ data }">
+                                    <span class="text-dark">{{ data.vehicle?.vehicle_license_plate || '-' }}</span>
+                                </template>
+                            </Column>
+
+                            <Column field="link_type" header="Tipo">
+                                <template #body="{ data }">
+                                    <span class="text-dark">{{ etiquetaTipo(data.link_type) }}</span>
+                                </template>
+                            </Column>
+
+                            <Column field="avance" header="Avance" style="min-width: 150px;">
+                                <template #body="{ data }">
+                                    <div class="avance" :aria-label="`Avance ${data.avance}`">
+                                        <div class="progress avance-barra" role="progressbar"
+                                            :aria-valuenow="porcentajeAvance(data.avance)" aria-valuemin="0" aria-valuemax="100">
+                                            <div class="progress-bar"
+                                                :class="porcentajeAvance(data.avance) === 100 ? 'bg-success' : 'bg-primary'"
+                                                :style="{ width: porcentajeAvance(data.avance) + '%' }" />
+                                        </div>
+                                        <span class="avance-texto">{{ data.avance }}</span>
+                                    </div>
+                                </template>
+                            </Column>
+
+                            <Column header="Pasos" style="min-width: 260px;">
+                                <template #body="{ data }">
+                                    <span v-if="expedienteCompletado(data)" class="badge rounded-pill badge-subtle badge-subtle-success">
+                                        <i class="fad fa-check-circle me-1" style="font-size:10px;" aria-hidden="true" />Completado
+                                    </span>
+                                    <div v-else class="d-flex flex-wrap gap-1">
+                                        <span v-for="p in data.linea_tiempo" :key="p.paso"
+                                            class="badge rounded-pill badge-subtle" :class="claseDePaso(p.estado)"
+                                            :title="etiquetaPaso(p.paso)">{{ etiquetaPasoCorta(p.paso) }}</span>
+                                    </div>
+                                </template>
+                            </Column>
+
+                            <Column header="Acciones" class="text-center" style="min-width:100px; width: 100px;">
+                                <template #body="{ data }">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <button class="btn btn-falcon-default" type="button" title="Ver expediente"
+                                            :aria-label="`Ver expediente ${data.procedure_code}`" @click="verExpediente(data.uuid)">
+                                            <i class="fad fa-eye text-primary" style="font-size:14px;" />
+                                        </button>
+                                    </div>
+                                </template>
+                            </Column>
+
+                            <template #loading>
+                                <NoaTableSpinner message="Cargando datos..." />
+                            </template>
+                        </DataTable>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </template>
 
 <script setup>
-import { nextTick, onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import BasePageHeader from '@/components/BasePageHeader.vue';
-import BaseFormActions from '@/components/BaseFormActions.vue';
-import PrimeSelect from '@/components/form/PrimeSelect.vue';
-import DateInput from '@/components/form/DateInput.vue';
-import service, { mensajeDeError } from '../services/radicacion.service.js';
-import vehiclesService from '@/features/vehicles/services/vehicles.service.js';
-import systemConfigurationService from '@/features/systemConfiguration/services/systemConfiguration.service.js';
-import { useUserStore } from '@store';
-import { toast } from '@/utils/toast.js';
-import { dateUtils } from '@/utils/date.js';
-import { logger } from '@/utils/logger.js';
+import NoaTableSpinner from '@/components/NoaTableSpinner.vue';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import { useRadicacionStore } from '../store/radicacion.store.js';
+import { usePermissionsStore } from '@store';
+import { useTable } from '@/hooks/useTable.js';
 import {
-  etiquetaPaso,
-  etiquetaPasoCorta,
-  etiquetaTipo,
-  expedienteCompletado,
+    etiquetaPaso,
+    etiquetaPasoCorta,
+    etiquetaTipo,
+    expedienteCompletado,
+    porcentajeAvance,
 } from '../utils/pasosRadicacion.js';
 
-const tipos = [
-  { label: 'Vehículo nuevo', value: 'NUEVO_VEHICULO' },
-  { label: 'Cambio de empresa', value: 'CAMBIO_DE_EMPRESA' },
-  { label: 'Renovación de tarjeta', value: 'RENOVACION' },
-  { label: 'Desvinculación por mutuo acuerdo', value: 'DESVINCULACION_MUTUO' },
-  { label: 'Desvinculación unilateral', value: 'DESVINCULACION_UNILATERAL' },
-];
-const textoActual = (e) => {
-  const actual = (e.linea_tiempo ?? []).find((p) => p.estado === 'EN_PROCESO') ?? (e.linea_tiempo ?? []).find((p) => p.estado !== 'COMPLETADO');
-  return actual ? `Va en: ${etiquetaPaso(actual.paso)} (${actual.estado})` : 'Trámite completado';
-};
-const formRef = ref(null);
-const form = reactive({ link_type: 'CAMBIO_DE_EMPRESA', vehicle_uuid: '', procedure_code: '', date_of_creation: dateUtils.now('YYYY-MM-DD'), subject: 'Radicación de tarjeta de operación', city_uuid: '', territorial_director_uuid: '' });
-const errores = reactive({});
-const cargando = ref(false);
-const cargandoListas = ref(true);
-const cargandoExp = ref(false);
-const creado = ref(null);
-const vehiculos = ref([]);
-const ciudades = ref([]);
-const directores = ref([]);
-const directorSugerido = ref('');
-const expedientes = ref([]);
-const esVacio = (v) => v === null || v === undefined || (typeof v === 'string' ? v.trim() === '' : !v);
+const router = useRouter();
+const store = useRadicacionStore();
+const permissionsStore = usePermissionsStore();
+const puedeCrear = computed(() => permissionsStore.can('radicacion_to.create'));
 
-async function cargarExpedientes() {
-  cargandoExp.value = true;
-  try {
-    const r = await service.expedientes({ per_page: 50 });
-    const pag = r.data?.data ?? r.data ?? {};
-    expedientes.value = pag.data ?? pag ?? [];
-  } catch (e) { logger.warn('No se cargaron expedientes'); }
-  finally { cargandoExp.value = false; }
-}
-async function cargarListas() {
-  cargandoListas.value = true;
-  try {
-    const v = await vehiclesService.list({ per_page: 100 });
-    const items = v.data?.data?.data ?? v.data?.data ?? v.data ?? [];
-    const vistos = new Set();
-    vehiculos.value = (Array.isArray(items) ? items : []).filter((x) => {
-      const k = x?.uuid ?? x?.vehicle_license_plate;
-      if (!k || vistos.has(k)) return false;
-      vistos.add(k);
-      return true;
-    }).map((x) => ({ label: `${x.vehicle_license_plate ?? 'Sin placa'} — ${x.line ?? ''}`, value: x.uuid }));
-  } catch (e) { logger.warn('No se cargaron vehículos'); }
-  try { ciudades.value = await service.listarCiudades(); } catch { ciudades.value = []; }
-  try { directores.value = await service.listarDirectores(); } catch { directores.value = []; }
-  try {
-    const userStore = useUserStore();
-    if (userStore.company_uuid) {
-      const cfg = await systemConfigurationService.getByCompany(userStore.company_uuid);
-      const data = cfg.data?.data ?? cfg.data ?? {};
-      if (data.default_territorial_director_uuid && !form.territorial_director_uuid) form.territorial_director_uuid = data.default_territorial_director_uuid;
-      directorSugerido.value = data.default_territorial_director_name || '';
+const isViewLoading = ref(true);
+const busqueda = ref('');
+const { debouncedSearch } = useTable({}, () => store.setGlobalFilter(busqueda.value));
+const limpiarBusqueda = async () => { busqueda.value = ''; await store.clearFilters(); };
+
+const irANuevo = () => router.push('/radicacion/nuevo');
+const verExpediente = (uuid) => router.push(`/radicacion/${uuid}`);
+
+const onPageChange = async ({ first, rows }) => {
+    if (rows !== store.pagination.itemsPerPage) {
+        await store.setPerPage(rows);
+        return;
     }
-  } catch (e) { logger.warn('No se cargó la dirección territorial por defecto'); }
-  finally { cargandoListas.value = false; }
-}
-function limpiar() {
-  Object.assign(form, { link_type: 'CAMBIO_DE_EMPRESA', vehicle_uuid: '', procedure_code: '', date_of_creation: dateUtils.now('YYYY-MM-DD'), subject: 'Radicación de tarjeta de operación', city_uuid: '', territorial_director_uuid: '' });
-  Object.keys(errores).forEach((k) => delete errores[k]);
-  creado.value = null;
-}
-async function enfocarPrimerError() {
-  await nextTick();
-  const el = document.querySelector('[aria-invalid="true"], .is-invalid');
-  if (el) {
-    if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(el.tagName)) el.setAttribute('tabindex', '-1');
-    el.focus({ preventScroll: true });
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
-}
-async function crear() {
-  Object.keys(errores).forEach((k) => delete errores[k]);
-  if (esVacio(form.link_type)) errores.link_type = 'Seleccione el tipo de trámite.';
-  if (esVacio(form.vehicle_uuid)) errores.vehicle_uuid = 'Seleccione el vehículo.';
-  if (esVacio(form.procedure_code)) errores.procedure_code = 'El código es obligatorio.';
-  if (esVacio(form.date_of_creation)) errores.date_of_creation = 'La fecha es obligatoria.';
-  if (esVacio(form.city_uuid)) errores.city_uuid = 'Seleccione la ciudad.';
-  if (esVacio(form.territorial_director_uuid)) errores.territorial_director_uuid = 'Seleccione la dirección territorial.';
-  if (Object.keys(errores).length > 0) {
-    await enfocarPrimerError();
-    toast('Revise los datos del formulario', '', 'warning');
-    return;
-  }
-  cargando.value = true;
-  try {
-    const r = await service.crearExpediente({ ...form });
-    creado.value = r.data?.data ?? r.data;
-    toast('Expediente creado', '', 'success');
-    cargarExpedientes();
-  } catch (e) {
-    Object.assign(errores, e.response?.data?.errors ?? e.response?.data?.error?.details ?? {});
-    await enfocarPrimerError();
-    toast('Revise los datos del formulario', mensajeDeError(e), 'error');
-  } finally { cargando.value = false; }
-}
-onMounted(async () => { await cargarListas(); await cargarExpedientes(); });
+    await store.setPage(Math.floor(first / rows) + 1);
+};
+
+const claseDePaso = (estado) => ({
+    COMPLETADO: 'badge-subtle-success',
+    EN_PROCESO: 'badge-subtle-primary',
+}[estado] ?? 'badge-subtle-secondary');
+
+onMounted(async () => {
+    try {
+        busqueda.value = store.search;
+        await store.fetchItems();
+    } finally {
+        isViewLoading.value = false;
+    }
+});
 </script>
 
 <style scoped>
-.required::after { content: " *"; color: #dc3545; }
+.fade-in-up {
+    animation: fadeInUp 0.4s ease-out forwards;
+}
 
-/* ── Tipografía unificada ── */
-.noa-label         { font-size: 0.85rem; font-weight: 600; }
-.noa-helper        { font-size: 0.8rem; }
-.noa-section-label { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
-.noa-meta          { font-size: 0.78rem; }
-.noa-badge-xs      { font-size: 0.72rem; font-weight: 700; }
-.obligatorio-icon  { font-size: 0.55rem; }
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 15px, 0);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+/* Tabla Estilo Profesional Falcon */
+:deep(.professional-table .p-datatable-thead > tr > th) {
+    padding: 0.625rem 0.75rem !important;
+    font-size: 0.75rem !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #495057;
+    border-bottom: 2px solid #e9ecef !important;
+    background: #f8f9fa;
+}
+
+:deep(.professional-table .p-datatable-tbody > tr > td) {
+    padding: 0.625rem 0.75rem !important;
+    vertical-align: middle;
+    border-bottom: 1px solid #e9ecef;
+    font-size: 0.825rem !important;
+    color: #212529;
+    transition: background-color 150ms ease-in-out;
+}
+
+:deep(.professional-table .p-datatable-tbody > tr:hover) {
+    background: #f8f9fa !important;
+}
+
+:deep(.professional-table .p-datatable-tbody > tr:last-child > td) {
+    border-bottom: none;
+}
+
+/* Paginador */
+:deep(.p-paginator) {
+    padding: 0.5rem 1rem !important;
+    background: #f8f9fa !important;
+    border-top: 1px solid #e9ecef !important;
+    border-radius: 0 0 0.75rem 0.75rem !important;
+}
+
+:deep(.p-paginator .p-paginator-page) {
+    width: 1.8rem;
+    height: 1.8rem;
+    border-radius: 0.25rem !important;
+    margin: 0 0.125rem;
+    font-size: 0.75rem;
+    transition: all 150ms ease-in-out;
+}
+
+:deep(.p-paginator .p-paginator-page.p-highlight) {
+    background: #0d6efd !important;
+    border-color: #0d6efd !important;
+    color: #fff !important;
+}
+
+:deep(.p-paginator .p-paginator-page:not(.p-highlight):hover) {
+    background: #e9ecef !important;
+}
+
+:deep(.p-paginator .p-paginator-current) {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+:deep(.p-paginator .p-dropdown) {
+    min-height: auto !important;
+    height: 26px !important;
+    font-size: 0.75rem !important;
+}
+
+:deep(.p-paginator .p-dropdown .p-dropdown-label) {
+    font-size: 0.725rem !important;
+    padding: 0 0.25rem !important;
+}
+
+:deep(.p-paginator .p-dropdown .p-dropdown-trigger) {
+    width: 18px !important;
+}
+
+/* Badges */
+.badge-subtle {
+    font-weight: 500;
+    font-size: 0.75rem;
+    padding: 0.35em 0.6em;
+    transition: all 150ms ease-in-out;
+    white-space: nowrap;
+}
+
+.badge-subtle-success {
+    background: rgba(25, 135, 84, 0.1);
+    color: #198754;
+    border: 1px solid rgba(25, 135, 84, 0.2);
+}
+
+.badge-subtle-secondary {
+    background: rgba(108, 117, 125, 0.1);
+    color: #6c757d;
+    border: 1px solid rgba(108, 117, 125, 0.2);
+}
+
+.badge-subtle-primary {
+    background: rgba(37, 99, 235, 0.1);
+    color: #1d4ed8;
+    border: 1px solid rgba(37, 99, 235, 0.2);
+}
+
+.badge-subtle-info {
+    background: rgba(13, 202, 240, 0.1);
+    color: #0dcaf0;
+    border: 1px solid rgba(13, 202, 240, 0.2);
+}
+
+.badge-subtle-warning {
+    background: rgba(255, 193, 7, 0.1);
+    color: #856404;
+    border: 1px solid rgba(255, 193, 7, 0.2);
+}
+
+.badge-subtle:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Botones Acciones */
+:deep(.btn-group .btn) {
+    padding: 0.25rem 0.45rem;
+    transition: all 150ms ease-in-out;
+}
+
+:deep(.btn-group .btn:hover) {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    z-index: 1;
+}
+.avance {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.avance-barra {
+    flex: 1;
+    height: 8px;
+    min-width: 70px;
+    background: #e9ecef;
+    border-radius: 999px;
+}
+
+.avance-barra .progress-bar {
+    border-radius: 999px;
+    transition: width 300ms ease-in-out;
+}
+
+.avance-texto {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #212529;
+    min-width: 2.2rem;
+    text-align: right;
+}
 </style>

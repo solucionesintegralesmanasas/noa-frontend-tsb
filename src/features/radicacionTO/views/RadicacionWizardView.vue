@@ -5,7 +5,7 @@
         title="Expediente de radicación"
         :subtitle="subtitulo"
         icon="fad fa-id-card text-primary"
-        :breadcrumbs="[{ label: 'Radicación', to: '/radicacion' }, { label: codigo }]"
+        :breadcrumbs="[{ label: 'Radicación de tarjeta de operación', to: '/radicacion' }, { label: codigo }]"
         :show-back="true"
         @back="volver"
       />
@@ -81,19 +81,19 @@
           </div>
 
           <!-- ══════════════ Footer sticky: Cerrar paso ══════════════ -->
-          <div class="exp-footer px-4 py-3 border-top">
+          <div v-if="puedeActualizar" class="exp-footer px-4 py-3 border-top">
             <div class="d-flex flex-wrap align-items-center gap-3">
               <div>
                 <p class="exp-footer-title mb-1">Cerrar el paso actual</p>
                 <p class="exp-footer-sub mb-0">Al cerrar, el trámite avanza al siguiente paso automáticamente.</p>
               </div>
               <button
-                class="btn exp-btn-close ms-auto d-inline-flex align-items-center gap-2"
+                class="btn btn-success exp-btn-close ms-auto d-inline-flex align-items-center gap-2"
                 :disabled="cargando || pasoActual?.estado === 'COMPLETADO'"
                 @click="cerrarPaso"
               >
                 <i class="fas" :class="cargando ? 'fa-spinner fa-spin' : 'fa-circle-check'" aria-hidden="true"></i>
-                {{ lineaOculta ? 'Trámite finalizado' : 'Finalizar trámite' }}
+                {{ lineaOculta ? 'Trámite finalizado' : `Cerrar paso ${indiceActual + 1}` }}
               </button>
             </div>
           </div>
@@ -150,7 +150,7 @@
                         {{ contratoAdmin ? 'Crear otro' : 'Crear contrato' }}
                       </button>
                       <button
-                        v-if="contratoAdmin && !contratoAdmin.firmado"
+                        v-if="puedeCrear && contratoAdmin && !contratoAdmin.firmado"
                         type="button"
                         class="btn btn-sm btn-outline-primary d-inline-flex align-items-center justify-content-center gap-1 w-100"
                         :disabled="generandoEnlace === contratoAdmin.uuid"
@@ -199,7 +199,7 @@
                         {{ contratoPrest ? 'Crear otro' : 'Crear contrato' }}
                       </button>
                       <button
-                        v-if="contratoPrest && !contratoPrest.firmado"
+                        v-if="puedeCrear && contratoPrest && !contratoPrest.firmado"
                         type="button"
                         class="btn btn-sm btn-outline-primary d-inline-flex align-items-center justify-content-center gap-1 w-100"
                         :disabled="generandoEnlace === contratoPrest.uuid"
@@ -236,7 +236,7 @@
                   <i class="fad fa-file-export text-secondary" aria-hidden="true"></i>
                   <h3 class="h6 mb-0 fw-semibold">Archivos TXT — Portal TO RUNT</h3>
                 </div>
-                <div class="d-flex flex-wrap gap-2">
+                <div v-if="puedeActualizar" class="d-flex flex-wrap gap-2">
                   <button
                     class="btn btn-outline-secondary d-inline-flex align-items-center gap-2"
                     :disabled="cargando"
@@ -691,7 +691,8 @@ import DateInput from '@/components/form/DateInput.vue';
 import RadicacionTimeline from '../components/RadicacionTimeline.vue';
 import service, { mensajeDeError } from '../services/radicacion.service.js';
 import { fechasAutomaticas, validarFechasContrato } from '../utils/fechasContrato.js';
-import { etiquetaPaso, etiquetaTipo } from '../utils/pasosRadicacion.js';
+import { etiquetaPaso, etiquetaTipo, normalizarLinea } from '../utils/pasosRadicacion.js';
+import { usePermissionsStore } from '@store';
 import fleetService from '../services/fleetServiceContract.service.js';
 import prestationService from '../services/serviceProvisionContract.service.js';
 import { toast } from '@/utils/toast.js';
@@ -721,7 +722,10 @@ const estadoContrato = (contrato) => {
 };
 
 const etiquetaContrato = (c) => c.origen === 'ADMIN_FLOTA' ? 'Contrato de administración de flota' : 'Contrato de prestación de servicios';
-const linea = computed(() => detalle.value?.linea_tiempo ?? []);
+const permissionsStore = usePermissionsStore();
+const puedeCrear = computed(() => permissionsStore.can('radicacion_to.create'));
+const puedeActualizar = computed(() => permissionsStore.can('radicacion_to.update'));
+const linea = computed(() => normalizarLinea(detalle.value?.linea_tiempo ?? []));
 const indiceActual = computed(() => {
   const i = linea.value.findIndex((p) => p.estado === 'EN_PROCESO');
   return i === -1 ? linea.value.length - 1 : i;
@@ -732,7 +736,7 @@ const placa = computed(() => detalle.value?.expediente?.vehicle?.vehicle_license
 const lineaOculta = computed(() => detalle.value?.expediente?.global_status === 'COMPLETADO');
 const subtitulo = computed(() => lineaOculta.value
   ? `Trámite completado — expediente ${codigo.value}`
-  : (pasoActual.value ? `Documento actual: ${etiquetaPaso(pasoActual.value.paso)} — paso ${indiceActual.value + 1} de ${linea.value.length}` : 'Detalle del expediente'));
+  : (pasoActual.value ? `Documento actual: ${etiquetaPaso(pasoActual.value.paso)}` : 'Detalle del expediente'));
 
 // ── Utilidad: cerrar un modal Bootstrap por id ──
 function cerrarModal(id) {
@@ -1029,17 +1033,17 @@ onMounted(cargar);
 .exp-meta { font-size: 13px; }
 .exp-meta-label { color: #6b7686; }
 
-/* Placa: tablilla física amarilla */
+/* Placa: chip gris, igual que en el listado */
 .exp-plate {
   display: inline-block;
   padding: 2px 9px;
-  border: 1.5px solid #1f2a37;
+  border: 1px solid #dee2e6;
   border-radius: 5px;
-  background: #fcd116;
-  color: #111827;
-  font-weight: 800;
+  background: #f8f9fa;
+  color: #212529;
+  font-weight: 600;
   font-size: 13px;
-  letter-spacing: .08em;
+  letter-spacing: .04em;
 }
 
 /* Barra de progreso segmentada */
@@ -1063,7 +1067,7 @@ onMounted(cargar);
   background: #e3e8ef;
 }
 .exp-segment.seg-done    { background: #0fa968; }
-.exp-segment.seg-active  { background: #f07a2e; }
+.exp-segment.seg-active  { background: #2563eb; }
 .exp-segment.seg-pending { background: #e3e8ef; }
 
 /* Badge estado header */
@@ -1073,7 +1077,7 @@ onMounted(cargar);
   font-size: 12px;
   font-weight: 700;
 }
-.exp-status-badge.status-active { background: #fff0e4; color: #b4540f; }
+.exp-status-badge.status-active { background: #e8f0fe; color: #1d4ed8; }
 .exp-status-badge.status-done   { background: #e4f7ee; color: #0b7a4b; }
 
 /* Footer cerrar paso */
@@ -1098,12 +1102,9 @@ onMounted(cargar);
   padding: 11px 22px;
   border: 0;
   border-radius: 10px;
-  background: #0b7a4b;
-  color: #fff;
   font-size: 14px;
   font-weight: 700;
 }
-.exp-btn-close:hover:not(:disabled) { background: #096b41; color: #fff; }
 .exp-btn-close:disabled { opacity: .55; }
 
 /* ── Tipografía unificada ── */

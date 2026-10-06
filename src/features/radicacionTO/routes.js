@@ -3,7 +3,13 @@ export const radicacionTORoutes = [
     path: '/radicacion',
     name: 'radicacion.list',
     component: () => import('./views/RadicacionListView.vue'),
-    meta: { title: 'Radicación TO', auth: true, layout: 'dashboard', permissions: ['radicacion_to.index'] },
+    meta: { title: 'Radicación de tarjeta de operación', auth: true, layout: 'dashboard', permissions: ['radicacion_to.index'] },
+  },
+  {
+    path: '/radicacion/nuevo',
+    name: 'radicacion.create',
+    component: () => import('./views/RadicacionFormView.vue'),
+    meta: { title: 'Nuevo trámite', auth: true, layout: 'dashboard', permissions: ['radicacion_to.create'] },
   },
   {
     path: '/radicacion/:uuid',
