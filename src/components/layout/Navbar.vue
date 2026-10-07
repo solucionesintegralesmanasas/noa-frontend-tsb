@@ -171,6 +171,9 @@
                         <router-link v-if="permissionsStore.hasRole('superadmin') || permissionsStore.hasRole('administrador') || permissionsStore.hasRole('admin_empresa')" class="dropdown-item" to="/roles-permissions">
                             <span class="fas fa-user-shield me-1" aria-hidden="true"></span> Roles y permisos
                         </router-link>
+                        <router-link v-if="puedeVerLicencia" class="dropdown-item" to="/licencia">
+                            <span class="fas fa-key me-1" aria-hidden="true"></span> Licencia
+                        </router-link>
                         <div class="dropdown-divider"></div>
                         <button class="dropdown-item bg-transparent border-0 w-100 text-start" type="button" :disabled="isLoggingOut"
                             :class="{ 'pe-none opacity-75': isLoggingOut }"
@@ -381,6 +384,9 @@ const displayRoles = computed(() => {
     }
     return permissionsStore.roles.map(r => r.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())).join(' | ')
 })
+
+// Botón de licencia visible solo para el rol admin empresa, encima de Cerrar sesión.
+const puedeVerLicencia = computed(() => permissionsStore.hasRole('admin_empresa'))
 
 function toggleUserMenu() { }
 

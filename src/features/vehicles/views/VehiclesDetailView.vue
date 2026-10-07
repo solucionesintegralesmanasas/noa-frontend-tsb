@@ -66,7 +66,7 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center gap-2">
                     <i class="fad fa-id-card-alt text-primary" style="font-size: 14px;"></i>
-                    <h6 class="mb-0 fw-medium" style="font-size: 0.9rem;">Identificación</h6>
+                    <h6 class="mb-0 vd-titulo">Identificación</h6>
                 </div>
                 <div class="card-body py-3">
                     <div class="d-flex gap-3 flex-column flex-sm-row align-items-start g-2 g-md-3">
@@ -80,7 +80,7 @@
 
                         <!-- Datos de identificación -->
                         <div class="w-100">
-                            <dl class="row mb-0 small g-2 g-md-3" style="font-size: 0.85rem;">
+                            <dl class="row mb-0 small g-2 g-md-3">
                                 <dt class="col-5 text-muted fw-medium">Placa:</dt>
                                 <dd class="col-7 text-dark fw-semibold font-monospace">
                                     {{ vehicle.vehicle_license_plate || '—' }}
@@ -129,10 +129,10 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center gap-2">
                     <i class="fad fa-toggle-on text-primary" style="font-size: 14px;"></i>
-                    <h6 class="mb-0 fw-medium" style="font-size: 0.9rem;">Estado</h6>
+                    <h6 class="mb-0 vd-titulo">Estado</h6>
                 </div>
                 <div class="card-body py-3">
-                    <dl class="row mb-0 small g-2 g-md-3 align-items-center" style="font-size: 0.85rem;">
+                    <dl class="row mb-0 small g-2 g-md-3 align-items-center">
                         <dt class="col-5 text-muted fw-medium">Estado:</dt>
                         <dd class="col-7 mt-0 mb-0">
                             <span class="badge rounded-pill"
@@ -193,7 +193,7 @@
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center gap-2">
                     <i class="fad fa-file-pdf text-danger" style="font-size: 14px;"></i>
-                    <h6 class="mb-0 fw-medium" style="font-size: 0.9rem;">Documentos y Reportes PDF</h6>
+                    <h6 class="mb-0 vd-titulo">Documentos y Reportes PDF</h6>
                 </div>
                 <div class="card-body py-3">
                     <div class="row g-3">
@@ -257,7 +257,7 @@
             <div class="card border-0 shadow-sm h-100 d-flex flex-column">
                 <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center gap-2">
                     <i class="fad fa-cogs text-primary" style="font-size: 14px;"></i>
-                    <h6 class="mb-0 fw-medium" style="font-size: 0.9rem;">Especificaciones Técnicas</h6>
+                    <h6 class="mb-0 vd-titulo">Especificaciones Técnicas</h6>
                 </div>
                 <div class="card-body py-3 flex-grow-1 d-flex flex-column">
                     <dl class="spec-list row mb-0 small g-2 g-md-3 flex-grow-1">
@@ -306,7 +306,7 @@
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center gap-2">
                     <i class="fad fa-user-tie text-primary" style="font-size: 14px;"></i>
-                    <h6 class="mb-0 fw-medium" style="font-size: 0.9rem;">Propietario</h6>
+                    <h6 class="mb-0 vd-titulo">Propietario</h6>
                 </div>
                 <div class="card-body py-3">
                     <div class="d-flex align-items-center gap-3">
@@ -330,7 +330,7 @@
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center gap-2">
                     <i class="fad fa-id-badge text-primary" style="font-size: 14px;"></i>
-                    <h6 class="mb-0 fw-medium" style="font-size: 0.9rem;">Tarjeta de Operación</h6>
+                    <h6 class="mb-0 vd-titulo">Tarjeta de Operación</h6>
                 </div>
                 <!-- ✅ SECCIÓN 6: TARJETA DE OPERACIÓN -->
                 <div class="card-body py-3">
@@ -373,7 +373,7 @@
             <div class="card border-0 shadow-sm mt-4">
                 <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center gap-2">
                     <i class="fad fa-handshake text-primary" style="font-size: 14px;"></i>
-                    <h6 class="mb-0 fw-medium" style="font-size: 0.9rem;">Acuerdos de Colaboración</h6>
+                    <h6 class="mb-0 vd-titulo">Acuerdos de Colaboración</h6>
                 </div>
                 <div class="card-body py-3">
                     <div v-if="vehicle.business_collaboration_agreements?.length" class="list-group list-group-flush small">
@@ -417,7 +417,7 @@
                     class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center justify-content-between">
                     <div class="d-flex align-items-center gap-2">
                         <i class="fad fa-file-contract text-primary" style="font-size: 14px;"></i>
-                        <h6 class="mb-0 fw-medium" style="font-size: 0.9rem;">
+                        <h6 class="mb-0 vd-titulo">
                             Documentos y Seguros ({{ documentosAgrupados.length }}
                             {{ documentosAgrupados.length === 1 ? 'tipo' : 'tipos' }} · {{ vehicle.vehicle_documents?.length || 0 }} registros)
                         </h6>
@@ -535,7 +535,7 @@
                     class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center justify-content-between">
                     <div class="d-flex align-items-center gap-2">
                         <i class="fad fa-receipt text-primary" style="font-size: 14px;"></i>
-                        <h6 class="mb-0 fw-medium" style="font-size: 0.9rem;">Cuotas de Administración</h6>
+                        <h6 class="mb-0 vd-titulo">Cuotas de Administración</h6>
                     </div>
                     <span class="badge badge-subtle-warning" style="font-size: 0.7rem;">
                         {{ pendingChargesCount }} Pendiente(s)
@@ -588,7 +588,7 @@
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-light py-2 px-3 border-bottom d-flex align-items-center gap-2">
                     <i class="fad fa-tools text-primary" style="font-size: 14px;"></i>
-                    <h6 class="mb-0 fw-medium" style="font-size: 0.9rem;">Mantenimientos</h6>
+                    <h6 class="mb-0 vd-titulo">Mantenimientos</h6>
                 </div>
                 <div class="card-body py-3">
                     <div v-if="vehicle.maintenances?.length" class="list-group list-group-flush small">
@@ -1281,5 +1281,26 @@ a:focus {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+/* Tipografía unificada con LicenciaView (Poppins títulos, Open Sans texto, monoespaciada para códigos) */
+.vd-titulo {
+    font-family: var(--falcon-font-sans-serif);
+    font-weight: 600;
+    font-size: 1rem;
+}
+dl > dt {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #5b6678 !important;
+}
+dl > dd {
+    font-size: 0.875rem;
+}
+dl > dd.font-monospace,
+.font-monospace {
+    font-family: var(--falcon-font-monospace);
+    font-size: 0.8125rem;
 }
 </style>

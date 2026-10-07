@@ -535,6 +535,41 @@
                                             </div>
                                         </div>
                                     </div>
+
+                                    <h5 class="fw-medium text-primary mt-4 mb-3 d-flex align-items-center gap-2">
+                                        <i class="fad fa-palette"></i>
+                                        Presentación por documento
+                                    </h5>
+                                    <p class="text-muted small mb-3">
+                                        Defina qué lleva cada PDF: hoja membretada, logo de la empresa como fondo o nada. Sin elegir, se usa el logo de fondo.
+                                    </p>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm align-middle mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">Documento</th>
+                                                    <th scope="col" style="width: 240px;">Presentación</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr v-for="doc in PDF_DOCUMENTOS" :key="doc.clave">
+                                                    <td>
+                                                        <label class="form-label mb-0" :for="`f-pdf-${doc.clave}`">
+                                                            {{ doc.etiqueta }}
+                                                        </label>
+                                                    </td>
+                                                    <td>
+                                                        <select :id="`f-pdf-${doc.clave}`" v-model="formData.pdf_branding[doc.clave]" class="form-select form-select-sm">
+                                                            <option :value="undefined">Logo de fondo (defecto)</option>
+                                                            <option v-for="modo in PDF_MODOS" :key="modo.valor" :value="modo.valor">
+                                                                {{ modo.etiqueta }}
+                                                            </option>
+                                                        </select>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -963,6 +998,41 @@ const identityPreviews = reactive({
 
 const vehicleClasses = ref([]);
 
+// --- PRESENTACIÓN POR DOCUMENTO PDF ---
+// Claves alineadas con PdfService::PDF_CLAVES del backend.
+const PDF_DOCUMENTOS = Object.freeze([
+    { clave: 'fuec', etiqueta: 'FUEC' },
+    { clave: 'hoja_vida_vehicular', etiqueta: 'Hoja de vida vehicular' },
+    { clave: 'ficha_tecnica_vehiculo', etiqueta: 'Ficha técnica del vehículo' },
+    { clave: 'acta_entrega', etiqueta: 'Acta de entrega' },
+    { clave: 'mantenimiento', etiqueta: 'Hoja de vida de mantenimiento' },
+    { clave: 'inspeccion_preoperacional', etiqueta: 'Inspección preoperacional' },
+    { clave: 'planilla_diaria', etiqueta: 'Planilla diaria' },
+    { clave: 'planilla_mensual', etiqueta: 'Planilla mensual / historial' },
+    { clave: 'planilla_filtrada', etiqueta: 'Reporte de planillas filtradas' },
+    { clave: 'convenio_colaboracion', etiqueta: 'Convenio de colaboración' },
+    { clave: 'recibo_administracion', etiqueta: 'Recibo de administración' },
+    { clave: 'reporte_vehiculos', etiqueta: 'Reporte de vehículos' },
+    { clave: 'ficha_tecnica_tercero', etiqueta: 'Ficha técnica del tercero' },
+]);
+
+const PDF_MODOS = Object.freeze([
+    { valor: 'membrete', etiqueta: 'Hoja membretada' },
+    { valor: 'limpio', etiqueta: 'Sin nada (limpio)' },
+]);
+
+const MODOS_PDF_VALIDOS = PDF_MODOS.map((m) => m.valor);
+
+const normalizarPdfBranding = (valor) => {
+    const limpio = {};
+    if (valor && typeof valor === 'object' && !Array.isArray(valor)) {
+        for (const doc of PDF_DOCUMENTOS) {
+            if (MODOS_PDF_VALIDOS.includes(valor[doc.clave])) limpio[doc.clave] = valor[doc.clave];
+        }
+    }
+    return limpio;
+};
+
 // --- STORES ---
 const authStore = useAuthStore();
 const userStore = useUserStore();
@@ -1065,6 +1135,7 @@ const formData = reactive({
     fuec_pdf_show_signatures: true,
     fuec_pdf_show_contractor_details: true,
     fuec_pdf_show_route_details: true,
+    pdf_branding: {},
     vehicle_internal_number_counter: 1,
     fuec_enable_auto_internal_number: false,
     fuec_use_corporate_policies: false,
@@ -1533,6 +1604,7 @@ const handleSubmit = async () => {
                 fuec_pdf_show_signatures: updatedConfig.fuec_pdf_show_signatures === 1 || updatedConfig.fuec_pdf_show_signatures === true,
                 fuec_pdf_show_contractor_details: updatedConfig.fuec_pdf_show_contractor_details === 1 || updatedConfig.fuec_pdf_show_contractor_details === true,
                 fuec_pdf_show_route_details: updatedConfig.fuec_pdf_show_route_details === 1 || updatedConfig.fuec_pdf_show_route_details === true,
+                pdf_branding: normalizarPdfBranding(updatedConfig.pdf_branding),
                 vehicle_internal_number_counter: updatedConfig.vehicle_internal_number_counter != null ? Number(updatedConfig.vehicle_internal_number_counter) : 1,
                 fuec_enable_auto_internal_number: updatedConfig.fuec_enable_auto_internal_number === 1 || updatedConfig.fuec_enable_auto_internal_number === true,
                 fuec_use_corporate_policies: updatedConfig.fuec_use_corporate_policies === 1 || updatedConfig.fuec_use_corporate_policies === true,
@@ -1605,6 +1677,7 @@ onMounted(async () => {
                     fuec_pdf_show_signatures: data.fuec_pdf_show_signatures === 1 || data.fuec_pdf_show_signatures === true || data.fuec_pdf_show_signatures === undefined,
                     fuec_pdf_show_contractor_details: data.fuec_pdf_show_contractor_details === 1 || data.fuec_pdf_show_contractor_details === true || data.fuec_pdf_show_contractor_details === undefined,
                     fuec_pdf_show_route_details: data.fuec_pdf_show_route_details === 1 || data.fuec_pdf_show_route_details === true || data.fuec_pdf_show_route_details === undefined,
+                    pdf_branding: normalizarPdfBranding(data.pdf_branding),
                     vehicle_internal_number_counter: data.vehicle_internal_number_counter !== null && data.vehicle_internal_number_counter !== undefined ? Number(data.vehicle_internal_number_counter) : 1,
                     fuec_enable_auto_internal_number: data.fuec_enable_auto_internal_number === 1 || data.fuec_enable_auto_internal_number === true,
                     fuec_use_corporate_policies: data.fuec_use_corporate_policies === 1 || data.fuec_use_corporate_policies === true,

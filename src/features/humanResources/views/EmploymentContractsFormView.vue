@@ -30,7 +30,7 @@
                             <label class="form-label required" for="third_party_uuid">Empleado</label>
                             <PrimeSelect :input-id="'third_party_uuid'" v-model="formData.third_party_uuid"
                                 :options="store.catalogs?.thirdParties ?? []" option-value="uuid"
-                                :option-label="(opt) => `${opt.document_number || ''} - ${opt.first_name || ''} ${opt.last_name || ''} ${opt.trade_name || ''}`.trim()"
+                                :option-label="(opt) => `${opt.document_number || ''} - ${[opt.first_name, opt.last_name].filter(Boolean).join(' ') || opt.company_name || opt.trade_name || ''}`.trim()"
                                 placeholder="Seleccionar empleado..." showClear filter class="w-100"
                                 :invalid="!!validationErrors['third_party_uuid']" />
                             <div v-if="validationErrors.third_party_uuid" class="invalid-feedback d-block" id="f-third_party_uuid-error" role="alert">
@@ -194,10 +194,8 @@ const formData = reactive({
 const loadData = async () => {
     store.loading = true;
     try {
-        if (!store.catalogs?.thirdParties) {
-            const catalogs = await store.loadFormOptions();
-            store.catalogs = catalogs;
-        }
+        const catalogs = await store.loadFormOptions();
+        store.catalogs = catalogs;
 
         if (isEditMode.value) {
             const contract = await store.fetchProfileById(route.params.id);
@@ -236,10 +234,10 @@ const handleSubmit = async () => {
     try {
         if (isEditMode.value) {
             await store.updateItem(route.params.id, payload);
-            toast.success('Contrato laboral actualizado exitosamente.');
+            toast('Éxito', 'Contrato laboral actualizado exitosamente.', 'success');
         } else {
             await store.createItem(payload);
-            toast.success('Contrato laboral creado exitosamente.');
+            toast('Éxito', 'Contrato laboral creado exitosamente.', 'success');
         }
         goBack();
     } catch (error) {
@@ -257,7 +255,7 @@ const handleSubmit = async () => {
                 target.focus({ preventScroll: true });
                 target.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
-            toast.error('Por favor, revisa los errores en el formulario.');
+            toast('Atención', 'Por favor, revisa los errores en el formulario.', 'warning');
         } else {
             handleGlobalError(error);
         }
