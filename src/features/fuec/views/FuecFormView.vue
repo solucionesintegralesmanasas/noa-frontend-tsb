@@ -2,7 +2,18 @@
     <div class="row gx-3">
         <div class="col-12 col-xxl-10 offset-xxl-1 col-xl-12">
             <BasePageHeader :title="pageTitle" :subtitle="pageSubtitle" icon="fad fa-clipboard-list text-primary"
-                :breadcrumbs="breadcrumbs" :show-back="true" @back="goBack" />
+                :breadcrumbs="breadcrumbs" :show-back="true" @back="goBack">
+                <template #title-after>
+                    <span v-if="selectedVehiclePlate" class="badge rounded-pill bg-primary text-white fw-bold d-inline-flex align-items-center gap-1 px-2 py-1 shadow-sm" style="font-size: 0.7rem;" role="status">
+                        <i class="fas fa-truck" aria-hidden="true"></i>
+                        Vehículo: {{ selectedVehiclePlate }}
+                    </span>
+                    <span v-else class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary d-inline-flex align-items-center gap-1 px-2 py-1" style="font-size: 0.7rem;" role="status">
+                        <i class="fas fa-truck" aria-hidden="true"></i>
+                        Vehículo: sin seleccionar
+                    </span>
+                </template>
+            </BasePageHeader>
 
             <div class="card border-0 shadow-sm fade-in-up" style="animation-delay: 0.1s;">
                 <div class="card-header border-bottom border-200 px-0">
@@ -533,6 +544,14 @@ const formData = reactive({
 });
 
 const passengers = computed(() => formData.passengers);
+
+/** Placa del vehículo seleccionado para generar el FUEC */
+const selectedVehiclePlate = computed(() => {
+    const uuid = formData.vehicle_uuid;
+    if (!uuid) return '';
+    const v = (store.catalogs.vehicles ?? []).find((item) => item.uuid === uuid);
+    return v?.vehicle_license_plate || '';
+});
 
 const passengerErrors = computed(() =>
     Object.entries(validationErrors)
