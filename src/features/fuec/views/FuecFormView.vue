@@ -459,6 +459,7 @@ import BaseFormActions from '@/components/BaseFormActions.vue';
 import Swal from 'sweetalert2';
 import { dateUtils } from '@utils/date.js';
 import { logger } from '@utils/logger.js';
+import { masReciente } from '@/hooks/useDocumentWizard.js';
 
 const route = useRoute();
 const router = useRouter();
@@ -881,18 +882,27 @@ const consultarVehiculo = async () => {
 
         // 3. Validar SOAT
         const docs = vehicle.vehicle_documents || vehicle.vehicleDocuments || [];
+        // Un documento cubre hoy si no está descartado y su vencimiento no pasó.
+        const cubreHoy = (d) => {
+            if (!d || d.status === 'NO VIGENTE' || d.status === 'INACTIVA') return false;
+            if (!d.expiry_date) return true;
+            const expiry = d.expiry_date.toString().substring(0, 10);
+            return !dateUtils.dayjs(expiry, 'YYYY-MM-DD').isBefore(today, 'day');
+        };
+        // La más reciente entre las que cubren hoy (el historial no cuenta).
+        const vigenteHoy = (lista) => masReciente(lista.filter(cubreHoy), () => true);
+        // El vencimiento válido más próximo (para topar la vigencia del FUEC).
+        const minimaValida = (lista) => {
+            const fechas = lista.filter((d) => d.expiry_date && cubreHoy(d))
+                .map((d) => d.expiry_date.toString().substring(0, 10)).sort();
+            return fechas[0];
+        };
         const soatDocs = docs.filter(d => d.document_type && d.document_type.toUpperCase().includes('SOAT'));
 
         if (soatDocs.length === 0) {
             validationErrorsList.push('El vehículo no tiene un SOAT registrado.');
         } else {
-            const validSoat = soatDocs.find(d => {
-                const isStatusValid = d.status !== 'NO VIGENTE' && d.status !== 'INACTIVA';
-                if (!isStatusValid) return false;
-                if (!d.expiry_date) return true;
-                const expiry = d.expiry_date.toString().substring(0, 10);
-                return !dateUtils.dayjs(expiry, 'YYYY-MM-DD').isBefore(today, 'day');
-            });
+            const validSoat = vigenteHoy(soatDocs);
 
             if (!validSoat) {
                 const latest = soatDocs.sort((a, b) => {
@@ -930,13 +940,7 @@ const consultarVehiculo = async () => {
                     validationErrorsList.push('No se encontró fecha de matrícula ni RTM registrada para el vehículo.');
                 }
             } else {
-                const validRtm = rtmDocs.find(d => {
-                    const isStatusValid = d.status !== 'NO VIGENTE' && d.status !== 'INACTIVA';
-                    if (!isStatusValid) return false;
-                    if (!d.expiry_date) return true;
-                    const expiry = d.expiry_date.toString().substring(0, 10);
-                    return !dateUtils.dayjs(expiry, 'YYYY-MM-DD').isBefore(today, 'day');
-                });
+                const validRtm = vigenteHoy(rtmDocs);
 
                 if (!validRtm) {
                     const latest = rtmDocs.sort((a, b) => {
@@ -982,49 +986,30 @@ const consultarVehiculo = async () => {
         }
 
         // 6. Validar Seguros (RCE y RCC)
-        const validRce = docs.find(d => {
-            if (!d.document_type || !d.document_type.toUpperCase().includes('RCE')) return false;
-            if (d.status === 'NO VIGENTE' || d.status === 'INACTIVA') return false;
-            if (!d.expiry_date) return true;
-            const expiry = d.expiry_date.toString().substring(0, 10);
-            return !dateUtils.dayjs(expiry, 'YYYY-MM-DD').isBefore(today, 'day');
-        });
-        const validRcc = docs.find(d => {
-            if (!d.document_type || !d.document_type.toUpperCase().includes('RCC')) return false;
-            if (d.status === 'NO VIGENTE' || d.status === 'INACTIVA') return false;
-            if (!d.expiry_date) return true;
-            const expiry = d.expiry_date.toString().substring(0, 10);
-            return !dateUtils.dayjs(expiry, 'YYYY-MM-DD').isBefore(today, 'day');
-        });
+        const rceDocs = docs.filter(d => d.document_type && d.document_type.toUpperCase().includes('RCE'));
+        const rccDocs = docs.filter(d => d.document_type && d.document_type.toUpperCase().includes('RCC'));
+        const validRce = vigenteHoy(rceDocs);
+        const validRcc = vigenteHoy(rccDocs);
 
         if (!validRce || !validRcc) {
             validationErrorsList.push('El vehículo debe tener vigentes los seguros de Responsabilidad Civil (RCE y RCC).');
         }
 
-        // Limitar expiration_date del FUEC según vencimientos de documentos VIGENTES del vehículo
-        const isDocValid = (d) => d.status !== 'NO VIGENTE' && d.status !== 'INACTIVA';
+        // Limitar expiration_date del FUEC según vencimientos de documentos que cubren hoy
         const docLimits = [];
-        // SOAT vigente más próximo a vencer
-        const validSoatDocs = soatDocs.filter(d => d.expiry_date && isDocValid(d));
-        if (validSoatDocs.length > 0) {
-            const soatExpiries = validSoatDocs.map(d => d.expiry_date.toString().substring(0, 10)).sort();
-            docLimits.push(soatExpiries[0]);
-        }
-        // RTM vigente más próxima a vencer
+        // SOAT válido más próximo a vencer
+        const minSoat = minimaValida(soatDocs);
+        if (minSoat) docLimits.push(minSoat);
+        // RTM válida más próxima a vencer
         if (!isRtmExempt) {
-            const validRtmDocs = rtmDocs.filter(d => d.expiry_date && isDocValid(d));
-            if (validRtmDocs.length > 0) {
-                const rtmExpiries = validRtmDocs.map(d => d.expiry_date.toString().substring(0, 10)).sort();
-                docLimits.push(rtmExpiries[0]);
-            }
+            const minRtm = minimaValida(rtmDocs);
+            if (minRtm) docLimits.push(minRtm);
         }
-        // Pólizas RCE y RCC vigentes más próximas a vencer
-        if (validRce && validRce.expiry_date && isDocValid(validRce)) {
-            docLimits.push(validRce.expiry_date.toString().substring(0, 10));
-        }
-        if (validRcc && validRcc.expiry_date && isDocValid(validRcc)) {
-            docLimits.push(validRcc.expiry_date.toString().substring(0, 10));
-        }
+        // Pólizas RCE y RCC válidas más próximas a vencer
+        const minRce = minimaValida(rceDocs);
+        if (minRce) docLimits.push(minRce);
+        const minRcc = minimaValida(rccDocs);
+        if (minRcc) docLimits.push(minRcc);
 
         // Calcular límite final: el mínimo entre admin/convenio y los documentos
         if (docLimits.length > 0) {
