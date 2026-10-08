@@ -49,7 +49,9 @@ const routes = [
     path: '/',
     name: 'license',
     component: LicenseInput,
-    meta: { requiresAuth: false, title: 'Licencia - NOA API' }
+    // Pública: es la puerta de entrada de la licencia. Sin este flag, un navegador sin
+    // 'license_accepted' rebotaba infinito entre '/' y '/login' y la página quedaba en blanco.
+    meta: { requiresAuth: false, public: true, title: 'Licencia - NOA API' }
   },
   {
     path: '/login',
